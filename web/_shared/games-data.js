@@ -25,6 +25,12 @@
 // PROGRAMS - программы, а не игры (раздел «Программы» под играми): открываются во вкладке
 // так же, но в приложение попадает только их страница index.html - у программы рядом
 // бывают своя оболочка Electron и инструменты (web/writing-speed/electron, tools).
+// Поля программ сверх полей игр (необязательные):
+//   uses   - соседние папки web/, из которых страница грузит общие файлы (компилятор берёт
+//            Python и ядро редактора из web/python_ide): приложение пускает её и туда;
+//   files  - что из web/ идёт в сборку приложения, если не одна страница index.html;
+//   single - false: не вкладывать в «Игротеку одним файлом» (tools/make-single.js) - там
+//            карточки нет; так у компилятора, его движки - десятки мегабайт соседних файлов.
 (function (root, factory) {
   const data = factory();
   if (typeof module === 'object' && module.exports) module.exports = data;
@@ -61,10 +67,13 @@
   // Добавлена 10.10.2026 по просьбе владельца («добавим в игротеку как программу»).
   const PROGRAMS = [
     { id: 'writing-speed', name: 'Скорость печати', desc: 'Тест скорости печати: шесть языков и код, ошибки по клавишам, рекорды', storage: ['typing:'] },
+    // Добавлен 10.10.2026 по слову владельца («добавим в Игротеку как программу»).
+    { id: 'compiler', name: 'Компилятор', desc: 'C, C++, Python, JavaScript, TypeScript, Lua, Ruby и SQL - запуск прямо здесь, без сети', storage: ['compiler.'],
+      uses: ['python_ide'], files: ['web/compiler/**/*', 'web/python_ide/runtime.js', 'web/python_ide/vendor/**/*'], single: false },
   ];
 
   for (const g of GAMES) { g.keys = g.keys || []; Object.freeze(g.keys); Object.freeze(g.storage); Object.freeze(g); }
   for (const s of SYSTEMS) { Object.freeze(s.storage); Object.freeze(s); }
-  for (const p of PROGRAMS) { Object.freeze(p.storage); Object.freeze(p); }
+  for (const p of PROGRAMS) { Object.freeze(p.storage); if (p.uses) Object.freeze(p.uses); if (p.files) Object.freeze(p.files); Object.freeze(p); }
   return Object.freeze({ GAMES: Object.freeze(GAMES), SYSTEMS: Object.freeze(SYSTEMS), PROGRAMS: Object.freeze(PROGRAMS) });
 });

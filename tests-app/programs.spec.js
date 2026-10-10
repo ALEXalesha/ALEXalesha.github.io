@@ -35,8 +35,18 @@ for (const p of DATA.PROGRAMS) {
     await H.gameLoaded(app, p.id, 30000);
     await expect(shell.locator(`.tab.game[data-id="${p.id}"] .name`)).toHaveText(p.name);
     expect(await app.evaluate(({ session }, id) => globalThis.__igroteka.views.get(id).webContents.session === session.fromPartition('persist:' + id), p.id)).toBe(true);
-    const done = await H.inGame(app, p.id, `(() => { __ws.startCustom('да'); return __ws.state.words.length; })()`);
-    expect(done).toBe(1);
+    // своё действие каждой программы: работает ли она по-настоящему
+    if (p.id === 'writing-speed') {
+      const done = await H.inGame(app, p.id, `(() => { __ws.startCustom('да'); return __ws.state.words.length; })()`);
+      expect(done).toBe(1);
+    } else if (p.id === 'compiler') {
+      // Hello на JavaScript в потоке; редактор и Python - из web/python_ide (поле uses)
+      const res = await H.inGame(app, p.id, `(async () => { for (let i = 0; i < 100 && !window.__compiler; i++) await new Promise((r) => setTimeout(r, 100)); const r = await __compiler.run(); return r.status + '|' + document.getElementById('out').textContent; })()`);
+      expect(res).toMatch(/^ok\|[\s\S]*Hello, World!/);
+      // Python - из соседней папки web/python_ide: вкладку туда пускает поле uses
+      const py = await H.inGame(app, p.id, `(async () => { document.querySelector('#files .file[data-name="main.py"]').click(); const r = await __compiler.run(); return r.status + '|' + document.getElementById('out').textContent; })()`);
+      expect(py).toMatch(/^ok\|[\s\S]*Hello, World!/);
+    }
     expect(await H.errorsOf(app, p.id)).toEqual([]);
     expect(await app.evaluate(() => globalThis.__igroteka.blocked)).toEqual([]);
     await expect(shell.locator(`#programs .card[data-id="${p.id}"] .play`)).toHaveText('Вернуться');

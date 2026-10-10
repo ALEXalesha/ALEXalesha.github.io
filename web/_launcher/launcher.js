@@ -26,7 +26,9 @@
 
   const GAMES = DATA.GAMES;
   const SYSTEMS = DATA.SYSTEMS;
-  const PROGRAMS = DATA.PROGRAMS || [];
+  // В «Игротеке одним файлом» (tools/make-single.js, window.__IGRO) нет программ с
+  // single: false - их движки лежат соседними файлами, там их карточки не показываются.
+  const PROGRAMS = (DATA.PROGRAMS || []).filter((p) => !(window.__IGRO && p.single === false));
   const ITEMS = [...GAMES, ...PROGRAMS, ...SYSTEMS];
   const isProgram = (id) => PROGRAMS.some((p) => p.id === id);
   // Демо и программы открывают, в игры играют

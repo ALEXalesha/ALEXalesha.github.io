@@ -164,14 +164,19 @@ test('демо систем: страница и картинка есть, хо
 
 test('программы: страница и картинка есть, ходить можно только в свою папку', () => {
   const progs = Games.programsCatalog(ROOT);
-  assert.deepEqual(progs.map((p) => p.id), ['writing-speed']);
+  assert.deepEqual(progs.map((p) => p.id), ['writing-speed', 'compiler']);
   for (const p of progs) {
     assert.ok(fs.existsSync(p.page), p.page);
     assert.ok(p.desc && p.program && p.storage.length, p.id);
     assert.ok(fs.existsSync(path.join(ROOT, 'app', 'assets', 'thumbs', p.id + '.jpg')), 'нет картинки ' + p.id);
-    assert.equal(Security.allowRequest(url(p.page), p.dir), true);
-    assert.equal(Security.allowRequest(url(path.join(ROOT, 'web', 'dino', 'index.html')), p.dir), false);
-    assert.equal(Security.allowRequest('https://example.com/', p.dir), false);
+    const folders = p.folders || p.dir;
+    assert.equal(Security.allowRequest(url(p.page), folders), true);
+    assert.equal(Security.allowRequest(url(path.join(ROOT, 'web', 'dino', 'index.html')), folders), false);
+    assert.equal(Security.allowRequest('https://example.com/', folders), false);
+    for (const u of p.uses || []) {
+      assert.ok(fs.existsSync(path.join(ROOT, 'web', u)), 'нет папки ' + u);
+      assert.equal(Security.allowRequest(url(path.join(ROOT, 'web', u, 'index.html')), folders), true, p.id + ' -> ' + u);
+    }
   }
   assert.ok(Object.isFrozen(DATA.PROGRAMS) && DATA.PROGRAMS.every((p) => Object.isFrozen(p)));
 });
@@ -191,7 +196,7 @@ test('имя из заголовка: без пометки о фан-верси
 test('в сборку попадают только app/, таблица игр, папки игр и демо систем', () => {
   const files = pkg.build.files.filter((f) => !f.startsWith('!'));
   const expected = ['package.json', 'app/**/*', 'web/_shared/games-data.js', ...Games.IDS.map((id) => `web/${id}/**/*`),
-    ...Games.SYSTEM_IDS.map((id) => `web/${id}/**/*`), 'web/_os-shared/**/*', ...Games.PROGRAM_IDS.map((id) => `web/${id}/index.html`)];
+    ...Games.SYSTEM_IDS.map((id) => `web/${id}/**/*`), 'web/_os-shared/**/*', ...Games.PROGRAMS.flatMap((p) => p.files || [`web/${p.id}/index.html`])];
   assert.deepEqual([...files].sort(), [...expected].sort());
 });
 

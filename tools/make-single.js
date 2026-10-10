@@ -85,7 +85,9 @@ const withShim = (html) => html.replace(/<head([^>]*)>/i, (m) => `${m}<script>${
 
 function main() {
   const gamesSrc = read(path.join(ROOT, 'web/_shared/games-data.js'));
-  const ids = [...gamesSrc.matchAll(/\bid:\s*'([^']+)'/g)].map((m) => m[1]);
+  // программы с single: false (компилятор) не вкладываются - их движки грузятся соседними файлами
+  const skip = new Set(require(path.join(ROOT, 'web/_shared/games-data.js')).PROGRAMS.filter((p) => p.single === false).map((p) => p.id));
+  const ids = [...gamesSrc.matchAll(/\bid:\s*'([^']+)'/g)].map((m) => m[1]).filter((id) => !skip.has(id));
   const pages = {};
   for (const id of ids) {
     const file = path.join(ROOT, 'web', id, 'index.html');

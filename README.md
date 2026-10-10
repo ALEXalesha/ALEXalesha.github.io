@@ -25,8 +25,12 @@ concepts and are not affiliated with any rights holders.
 ![A game in a tab](docs/screens/app-game.png)
 
 - **Programs.** Below the games is a "Programs" section: WritingSpeed («Скорость печати»,
-  `web/writing-speed`), a typing speed test. It opens in a tab like a game; only its page
-  goes into the app (its own Electron shell and tools stay next to it).
+  `web/writing-speed`), a typing speed test, and the Compiler («Компилятор»,
+  `web/compiler`): C, C++, Python, JavaScript, TypeScript, Lua, Ruby and SQL run right
+  there, offline. They open in a tab like a game. Of WritingSpeed only its page goes into
+  the app (its own Electron shell and tools stay next to it); the Compiler goes in with its
+  engines and the Python of `web/python_ide` (about 80 MB) and is not part of the one-file
+  Igroteka.
 - **System demos.** Below the games is a "System demos" section: shells in the style of
   Windows 11, macOS, iOS and One UI (`win11_3`, `macos-tahoe`, `ios26`, `oneui7`; not
   affiliated with Apple/Microsoft/Samsung). Each opens in a tab like a game, with its own
@@ -167,6 +171,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | Folder | What it is | Own laws | Score |
 |---|---|---|---|
 | `writing-speed` | WritingSpeed: typing speed test - time, words, quotes, custom text, zen; six languages and code; WPM/CPM, accuracy, consistency, mistakes by key, records. Also a separate Electron app (`web/writing-speed/electron`) | 40 | not reviewed yet |
+| `compiler` | Compiler: C, C++ (Clang 22 → WebAssembly), Python, JavaScript, TypeScript, Lua, Ruby and SQL in the browser; time limit, Stop, stdin, errors on their line, five Paint themes, RU/EN. Also a standalone repository: [Compiler](https://github.com/ALEXalesha/Compiler) | 18 (+11 mutants) | not reviewed yet |
 | `python_ide` | Offline Python 3.13: editor, Stop, `input()`, files | 11 | 8 |
 | `calculator` | Calculator with exact decimal arithmetic and operator precedence | 40 | 8 |
 | `player` | Player for your own files, remembers them after a restart | 12 | 8 |
@@ -209,7 +214,13 @@ They sit next to the pages unchanged, each with its licence text.
 |---|---|---|
 | three.js r149 | `web/{fps_1,horizon_drift_offline,minecraft_clone_3d_1,roblox-mini}/vendor/` | MIT |
 | CodeMirror 5.65.21 | `web/python_ide/vendor/codemirror/` | MIT |
-| Pyodide 0.29.5 (Python 3.13.2) | `web/python_ide/vendor/pyodide/` | MPL-2.0; Python standard library: PSF |
+| Pyodide 0.29.5 (Python 3.13.2) | `web/python_ide/vendor/pyodide/` (also used by `web/compiler`) | MPL-2.0; Python standard library: PSF |
+| YoWASP Clang 22 (Clang, LLD, wasi-libc, libc++) | `web/compiler/vendor/clang/` | Apache-2.0 WITH LLVM-exception; wasi-libc: Apache-2.0/MIT; YoWASP: ISC |
+| ruby.wasm 2.10.1 (CRuby 3.4) | `web/compiler/vendor/ruby/` | MIT; Ruby: see NOTICE |
+| TypeScript 5.9.3 | `web/compiler/vendor/typescript/` | Apache-2.0 |
+| sql.js 1.14.2 (SQLite) | `web/compiler/vendor/sqljs/` | MIT; SQLite: public domain |
+| Fengari 0.1.4 (Lua 5.3) | `web/compiler/vendor/fengari/` | MIT |
+| CodeMirror 5.65.21 modes and hints | `web/compiler/vendor/codemirror/` | MIT |
 | pdf.js 3.11.174 | `web/token-calc/vendor/pdfjs/` | Apache-2.0 |
 | mammoth 1.6.0 | `web/token-calc/vendor/mammoth/` | BSD-2-Clause |
 | word lists from wordfreq 3.1.1 (Robyn Speer), filtered | the `WORDS` block of `web/writing-speed/index.html` | CC BY-SA 4.0 (that block only) |

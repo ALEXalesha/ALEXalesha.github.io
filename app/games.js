@@ -87,7 +87,10 @@ function systemsCatalog(root) {
   });
 }
 
-/** Программы (раздел «Программы»): страница своей папки, ходить можно только в неё. */
+/**
+ * Программы (раздел «Программы»): страница своей папки, ходить можно только в неё и в
+ * соседние папки из поля uses (компилятор берёт Python и редактор из web/python_ide).
+ */
 function programsCatalog(root) {
   return PROGRAMS.map((p) => {
     const dir = path.join(root, 'web', p.id);
@@ -98,7 +101,8 @@ function programsCatalog(root) {
     } catch {
       /* страницы нет - останется запасное имя */
     }
-    return { ...p, program: true, keys: [], name: name || p.name, dir, page };
+    const uses = (p.uses || []).map((u) => path.join(root, 'web', u));
+    return { ...p, program: true, keys: [], name: name || p.name, dir, page, ...(uses.length ? { folders: [dir, ...uses] } : {}) };
   });
 }
 

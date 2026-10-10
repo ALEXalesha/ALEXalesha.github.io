@@ -4,6 +4,17 @@
 
 **EN**
 
+- New program: the Compiler (`web/compiler`) in the "Programs" section of Igroteka (app and
+  browser page; storage prefix `compiler.`). C and C++ are compiled by Clang 22 (YoWASP:
+  clang, lld, wasi-libc, libc++ built for WebAssembly) and run with a small WASI host;
+  Python is the Pyodide of `web/python_ide` (shared, not copied: the new `uses` field lets the
+  app tab read that folder); JavaScript runs in a worker, TypeScript is type-checked first;
+  Lua (Fengari), Ruby (ruby.wasm) and SQL (sql.js). Every program runs in its own worker:
+  time limit, Stop, input from the Input field, errors highlighted on their line. Engines
+  are packed (gzip + base64 in `<script>` files, `vendor/make-packs.js`) and load when their
+  language is first used; the page works from disk. Not in the one-file Igroteka
+  (`single: false`). 18 laws in `tests/web/compiler.spec.js`, 11 mutants in
+  `tests/web/compiler-mutate.js`. Also published on its own as ALEXalesha/Compiler.
 - New program: WritingSpeed («Скорость печати», `web/writing-speed`), a typing speed
   test in one HTML page: time (15/30/60/120 s), words (10/25/50/100), quotes, custom text
   and zen; Russian, Ukrainian, English, German, French, Spanish and JS/Python code; the
@@ -40,6 +51,18 @@
 
 **RU**
 
+- Новая программа: «Компилятор» (`web/compiler`) в разделе «Программы» «Игротеки»
+  (приложение и браузерная страница; приставка хранилища `compiler.`). C и C++ компилирует
+  Clang 22 (YoWASP: clang, lld, wasi-libc, libc++, собранные под WebAssembly), запуск -
+  небольшим хостом WASI; Python - Pyodide из `web/python_ide` (общий, не копия: новое поле
+  `uses` пускает вкладку приложения в эту папку); JavaScript - в отдельном потоке,
+  TypeScript сначала проверяется на типы; Lua (Fengari), Ruby (ruby.wasm) и SQL (sql.js).
+  Каждая программа - в своём потоке: предел времени, «Стоп», ввод из поля «Ввод (stdin)»,
+  ошибки подсвечены на своей строке. Движки упакованы (gzip + base64 в файлах `<script>`,
+  `vendor/make-packs.js`) и грузятся при первом выборе языка; страница работает с диска.
+  В «Игротеку одним файлом» не входит (`single: false`). 18 законов в
+  `tests/web/compiler.spec.js`, 11 мутантов в `tests/web/compiler-mutate.js`. Выложен и
+  отдельным репозиторием ALEXalesha/Compiler.
 - Новая программа: «Скорость печати» / WritingSpeed (`web/writing-speed`), тест скорости
   печати одной страницей HTML: время (15/30/60/120 с), слова (10/25/50/100), цитаты, свой
   текст и дзен; русский, украинский, английский, немецкий, французский, испанский и код
