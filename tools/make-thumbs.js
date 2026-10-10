@@ -27,6 +27,8 @@ const OUT = path.join(__dirname, '..', 'app', 'assets', 'thumbs');
 // «Играть/Поехали/Начать», потом Enter и пробел.
 const PLAY = {
   dino: { hold: [], wait: 900 },
+  // «Летучая птичка»: после старта ведёт автопилот заставки, иначе птичка падает до снимка
+  flappy_wings: { hold: [], wait: 2600, after: '__game.setAutopilot(true)' },
   fps_1: { hold: ['KeyW'], wait: 1500, click: true },
   mario: { hold: ['ArrowRight'], wait: 1800 },
   jungle_strike: { hold: ['ArrowRight'], wait: 1500 },

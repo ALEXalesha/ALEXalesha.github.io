@@ -81,8 +81,8 @@ test('переходы: своя папка остаётся, http(s) - нару
 
 // --- каталог игр ---
 
-test('десять игр владельца, у каждой есть страница, описание и картинка карточки', () => {
-  assert.deepEqual(Games.IDS, ['minecraft_clone_3d_1', 'roblox-mini', 'fps_1', 'dino', 'mario', 'horizon_drift_offline', 'jungle-strike', 'space_shooter', 'tetris', 'sudoku']);
+test('одиннадцать игр владельца, у каждой есть страница, описание и картинка карточки', () => {
+  assert.deepEqual(Games.IDS, ['minecraft_clone_3d_1', 'roblox-mini', 'fps_1', 'dino', 'mario', 'horizon_drift_offline', 'jungle-strike', 'space_shooter', 'tetris', 'sudoku', 'flappy-wings']);
   for (const g of Games.catalog(ROOT)) {
     assert.ok(fs.existsSync(g.page), g.page);
     assert.ok(g.name && g.desc, g.id);

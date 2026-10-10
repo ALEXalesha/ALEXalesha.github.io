@@ -4,6 +4,10 @@
 
 **EN**
 
+- New game in the list: Flappy Wings («Летучая птичка», `web/flappy-wings`), a fan game
+  in the fly-between-the-columns genre, not affiliated with the rights holders of its known
+  games. Card, picture and description in the app and the browser page; storage prefix
+  `flappy:`; 24 laws and 10 mutants in `tests/web/flappy-wings*`.
 - New: the browser version of Igroteka, `index.html` at the repository root: the same
   cards and pictures, games in tabs of the page, a "System demos" section; works from
   disk and from GitHub Pages (`.nojekyll` added). Pause/resume messages to the game when
@@ -20,6 +24,10 @@
 
 **RU**
 
+- Новая игра в списке: «Летучая птичка» / Flappy Wings (`web/flappy-wings`), фан-игра в
+  жанре «пролети между колоннами», не связана с правообладателями известных игр жанра.
+  Карточка, картинка и описание в приложении и на браузерной странице; приставка
+  хранилища `flappy:`; 24 закона и 10 мутантов в `tests/web/flappy-wings*`.
 - Новое: браузерная «Игротека», `index.html` в корне: те же карточки и картинки, игры во
   вкладках страницы, раздел «Демо систем»; работает с диска и с GitHub Pages (добавлен
   `.nojekyll`). Пауза и возврат игре при уходе с её вкладки и при скрытии вкладки

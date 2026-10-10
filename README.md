@@ -3,7 +3,7 @@
 **English** · [Русский](README.ru.md)
 
 A collection of small projects that have been fixed up, plus **Igroteka** («Игротека»,
-"game library"), a desktop app that runs ten of the games from this collection in
+"game library"), a desktop app that runs eleven of the games from this collection in
 tabs of one window.
 
 - `web/` - 25 standalone HTML pages: games, tools and desktop-shell demos. Each opens
@@ -17,8 +17,9 @@ The interface of all projects is in Russian.
 
 ## Igroteka
 
-Ten games in one window: Cube World, Cube Parkour, 3D Shooting Range, Dino Run,
-Hop-Skip (a platformer), Horizon Drift, Fire Jungle, Space Shooter, Blocks and Sudoku. All games are fan
+Eleven games in one window: Cube World, Cube Parkour, 3D Shooting Range, Dino Run,
+Hop-Skip (a platformer), Horizon Drift, Fire Jungle, Space Shooter, Blocks, Sudoku and Flappy Wings
+(«Летучая птичка», a fly-between-the-columns game). All games are fan
 concepts and are not affiliated with any rights holders.
 
 ![A game in a tab](docs/screens/app-game.png)
@@ -87,7 +88,7 @@ npm run dist              # build the installer and the portable exe into dist/
 
 The Windows x64 build gives `dist/Igroteka-1.0.0-Setup.exe` (NSIS, per-user, no admin
 rights, Russian) and `dist/Igroteka-1.0.0-Portable.exe`, 98 MB each. Only `app/` and the
-ten game folders go into the build.
+eleven game folders go into the build.
 
 ```
 npm test                  # web/ pages in Chromium (284 checks)
@@ -153,6 +154,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `jungle-strike` | Fire Jungle: a run-and-gun arcade with a boss | 11 | 7 / 7 / 6 |
 | `minecraft_clone_3d_1` | Cube World: a voxel sandbox, builds are saved | 11 | 7 / 7 / 6 |
 | `dino` | Dino Run: jump over cacti and duck under birds | 11 | 6 / 8 / 3 |
+| `flappy-wings` | Flappy Wings: fly between columns, one file, a fan game not affiliated with the rights holders of the genre's known games | 24 | not reviewed yet |
 | `fps_1` | 3D Shooting Range: timed target shooting | 10 | 6 / 7 / 4 |
 | `roblox-mini` | Cube Parkour: collect coins on platforms against the clock | 10 | 5 / 7 / 4 |
 | `volshebnyy-sad` | Magic Garden: a toy for small children, flowers and butterflies | 9 | 4 / 8 / 7 |
