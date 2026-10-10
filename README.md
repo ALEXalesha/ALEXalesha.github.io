@@ -6,7 +6,7 @@ A collection of small projects that have been fixed up, plus **Igroteka** («И�
 "game library"), a desktop app that runs eleven of the games from this collection in
 tabs of one window.
 
-- `web/` - 25 standalone HTML pages: games, tools and desktop-shell demos. Each opens
+- `web/` - 26 standalone HTML pages: games, tools and desktop-shell demos. Each opens
   with a double click on `index.html` and works offline.
 - `py/` - 6 Python programs (PySide6).
 - `app/` - Igroteka, the Electron desktop app.
@@ -24,6 +24,9 @@ concepts and are not affiliated with any rights holders.
 
 ![A game in a tab](docs/screens/app-game.png)
 
+- **Programs.** Below the games is a "Programs" section: WritingSpeed («Скорость печати»,
+  `web/writing-speed`), a typing speed test. It opens in a tab like a game; only its page
+  goes into the app (its own Electron shell and tools stay next to it).
 - **System demos.** Below the games is a "System demos" section: shells in the style of
   Windows 11, macOS, iOS and One UI (`win11_3`, `macos-tahoe`, `ios26`, `oneui7`; not
   affiliated with Apple/Microsoft/Samsung). Each opens in a tab like a game, with its own
@@ -163,6 +166,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 
 | Folder | What it is | Own laws | Score |
 |---|---|---|---|
+| `writing-speed` | WritingSpeed: typing speed test - time, words, quotes, custom text, zen; six languages and code; WPM/CPM, accuracy, consistency, mistakes by key, records. Also a separate Electron app (`web/writing-speed/electron`) | 40 | not reviewed yet |
 | `python_ide` | Offline Python 3.13: editor, Stop, `input()`, files | 11 | 8 |
 | `calculator` | Calculator with exact decimal arithmetic and operator precedence | 40 | 8 |
 | `player` | Player for your own files, remembers them after a restart | 12 | 8 |
@@ -208,6 +212,7 @@ They sit next to the pages unchanged, each with its licence text.
 | Pyodide 0.29.5 (Python 3.13.2) | `web/python_ide/vendor/pyodide/` | MPL-2.0; Python standard library: PSF |
 | pdf.js 3.11.174 | `web/token-calc/vendor/pdfjs/` | Apache-2.0 |
 | mammoth 1.6.0 | `web/token-calc/vendor/mammoth/` | BSD-2-Clause |
+| word lists from wordfreq 3.1.1 (Robyn Speer), filtered | the `WORDS` block of `web/writing-speed/index.html` | CC BY-SA 4.0 (that block only) |
 
 The app is built with Electron (MIT) and electron-builder (MIT); tests use Playwright
 (Apache-2.0).

@@ -4,6 +4,22 @@
 
 **EN**
 
+- New program: WritingSpeed («Скорость печати», `web/writing-speed`), a typing speed
+  test in one HTML page: time (15/30/60/120 s), words (10/25/50/100), quotes, custom text
+  and zen; Russian, Ukrainian, English, German, French, Spanish and JS/Python code; the
+  200/1000/5000 most frequent words (wordfreq 3.1.1, CC BY-SA 4.0, filtered with Hunspell
+  dictionaries, no names or rude words); punctuation, numbers, capitals, no backspace,
+  stop on error; WPM/CPM, raw speed, accuracy, consistency, a per-second graph, mistakes
+  by key on the test language layout, records per mode and history (storage prefix
+  `typing:`), a layout hint, the five Paint themes, RU/EN interface, font size. Its own
+  Electron app (`web/writing-speed/electron`: NSIS setup and portable, remembers the
+  window, version in the title) loads the same page. 40 laws, 20 mutants
+  (`tests/web/writing-speed*`), app laws in `tests-app/unit/writing-speed.test.js` and
+  `tests-app/writing-speed.spec.js`.
+- New section "Programs" in the app and the browser page, below the games: WritingSpeed
+  opens in a tab like a game (button "Открыть"), with its own session; only its
+  `index.html` goes into the app build.
+
 - New game in the list: Flappy Wings («Летучая птичка», `web/flappy-wings`), a fan game
   in the fly-between-the-columns genre, not affiliated with the rights holders of its known
   games. Card, picture and description in the app and the browser page; storage prefix
@@ -23,6 +39,22 @@
   "Операция: Периметр"; now `<meta name="application-name">` comes first.
 
 **RU**
+
+- Новая программа: «Скорость печати» / WritingSpeed (`web/writing-speed`), тест скорости
+  печати одной страницей HTML: время (15/30/60/120 с), слова (10/25/50/100), цитаты, свой
+  текст и дзен; русский, украинский, английский, немецкий, французский, испанский и код
+  JS/Python; 200/1000/5000 самых частых слов (wordfreq 3.1.1, CC BY-SA 4.0, отобраны
+  словарями Hunspell, без имён и грубых слов); знаки, цифры, заглавные, «без Backspace»,
+  «стоп на ошибке»; WPM/CPM, сырая скорость, точность, ровность, график по секундам,
+  ошибки по клавишам на раскладке языка теста, рекорды по режимам и история (приставка
+  хранилища `typing:`), подсказка про раскладку, пять тем Paint, интерфейс RU/EN, размер
+  шрифта. Своя программа на Electron (`web/writing-speed/electron`: установщик NSIS и
+  portable, помнит окно, версия в заголовке) открывает ту же страницу. 40 законов,
+  20 мутантов (`tests/web/writing-speed*`), законы программы - в
+  `tests-app/unit/writing-speed.test.js` и `tests-app/writing-speed.spec.js`.
+- Новый раздел «Программы» в приложении и на браузерной странице, под играми: «Скорость
+  печати» открывается во вкладке, как игра (кнопка «Открыть»), со своим сеансом; в сборку
+  приложения попадает только её `index.html`.
 
 - Новая игра в списке: «Летучая птичка» / Flappy Wings (`web/flappy-wings`), фан-игра в
   жанре «пролети между колоннами», не связана с правообладателями известных игр жанра.
