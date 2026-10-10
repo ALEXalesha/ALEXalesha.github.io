@@ -359,9 +359,12 @@ test.describe('flappy: пауза, темы, звук', () => {
     await page.click('[data-screen=main] [data-id=play]');
     await page.keyboard.press('KeyM');
     expect(await page.evaluate(() => ({ s: __game.kit.settings.sound, g: __game.kit.master.gain.value }))).toEqual({ s: false, g: 0 });
+    // мир на ручных шагах: после клика по кнопке звука делаем шаги и проверяем, что взмаха не было
+    await page.evaluate(() => { __game.manual = true; });
     const p = await page.evaluate(() => __game.hudButtonCss('sound'));
     await page.mouse.click(p.x, p.y);
-    expect(await page.evaluate(() => ({ s: __game.kit.settings.sound, g: __game.kit.master.gain.value, phase: __game.state.phase }))).toEqual({ s: true, g: 1, phase: 'ready' });
+    await page.evaluate(() => __game.step(3));
+    expect(await page.evaluate(() => ({ s: __game.kit.settings.sound, g: __game.kit.master.gain.value, phase: __game.state.phase, flaps: __game.state.flaps }))).toEqual({ s: true, g: 1, phase: 'ready', flaps: 0 });
     await page.keyboard.press('KeyM');
     await reloadFlappy(page);
     expect(await page.evaluate(() => __game.kit.settings.sound)).toBe(false);
