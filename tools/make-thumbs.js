@@ -15,7 +15,7 @@
 const path = require('path');
 const fs = require('fs');
 const { chromium } = require('@playwright/test');
-const { GAMES, SYSTEMS } = require('../web/_shared/games-data.js');
+const { GAMES, SYSTEMS, PROGRAMS } = require('../web/_shared/games-data.js');
 const { pageUrl } = require('../tests/helpers');
 // Захват мыши - только подмена: в headless Chromium на Windows настоящий requestPointerLock
 // зажимает курсор человека за компьютером в прямоугольник скрытого окна (ClipCursor).
@@ -30,6 +30,9 @@ const PLAY = {
   // «Летучая птичка»: после старта ведёт автопилот заставки, иначе птичка падает до снимка
   flappy_wings: { hold: [], wait: 2600, after: '__game.setAutopilot(true)' },
   fps_1: { hold: ['KeyW'], wait: 1500, click: true },
+  // «Скорость печати»: на картинке - тест на середине, несколько слов уже напечатаны
+  writing_speed: { query: 'seed=5', noStart: true, hold: [], wait: 400, ready: '() => window.__ws && __ws.ready',
+    type: '__ws.state.words.slice(0, 7).map((w) => w.text).join(" ") + " " + __ws.state.words[7].text.slice(0, 2)' },
   mario: { hold: ['ArrowRight'], wait: 1800 },
   jungle_strike: { hold: ['ArrowRight'], wait: 1500 },
   horizon_drift_offline: { buttons: [/Свободная езда/, /поехать/i], hold: ['ArrowUp'], wait: 5000, noStart: true },
@@ -67,6 +70,7 @@ async function shoot(browser, id, system) {
   if (!how.noStart) await start(page);
   for (const b of how.buttons || []) { await page.locator('button:visible', { hasText: b }).first().click({ timeout: 3000 }).catch(() => {}); await page.waitForTimeout(800); }
   if (how.after) await page.evaluate(how.after);
+  if (how.type) await page.keyboard.type(await page.evaluate(how.type), { delay: 40 });
   if (how.click) await page.mouse.click(640, 360);
   if (how.mouse) { await page.mouse.move(640, 500); await page.mouse.down(); }
   for (const k of how.hold) await page.keyboard.down(k);
@@ -88,7 +92,7 @@ async function snap(page, ctx, id) {
   const browser = await chromium.launch({
     args: ['--allow-file-access-from-files', '--autoplay-policy=no-user-gesture-required', '--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
-  for (const g of [...GAMES, ...SYSTEMS]) {
+  for (const g of [...GAMES, ...PROGRAMS, ...SYSTEMS]) {
     if (only.length && !only.includes(g.id)) continue;
     const file = await shoot(browser, g.id, SYSTEMS.includes(g));
     console.log(path.relative(process.cwd(), file), Math.round(fs.statSync(file).size / 1024) + ' КБ');

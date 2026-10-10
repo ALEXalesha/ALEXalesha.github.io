@@ -19,7 +19,7 @@ const { pathToFileURL } = require('url');
 const DATA = require('../web/_shared/games-data.js');
 
 const ROOT = path.join(__dirname, '..');
-const ITEMS = [...DATA.GAMES, ...DATA.SYSTEMS];
+const ITEMS = [...DATA.GAMES, ...DATA.PROGRAMS, ...DATA.SYSTEMS];  // в порядке карточек на странице
 const BASE_PATH = '/GameRoom/';
 
 test.describe.configure({ mode: 'serial' });
@@ -136,7 +136,7 @@ test.afterEach(async ({ page }) => {
 
 // --- данные и вид --------------------------------------------------------------------
 
-test('карточки - все игры и демо систем из общей таблицы, по порядку, с картинками', async ({ page }) => {
+test('карточки - все игры, программы и демо систем из общей таблицы, по порядку, с картинками', async ({ page }) => {
   await launch(page, 'file');
   const cards = (sel) => page.locator(`${sel} .card`).evaluateAll((els) => els.map((e) => ({
     id: e.dataset.id,
@@ -145,6 +145,8 @@ test('карточки - все игры и демо систем из обще�
     play: e.querySelector('.play').textContent,
   })));
   expect(await cards('#grid')).toEqual(DATA.GAMES.map((g) => ({ id: g.id, name: g.name, desc: g.desc, play: 'Играть' })));
+  expect(await cards('#programs')).toEqual(DATA.PROGRAMS.map((g) => ({ id: g.id, name: g.name, desc: g.desc, play: 'Открыть' })));
+  await expect(page.locator('#programs-section')).toBeVisible();
   expect((await cards('#systems')).map((c) => c.id)).toEqual(DATA.SYSTEMS.map((s) => s.id));
   expect((await cards('#systems')).map((c) => c.name)).toEqual(DATA.SYSTEMS.map((s) => s.name));
   // Картинки - те же, что у приложения (app/assets/thumbs), и все загрузились.

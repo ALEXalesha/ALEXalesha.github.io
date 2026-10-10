@@ -26,7 +26,11 @@
 
   const GAMES = DATA.GAMES;
   const SYSTEMS = DATA.SYSTEMS;
-  const ITEMS = [...GAMES, ...SYSTEMS];
+  const PROGRAMS = DATA.PROGRAMS || [];
+  const ITEMS = [...GAMES, ...PROGRAMS, ...SYSTEMS];
+  const isProgram = (id) => PROGRAMS.some((p) => p.id === id);
+  // Демо и программы открывают, в игры играют
+  const playLabel = (g) => (g.style || isProgram(g.id) ? 'Открыть' : 'Играть');
   const byId = new Map(ITEMS.map((g) => [g.id, g]));
   const KNOWN = ITEMS.map((g) => g.id);
 
@@ -322,7 +326,7 @@
   // --- домашний экран -----------------------------------------------------------------
 
   function card(g) {
-    const play = el('button', { class: 'btn primary play', text: 'Играть' });
+    const play = el('button', { class: 'btn primary play', text: playLabel(g) });
     const title = el('h2', {}, el('span', { class: 'open-mark', title: 'Открыто во вкладке', hidden: '' }), g.name);
     if (g.style) title.append(el('span', { class: 'style', text: 'в стиле ' + g.style }));
     const c = el('article', { class: 'card', 'data-id': g.id, tabindex: '0' },
@@ -340,6 +344,8 @@
     $('#subtitle').textContent = `${n} ${plural(n, 'игра', 'игры', 'игр')} без установки. У каждой своя вкладка и свои рекорды.`;
     $('#grid').style.setProperty('--cols', String(Math.min(5, Math.max(4, Math.ceil(n / 2)))));
     $('#grid').replaceChildren(...GAMES.map(card));
+    $('#programs').replaceChildren(...PROGRAMS.map(card));
+    $('#programs-section').hidden = !PROGRAMS.length;
     $('#systems').replaceChildren(...SYSTEMS.map(card));
     const styles = SYSTEMS.map((s) => s.style);
     const list = styles.length > 1 ? styles.slice(0, -1).join(', ') + ' и ' + styles[styles.length - 1] : styles.join('');
@@ -351,7 +357,7 @@
       const isOpen = tabs.open.includes(c.dataset.id);
       c.querySelector('.open-mark').hidden = !isOpen;
       c.classList.toggle('open', isOpen);
-      c.querySelector('.play').textContent = isOpen ? 'Вернуться' : (byId.get(c.dataset.id).style ? 'Открыть' : 'Играть');
+      c.querySelector('.play').textContent = isOpen ? 'Вернуться' : playLabel(byId.get(c.dataset.id));
     }
   }
 

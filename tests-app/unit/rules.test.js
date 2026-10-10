@@ -99,7 +99,7 @@ test('таблица игр одна: приложение читает web/_sha
 // читаются), поэтому берёт имя из таблицы. Чтобы карточки в приложении и в браузере
 // звались одинаково, имя в таблице обязано совпадать с именем из самой страницы.
 test('имя в таблице совпадает с именем из страницы - для игр и демо систем', () => {
-  for (const g of [...DATA.GAMES, ...DATA.SYSTEMS]) {
+  for (const g of [...DATA.GAMES, ...DATA.SYSTEMS, ...DATA.PROGRAMS]) {
     const html = fs.readFileSync(path.join(ROOT, 'web', g.id, 'index.html'), 'utf8');
     assert.equal(g.name, Games.pageName(html), g.id);
   }
@@ -115,7 +115,7 @@ test('имя из метки application-name целиком, без неё - и
 });
 
 test('приставки хранилища у игр и систем не пересекаются', () => {
-  const all = [...DATA.GAMES, ...DATA.SYSTEMS].flatMap((g) => g.storage.map((p) => ({ id: g.id, p })));
+  const all = [...DATA.GAMES, ...DATA.SYSTEMS, ...DATA.PROGRAMS].flatMap((g) => g.storage.map((p) => ({ id: g.id, p })));
   assert.ok(DATA.GAMES.every((g) => g.storage.length > 0));
   for (const a of all) {
     for (const b of all) {
@@ -162,6 +162,20 @@ test('демо систем: страница и картинка есть, хо
   assert.equal(Security.allowRequest(url(path.join(ROOT, 'web', 'mario', 'index.html')), [folder]), false);
 });
 
+test('программы: страница и картинка есть, ходить можно только в свою папку', () => {
+  const progs = Games.programsCatalog(ROOT);
+  assert.deepEqual(progs.map((p) => p.id), ['writing-speed']);
+  for (const p of progs) {
+    assert.ok(fs.existsSync(p.page), p.page);
+    assert.ok(p.desc && p.program && p.storage.length, p.id);
+    assert.ok(fs.existsSync(path.join(ROOT, 'app', 'assets', 'thumbs', p.id + '.jpg')), 'нет картинки ' + p.id);
+    assert.equal(Security.allowRequest(url(p.page), p.dir), true);
+    assert.equal(Security.allowRequest(url(path.join(ROOT, 'web', 'dino', 'index.html')), p.dir), false);
+    assert.equal(Security.allowRequest('https://example.com/', p.dir), false);
+  }
+  assert.ok(Object.isFrozen(DATA.PROGRAMS) && DATA.PROGRAMS.every((p) => Object.isFrozen(p)));
+});
+
 test('имя из заголовка: без пометки о фан-версии и без пояснений', () => {
   const t = (s) => Games.shortTitle(`<title>${s}</title>`);
   assert.equal(t('Прыг-скок: мини-платформер (фан-версия, не связана с правообладателем)'), 'Прыг-скок');
@@ -177,7 +191,7 @@ test('имя из заголовка: без пометки о фан-верси
 test('в сборку попадают только app/, таблица игр, папки игр и демо систем', () => {
   const files = pkg.build.files.filter((f) => !f.startsWith('!'));
   const expected = ['package.json', 'app/**/*', 'web/_shared/games-data.js', ...Games.IDS.map((id) => `web/${id}/**/*`),
-    ...Games.SYSTEM_IDS.map((id) => `web/${id}/**/*`), 'web/_os-shared/**/*'];
+    ...Games.SYSTEM_IDS.map((id) => `web/${id}/**/*`), 'web/_os-shared/**/*', ...Games.PROGRAM_IDS.map((id) => `web/${id}/index.html`)];
   assert.deepEqual([...files].sort(), [...expected].sort());
 });
 

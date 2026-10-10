@@ -20,8 +20,10 @@ const DATA = require('../web/_shared/games-data.js');
 
 const GAMES = DATA.GAMES;
 const SYSTEMS = DATA.SYSTEMS;
+const PROGRAMS = DATA.PROGRAMS;
 const IDS = GAMES.map((g) => g.id);
 const SYSTEM_IDS = SYSTEMS.map((s) => s.id);
+const PROGRAM_IDS = PROGRAMS.map((p) => p.id);
 
 const unescape = (t) => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 
@@ -85,4 +87,19 @@ function systemsCatalog(root) {
   });
 }
 
-module.exports = { GAMES, IDS, SYSTEMS, SYSTEM_IDS, shortTitle, appName, pageName, catalog, systemsCatalog };
+/** Программы (раздел «Программы»): страница своей папки, ходить можно только в неё. */
+function programsCatalog(root) {
+  return PROGRAMS.map((p) => {
+    const dir = path.join(root, 'web', p.id);
+    const page = path.join(dir, 'index.html');
+    let name = '';
+    try {
+      name = pageName(fs.readFileSync(page, 'utf8'));
+    } catch {
+      /* страницы нет - останется запасное имя */
+    }
+    return { ...p, program: true, keys: [], name: name || p.name, dir, page };
+  });
+}
+
+module.exports = { GAMES, IDS, SYSTEMS, SYSTEM_IDS, PROGRAMS, PROGRAM_IDS, shortTitle, appName, pageName, catalog, systemsCatalog, programsCatalog };

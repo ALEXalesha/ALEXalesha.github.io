@@ -68,7 +68,7 @@ html, body { -webkit-text-size-adjust: 100%; }
   .hero-logo { width: 44px; height: 44px; }
   .hero h1 { font-size: 24px; }
   .hero p { font-size: 13px; }
-  #grid, #systems { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  #grid, #systems, #programs { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .tab.home .product { display: none; }
   .tab.home { padding-right: 8px; }
   .tab { min-width: 112px; }

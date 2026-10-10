@@ -20,8 +20,11 @@
 //              игра пишет только под своими). По ним же браузерная страница стирает данные
 //              одной игры.
 //
-// SYSTEMS - демо интерфейсов в духе настольных и телефонных систем. В приложение они не
-// входят, на браузерной странице это отдельный раздел «Демо систем».
+// SYSTEMS - демо интерфейсов в духе настольных и телефонных систем: раздел «Демо систем»
+// и в приложении, и на браузерной странице.
+// PROGRAMS - программы, а не игры (раздел «Программы» под играми): открываются во вкладке
+// так же, но в приложение попадает только их страница index.html - у программы рядом
+// бывают своя оболочка Electron и инструменты (web/writing-speed/electron, tools).
 (function (root, factory) {
   const data = factory();
   if (typeof module === 'object' && module.exports) module.exports = data;
@@ -55,7 +58,13 @@
     { id: 'oneui7', name: 'Телефон «Волна»', desc: 'Телефон: шторка, недавние приложения, свои файлы и игры', style: 'One UI', storage: ['idb:oneui7', 'oneui7.'] },
   ];
 
+  // Добавлена 10.10.2026 по просьбе владельца («добавим в игротеку как программу»).
+  const PROGRAMS = [
+    { id: 'writing-speed', name: 'Скорость печати', desc: 'Тест скорости печати: шесть языков и код, ошибки по клавишам, рекорды', storage: ['typing:'] },
+  ];
+
   for (const g of GAMES) { g.keys = g.keys || []; Object.freeze(g.keys); Object.freeze(g.storage); Object.freeze(g); }
   for (const s of SYSTEMS) { Object.freeze(s.storage); Object.freeze(s); }
-  return Object.freeze({ GAMES: Object.freeze(GAMES), SYSTEMS: Object.freeze(SYSTEMS) });
+  for (const p of PROGRAMS) { Object.freeze(p.storage); Object.freeze(p); }
+  return Object.freeze({ GAMES: Object.freeze(GAMES), SYSTEMS: Object.freeze(SYSTEMS), PROGRAMS: Object.freeze(PROGRAMS) });
 });

@@ -25,7 +25,7 @@ const Tabs = require('./tabs');
 const Settings = require('./settings');
 const Security = require('./security');
 const WindowState = require('./window-state');
-const { catalog, systemsCatalog } = require('./games');
+const { catalog, systemsCatalog, programsCatalog } = require('./games');
 
 const APP_DIR = __dirname;
 const ROOT = path.join(__dirname, '..');
@@ -61,7 +61,8 @@ app.setName(PRODUCT.name);
 const file = (name) => path.join(app.getPath('userData'), name);
 const games = catalog(ROOT);
 const systems = systemsCatalog(ROOT);
-const items = [...games, ...systems]; // всё, что открывается во вкладке
+const programs = programsCatalog(ROOT);
+const items = [...games, ...programs, ...systems]; // всё, что открывается во вкладке
 const byId = new Map(items.map((g) => [g.id, g]));
 const IDS = items.map((g) => g.id);
 
@@ -490,6 +491,7 @@ ipcMain.handle('shell:init', (e) => (!fromShell(e) ? null : {
   product: { name: PRODUCT.name, version: PRODUCT.version },
   games: games.map((g) => ({ id: g.id, name: g.name, desc: g.desc, keys: g.keys || [], escToGame: !!g.escToGame })),
   systems: systems.map((s) => ({ id: s.id, name: s.name, desc: s.desc, style: s.style, keys: [] })),
+  programs: programs.map((p) => ({ id: p.id, name: p.name, desc: p.desc, program: true, keys: [] })),
   platform: process.platform,
   ...snapshot(),
 }));
@@ -648,5 +650,5 @@ globalThis.__igroteka = {
   get maximized() { return TEST ? testMaximized : !!win && win.isMaximized(); },
   setMaximized(on) { if (TEST) { testMaximized = !!on; if (win) win.emit('maximize'); } else if (win) { if (on) win.maximize(); else win.unmaximize(); } },
   get windowFullScreen() { return TEST ? testFullScreen : !!win && win.isFullScreen(); },
-  views, errors, blocked, games, systems, BAR_H,
+  views, errors, blocked, games, systems, programs, BAR_H,
 };

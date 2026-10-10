@@ -39,7 +39,9 @@ function img(src, cls) {
   return i;
 }
 
-const gameById = (id) => info.games.find((g) => g.id === id) || info.systems.find((s) => s.id === id);
+const gameById = (id) => info.games.find((g) => g.id === id) || info.programs.find((p) => p.id === id) || info.systems.find((s) => s.id === id);
+// Демо и программы открывают, в игры играют
+const playLabel = (g) => (g.style || g.program ? 'Открыть' : 'Играть');
 
 // --- полоса вкладок ------------------------------------------------------------------
 
@@ -79,7 +81,7 @@ function edges() {
 // --- домашний экран ------------------------------------------------------------------
 
 function card(g) {
-  const play = el('button', { class: 'btn primary play', text: 'Играть' });
+  const play = el('button', { class: 'btn primary play', text: playLabel(g) });
   const title = el('h2', {}, el('span', { class: 'open-mark', title: 'Открыто во вкладке', hidden: '' }), g.name);
   if (g.style) title.append(el('span', { class: 'style', text: 'в стиле ' + g.style }));
   // Три части карточки - строки общей сетки (subgrid): имена и описания карточек
@@ -102,6 +104,8 @@ function listJoin(words) {
 function renderGrid() {
   $('#grid').style.setProperty('--cols', String(Math.min(5, Math.max(4, Math.ceil(info.games.length / 2)))));
   $('#grid').replaceChildren(...info.games.map(card));
+  $('#programs').replaceChildren(...info.programs.map(card));
+  $('#programs-section').hidden = !info.programs.length;
   $('#systems').replaceChildren(...info.systems.map(card));
   $('#systems-note').textContent = `Демо в стиле ${listJoin(info.systems.map((s) => s.style))}, не связано с Apple/Microsoft/Samsung.`;
 }
@@ -111,7 +115,7 @@ function renderBadges() {
     const open = state.tabs.open.includes(card.dataset.id);
     card.querySelector('.open-mark').hidden = !open;
     card.classList.toggle('open', open);
-    card.querySelector('.play').textContent = open ? 'Вернуться' : (gameById(card.dataset.id).style ? 'Открыть' : 'Играть');
+    card.querySelector('.play').textContent = open ? 'Вернуться' : playLabel(gameById(card.dataset.id));
   }
 }
 
@@ -150,6 +154,7 @@ function wireSettings() {
   }
   $('#clear-game').replaceChildren(
     el('optgroup', { label: 'Игры' }, ...info.games.map((g) => el('option', { value: g.id, text: g.name }))),
+    el('optgroup', { label: 'Программы' }, ...info.programs.map((p) => el('option', { value: p.id, text: p.name }))),
     el('optgroup', { label: 'Демо систем' }, ...info.systems.map((s) => el('option', { value: s.id, text: s.name }))));
   $('#clear-game').addEventListener('change', () => { $('#clear-hint').textContent = CLEAR_HINT; });
   $('#clear-btn').addEventListener('click', async () => {
@@ -250,7 +255,7 @@ function apply(s) {
 
 (async () => {
   const init = await api.init();
-  info = { product: init.product, games: init.games, systems: init.systems || [] };
+  info = { product: init.product, games: init.games, systems: init.systems || [], programs: init.programs || [] };
   document.title = init.product.name;
   for (const p of document.querySelectorAll('.product')) p.textContent = init.product.name;
   $('#version').textContent = 'версия ' + init.product.version;
