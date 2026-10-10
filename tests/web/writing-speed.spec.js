@@ -204,6 +204,8 @@ test.describe('ws: ошибки по клавишам', () => {
     await expect(keyD).toHaveAttribute('data-errors', '2');
     await expect(page.locator('#heatmap .key[data-key="о"]')).toHaveAttribute('data-errors', '1');
     await expect(page.locator('#heatmap .key[data-key="р"]')).toHaveAttribute('data-errors', '0');
+    // клавиши не сжаты в полоски: на широком окне - почти квадратные (кадр README 1.0.0 нашёл их по 12 px)
+    expect((await keyD.boundingBox()).width).toBeGreaterThanOrEqual(30);
     const heat = await keyD.evaluate((el) => getComputedStyle(el).getPropertyValue('--heat').trim());
     expect(heat).not.toBe('0%');
     await expect(page.locator('#weak')).toContainText('д');
