@@ -1,7 +1,7 @@
 // Проверка НАСТОЯЩЕЙ программы «Скорость печати» на Electron (web/writing-speed/electron):
 // окно открывается со страницей, в заголовке версия, размер и место окна переживают
 // перезапуск. Окно в режиме проверок (WS_TEST=1) не показывается и не берёт фокус.
-// Запуск: npx playwright test --config=playwright.app.config.js tests-app/writing-speed.spec.js
+// Запуск: npx playwright test --config=playwright.app.config.js tests-app/writing-speed-app.spec.js
 'use strict';
 
 const { test, expect, _electron: electron } = require('@playwright/test');

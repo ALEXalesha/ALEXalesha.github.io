@@ -15,7 +15,7 @@
   Electron app (`web/writing-speed/electron`: NSIS setup and portable, remembers the
   window, version in the title) loads the same page. 40 laws, 20 mutants
   (`tests/web/writing-speed*`), app laws in `tests-app/unit/writing-speed.test.js` and
-  `tests-app/writing-speed.spec.js`.
+  `tests-app/writing-speed-app.spec.js`.
 - New section "Programs" in the app and the browser page, below the games: WritingSpeed
   opens in a tab like a game (button "Открыть"), with its own session; only its
   `index.html` goes into the app build.
@@ -51,7 +51,7 @@
   шрифта. Своя программа на Electron (`web/writing-speed/electron`: установщик NSIS и
   portable, помнит окно, версия в заголовке) открывает ту же страницу. 40 законов,
   20 мутантов (`tests/web/writing-speed*`), законы программы - в
-  `tests-app/unit/writing-speed.test.js` и `tests-app/writing-speed.spec.js`.
+  `tests-app/unit/writing-speed.test.js` и `tests-app/writing-speed-app.spec.js`.
 - Новый раздел «Программы» в приложении и на браузерной странице, под играми: «Скорость
   печати» открывается во вкладке, как игра (кнопка «Открыть»), со своим сеансом; в сборку
   приложения попадает только её `index.html`.
