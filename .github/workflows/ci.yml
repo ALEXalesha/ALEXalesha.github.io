@@ -19,7 +19,9 @@ jobs:
   tests:
     name: Проверки
     runs-on: windows-latest
-    timeout-minutes: 45
+    # 1070 проверок web/ на двух потоках идут дольше 45 минут (тяжёлые - Horizon Drift):
+    # с прежним пределом задача обрывалась до итогов и не показывала, что упало.
+    timeout-minutes: 120
 
     steps:
       - uses: actions/checkout@v4
