@@ -23,7 +23,11 @@
     "icon": "node tools/make-icon.js",
     "screenshots": "node tools/make-screenshots.js",
     "probe:background": "electron tools/probe-background.js",
-    "dist": "electron-builder --win nsis portable --x64"
+    "dist": "electron-builder --win nsis portable --x64",
+    "ws:start": "electron web/writing-speed/electron",
+    "ws:dist": "electron-builder --projectDir web/writing-speed/electron --win nsis portable --x64",
+    "ws:icon": "node web/writing-speed/electron/make-icon.js",
+    "ws:mutate": "node tests/web/writing-speed-mutate.js"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
@@ -52,6 +56,7 @@
       "web/tetris/**/*",
       "web/sudoku/**/*",
       "web/flappy-wings/**/*",
+      "web/writing-speed/index.html",
       "web/win11_3/**/*",
       "web/macos-tahoe/**/*",
       "web/ios26/**/*",
