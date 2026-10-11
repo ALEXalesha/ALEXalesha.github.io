@@ -4,6 +4,14 @@
 
 **EN**
 
+- WritingSpeed 1.1.0: pressing a menu button no longer highlights the whole row (the row text
+  was selected when the mouse moved a little); the "quote" mode became "text" - classic
+  passages and original texts of ~10/~20/~50/~100/~200/~300 words, 10 per length and language
+  (length within 20 %), old quote records move to "text"; "time" can run on words or on text;
+  "words 1000" became "dictionary: 200/1000/5000 most frequent words" with a hint; each mode
+  shows only the settings that change it; zen: "new text" became "Erase"; custom text: Tab
+  opens the new-text window; a long word without spaces wraps; Chinese (IME, characters per
+  minute, "pinyin in Latin letters" mode, pinyin hint, mistakes by character, wordfreq zh).
 - "Programs" gets a third card, Calibrate 3D Printer: a link to
   https://alexalesha.github.io/Calibrate3dPrinter/ (its own repository, no code copied). The new
   `url` field of `PROGRAMS`: the browser page opens the site in a new tab, the app in the system
@@ -72,6 +80,14 @@
 
 **RU**
 
+- «Скорость печати» 1.1.0: нажатие кнопки меню больше не подсвечивает весь ряд (мышь чуть
+  сдвигалась и выделяла текст ряда); режим «цитата» стал «текстом» - отрывки классиков и свои
+  тексты на ~10/~20/~50/~100/~200/~300 слов, по 10 на длину и язык (длина ±20 %), рекорды
+  цитат переехали в «текст»; «время» - на словах или на тексте; «слова 1000» стали
+  «словарь: 200/1000/5000 частых слов» с подсказкой; в каждом режиме видны только влияющие
+  настройки; дзен: «новый текст» стал «Стереть»; свой текст: Tab - окно нового текста; длинное
+  слово без пробелов переносится; китайский (IME, знаков в минуту, режим «пиньинь латиницей»,
+  подсказка-пиньинь, ошибки по иероглифам, wordfreq zh).
 - В «Программах» третья карточка - «Калибровка 3D-принтера»: ссылка на
   https://alexalesha.github.io/Calibrate3dPrinter/ (свой репозиторий, код не копируется). Новое
   поле `url` в `PROGRAMS`: браузерная страница открывает сайт в новой вкладке, приложение - в
