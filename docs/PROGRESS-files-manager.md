@@ -18,12 +18,20 @@
   собранная программа проверена скрыто на временной папке и установлена у Алексея (Setup /S).
 - Gitea: репозиторий уже переименован `Files` -> `FilesManager` (пустой), описание было битым (знаки вопроса) - исправлено в UTF-8.
 
+## Выпуск 1.0.0 (11.10, вечер)
+- publish-web f0c5658 (publish/FilesManager: config.sh, overlay - README EN/RU, CHANGELOG, package.json, законы страницы и программы,
+  .gitea/workflows/ci.yml runs-on: windows - только законы страницы, ELECTRON_SKIP_BINARY_DOWNLOAD; tools/screenshots.js, 4 кадра).
+- GitHub ALEXalesha/FilesManager main 4f47aed (заглушка «Initial commit» заменена), описание, темы, Pages
+  https://alexalesha.github.io/FilesManager/ (200), выпуск v1.0.0 (Setup + Portable). Зеркало с GitHub проверено: личного нет.
+- Gitea ALEXaloysha/FilesManager: тот же опубликованный main + выпуск v1.0.0 (id 67, Setup + Portable).
+- Законы страницы на выделенной копии: 2/2 зелёные. InstallAll 988cba0 (169 проверок), профиль fe5ac42, каталог проектов (mem e180fa1),
+  строка в README GameRoom (EN/RU).
+
 ## Не сделано (точка продолжения)
-1. Наполнить репозиторий FilesManager (как у WritingSpeed/MediaPlayer: страница, electron/, README RU/EN, CHANGELOG, LICENSE, CI).
-2. Выпуск 1.0.0 на Gitea (Setup + Portable), потом GitHub через publish-скрипт и Pages.
-3. InstallAll: строка FilesManager; поставить у себя.
-4. Профиль (README профиля), каталог проектов.
-5. Больше законов: горячие клавиши, вкладки/две панели в Electron, мутации.
+1. CI Gitea FilesManager на первом пуше не дожидался - посмотреть итог.
+2. Больше законов: горячие клавиши (F2, Ctrl+C/V, Alt+стрелки, Ctrl+Shift+N), вкладки и две панели в Electron, мутации
+   (как writing-speed-mutate.js), потом sync_tests.sh FilesManager и перевыкладка publish_web.sh FilesManager.
+3. Выпуск следующей версии: VERSION в index.html и electron/package.json, CHANGELOG в overlay, npm run fm:dist, Gitea+GitHub.
 
 ## Грабли
 - `tests-app/programs.spec.js` «compiler» падал и до этих правок (`__compiler is not defined`) - не наш.
