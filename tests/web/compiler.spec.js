@@ -391,8 +391,13 @@ test('autocompletion offers keywords and names of the file', async ({ page }) =>
   await page.keyboard.type('cou');
   await expect(page.locator('.CodeMirror-hints')).toBeVisible();
   await expect(page.locator('.CodeMirror-hint', { hasText: 'counterValue' })).toHaveCount(1);
+  // The list opens after 'co' and is rebuilt a frame after 'u'. Enter pressed between the old
+  // list closing and the new one opening goes to the editor as a new line (CI runner: 'cou').
+  // Wait until the list is the one for 'cou': 'const' is gone from it.
+  await expect(page.locator('.CodeMirror-hint', { hasText: /^const$/ })).toHaveCount(0);
+  await expect(page.locator('.CodeMirror-hint-active')).toHaveText('counterValue');
   await page.keyboard.press('Enter');
-  expect(await page.evaluate(() => window.__compiler.cm.getLine(1))).toBe('counterValue');
+  await expect.poll(() => page.evaluate(() => window.__compiler.cm.getLine(1))).toBe('counterValue');
 });
 
 test('phone width: no sideways scroll, Run and Stop are on the screen', async ({ page }) => {
