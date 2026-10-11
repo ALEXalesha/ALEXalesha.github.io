@@ -74,3 +74,43 @@ test('программа: временная папка, создать, пер�
     await app.close();
   }
 });
+
+// Двойной щелчок настоящей мышью в программе (1.0.1): папка открывается, текстовый файл - в просмотре.
+// Окно скрыто, события мыши идут через Playwright; системные программы не запускаются (только .txt).
+test('программа: двойной щелчок открывает папку и файл', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fm-app-'));
+  const work = path.join(tmp, 'work');
+  fs.mkdirSync(path.join(work, 'sub'), { recursive: true });
+  fs.writeFileSync(path.join(work, 'a.txt'), 'привет');
+  fs.writeFileSync(path.join(work, 'sub', 'deep-a.txt'), 'глубоко');
+  const app = await electron.launch({
+    executablePath: require('electron'),
+    args: [APP, '--user-data-dir=' + path.join(tmp, 'data')],
+    env: { ...process.env, FM_TEST: '1', FM_START: work },
+  });
+  try {
+    const page = await app.firstWindow();
+    await page.waitForFunction(() => window.__fm && window.__fm.ready, null, { timeout: 30000 });
+    const idle = () => page.evaluate(() => window.__fm.idle());
+    await idle();
+    expect(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isVisible())).toBe(false);
+    const dbl = async (name) => {
+      const b = await page.locator(`section.panel .it[data-name="${name}"]`).first().boundingBox();
+      expect(b).toBeTruthy();
+      await page.mouse.dblclick(b.x + b.width / 2, b.y + b.height / 2);
+      await idle();
+    };
+    // папку сначала выделяем одним щелчком - ровно тот случай, что не работал
+    await page.locator('section.panel .it[data-name="sub"]').first().click();
+    await page.waitForTimeout(600);
+    await dbl('sub');
+    const tab = await page.evaluate(() => window.__fm.tab());
+    expect(tab.path.toLowerCase()).toBe(path.join(work, 'sub').toLowerCase());
+    expect(tab.names).toEqual(['deep-a.txt']);
+    await dbl('deep-a.txt');
+    await expect(page.locator('#viewer')).toBeVisible();
+    await expect(page.locator('#viewer')).toContainText('глубоко');
+  } finally {
+    await app.close();
+  }
+});
