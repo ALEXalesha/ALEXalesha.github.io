@@ -49,7 +49,7 @@ async function typeTimed(page, text, step = 200) {
 
 const result = (page) => page.evaluate(() => {
   const r = __ws.result;
-  return r && { wpm: r.wpm, raw: r.raw, cpm: r.cpm, acc: r.acc, cons: r.consistency, dur: r.duration, correct: r.correct, incorrect: r.incorrect, extra: r.extra, missed: r.missed, keys: r.keys, errors: r.errors, presses: r.presses, isRecord: r.isRecord, key: r.key };
+  return r && { wpm: r.wpm, raw: r.raw, cpm: r.cpm, acc: r.acc, cons: r.consistency, dur: r.duration, correct: r.correct, incorrect: r.incorrect, extra: r.extra, missed: r.missed, keys: r.keys, errors: r.errors, presses: r.presses, isRecord: r.isRecord, key: r.key, unit: r.unit };
 });
 const state = (page) => page.evaluate(() => ({ phase: __ws.state.phase, wi: __ws.state.wi, typed: __ws.state.typed.slice(0, 30), words: __ws.state.words.slice(0, 30).map((w) => w.text) }));
 const close = (a, b, eps = 1e-6) => expect(Math.abs(a - b), `${a} ≈ ${b}`).toBeLessThan(eps);
@@ -62,11 +62,12 @@ test.describe('ws: страница', () => {
   test('открывается без ошибок и без сети, режимы и флажки на месте, версия видна', async ({ page }) => {
     const errors = await openWs(page);
     await expect(page).toHaveTitle(/Скорость печати/);
-    for (const m of ['time', 'words', 'quote', 'custom', 'zen']) await expect(page.locator(`[data-mode=${m}]`)).toBeVisible();
-    for (const f of ['punct', 'nums', 'caps', 'noBack', 'stop']) await expect(page.locator(`[data-flag=${f}]`)).toBeVisible();
+    for (const m of ['time', 'words', 'text', 'custom', 'zen']) await expect(page.locator(`[data-mode=${m}]`)).toBeVisible();
+    await expect(page.locator('[data-mode=quote]')).toHaveCount(0);          // 1.1.0: цитаты влились в «текст»
+    for (const f of ['punct', 'nums', 'caps', 'noBack', 'stop']) await expect(page.locator(`[data-flag=${f}]`)).toBeVisible();   // время + слова - видны все
     for (const t of ['15', '30', '60', '120']) await expect(page.locator(`[data-time="${t}"]`)).toBeVisible();
     const opts = await page.locator('#lang option').evaluateAll((o) => o.map((x) => x.value));
-    expect(opts).toEqual(['ru', 'uk', 'en', 'de', 'fr', 'es', 'js', 'py']);
+    expect(opts).toEqual(['ru', 'uk', 'en', 'de', 'fr', 'es', 'zh', 'js', 'py']);
     const version = await page.evaluate(() => __ws.version);
     await expect(page.locator('#foot')).toContainText(version);
     expect(await page.evaluate(() => document.activeElement.id)).toBe('input');
@@ -213,18 +214,26 @@ test.describe('ws: ошибки по клавишам', () => {
 
   test('раскладка карты - по языку теста: ЙЦУКЕН, украинская, QWERTY, QWERTZ, AZERTY, испанская', async ({ page }) => {
     await openWs(page);
-    const firstRow = {};
-    for (const [lang, word] of [['ru', 'да'], ['uk', 'їжак'], ['en', 'yes'], ['de', 'zug'], ['fr', 'eau'], ['es', 'año']]) {
-      await page.evaluate((l) => { __ws.set('lang', l, false); }, lang);
-      await page.evaluate(() => __ws.set('mode', 'quote'));
-      await custom(page, word);
-      await page.evaluate((l) => { __ws.state.cfg.lang = l; }, lang);   // свой текст сам языка не имеет
-      await typeTimed(page, word, 100);
-      firstRow[lang] = await page.locator('#heatmap .krow').nth(1).locator('.key').first().getAttribute('data-key');
-      if (lang === 'es') await expect(page.locator('#heatmap .key[data-key="ñ"]')).toHaveAttribute('data-presses', '1');
-      if (lang === 'uk') await expect(page.locator('#heatmap .key[data-key="ї"]')).toHaveAttribute('data-presses', '1');
+    const names = {};
+    for (const lang of ['ru', 'uk', 'en', 'de', 'fr', 'es']) {
+      await page.evaluate((l) => { __ws.set('lang', l, false); __ws.set('textLen', 10, false); __ws.set('mode', 'text'); }, lang);
+      const words = await page.evaluate(() => __ws.state.words.map((w) => w.text));
+      await typeTimed(page, words.join(' '), 5);
+      names[lang] = await page.locator('#heatmap .key.space').getAttribute('data-presses') !== null && await page.locator('#heatmap .key.space').textContent();
     }
-    expect(firstRow).toEqual({ ru: 'й', uk: 'й', en: 'q', de: 'q', fr: 'a', es: 'q' });
+    expect(names).toEqual({ ru: 'ЙЦУКЕН', uk: 'ЙЦУКЕН (укр.)', en: 'QWERTY', de: 'QWERTZ', fr: 'AZERTY', es: 'QWERTY (ES)' });
+  });
+
+  test('дзен и свой текст: раскладка карты - по набранным буквам', async ({ page }) => {
+    await openWs(page);
+    const got = {};
+    for (const [word, want] of [['да', 'ЙЦУКЕН'], ['їжак', 'ЙЦУКЕН (укр.)'], ['grün', 'QWERTZ'], ['thé', 'AZERTY'], ['año', 'QWERTY (ES)'], ['yes', 'QWERTY']]) {
+      await page.evaluate(() => __ws.set('mode', 'zen'));
+      await typeTimed(page, word, 50);
+      await page.keyboard.press('Shift+Enter');
+      got[word] = [await page.locator('#heatmap .key.space').textContent(), want];
+    }
+    for (const [w, [have, want]] of Object.entries(got)) expect(have, w).toBe(want);
   });
 });
 
@@ -279,16 +288,78 @@ test.describe('ws: режимы', () => {
     });
   }
 
-  test('цитата: текст из списка языка, подпись источника, длина по выбору', async ({ page }) => {
+  test('текст: длина ~10/~20/~50/~100/~200/~300 - текст из набора этой длины, автор подписан', async ({ page }) => {
     await openWs(page);
-    await page.click('[data-mode=quote]');
-    await page.click('[data-quote=short]');
-    const info = await page.evaluate(() => ({ text: __ws.state.words.map((w) => w.text).join(' '), texts: __ws.texts.ru.map((q) => q.t.replace(/\s+/g, ' ')) }));
-    expect(info.texts).toContain(info.text);
-    expect(info.text.length).toBeLessThan(100);
-    await page.click('[data-quote=long]');
-    const long = await page.evaluate(() => __ws.state.words.map((w) => w.text).join(' '));
-    expect(long.length).toBeGreaterThan(250);
+    await page.click('[data-mode=text]');
+    for (const len of [10, 20, 50, 100, 200, 300]) {
+      await page.click(`[data-len="${len}"]`);
+      await expect(page.locator(`[data-len="${len}"]`)).toHaveClass(/on/);
+      const info = await page.evaluate((l) => {
+        const text = __ws.state.words.map((w) => w.text).join(' ');
+        const e = __ws.texts.ru.find((x) => x.t.replace(/\s+/g, ' ') === text);
+        return { found: !!e, len: e && e.len, src: e && e.src, shown: document.querySelector('#source').textContent };
+      }, len);
+      expect(info.found, `~${len}`).toBe(true);
+      expect(info.len).toBe(len);
+      expect(info.shown).toBe(info.src ? '- ' + info.src : '');
+    }
+  });
+
+  test('текст: за 30 пробных выборов попадаются и тексты с автором, и свои', async ({ page }) => {
+    await openWs(page);
+    await page.evaluate(() => { __ws.set('textLen', 10, false); __ws.set('mode', 'text'); });
+    const seen = new Set();
+    for (let i = 0; i < 30; i++) {
+      await page.keyboard.press('Tab');
+      seen.add(await page.locator('#source').textContent() ? 'src' : 'own');
+    }
+    expect([...seen].sort()).toEqual(['own', 'src']);
+  });
+
+  test('время + текст: связный текст, кончился текст - сразу идёт следующий, время идёт дальше', async ({ page }) => {
+    await openWs(page);
+    await page.evaluate(() => { __ws.set('time', 120, false); __ws.set('timeSrc', 'text', false); __ws.set('mode', 'time'); });
+    await expect(page.locator('[data-src=text]')).toHaveClass(/on/);
+    await expect(page.locator('[data-ctl=size]')).toBeHidden();
+    const first = await page.evaluate(() => {
+      const w = __ws.state.words;
+      const all = __ws.texts.ru;
+      // где кончается первый текст: длина того текста из набора, с которого начинается тест
+      const start = w.slice(0, 6).map((x) => x.text).join(' ');
+      const e = all.find((x) => x.t.replace(/\s+/g, ' ').startsWith(start));
+      return { n: e.t.split(/\s+/).length, len: e.len, total: w.length };
+    });
+    expect(first.len).toBeGreaterThanOrEqual(50);
+    const words = await page.evaluate((n) => __ws.state.words.slice(0, n + 3).map((w) => w.text), first.n);
+    await page.keyboard.insertText(words.join(' ') + ' ');              // весь первый текст и три слова следующего - одним вводом
+    const st = await page.evaluate(() => ({ phase: __ws.state.phase, wi: __ws.state.wi }));
+    expect(st.phase).toBe('run');
+    expect(st.wi).toBe(first.n + 3);
+    // слова после первого текста - начало другого текста из набора
+    const next = words.slice(first.n).join(' ');
+    const ok = await page.evaluate((nx) => __ws.texts.ru.some((x) => x.t.replace(/\s+/g, ' ').startsWith(nx)), next);
+    expect(ok).toBe(true);
+    await page.clock.runFor(121_000);
+    const r = await result(page);
+    close(r.dur, 120);
+    expect(r.key).toBe('time|120|ru|text|-');
+  });
+
+  test('рекорды раздельны по режиму и длине текста; время со словами и с текстом - разные рекорды', async ({ page }) => {
+    await openWs(page);
+    for (const len of [10, 20]) {
+      await page.evaluate((l) => { __ws.set('textLen', l, false); __ws.set('mode', 'text'); }, len);
+      const words = await page.evaluate(() => __ws.state.words.map((w) => w.text));
+      await typeTimed(page, words.join(' '), 20);
+    }
+    for (const src of ['words', 'text']) {
+      await page.evaluate((x) => { __ws.set('time', 15, false); __ws.set('timeSrc', x, false); __ws.set('mode', 'time'); }, src);
+      const w = await page.evaluate(() => __ws.state.words[0].text);
+      await typeTimed(page, w + ' ', 20);
+      await page.clock.runFor(16_000);
+    }
+    const keys = Object.keys(await page.evaluate(() => __ws.records())).sort();
+    expect(keys).toEqual(['text|10|ru|-|-', 'text|20|ru|-|-', 'time|15|ru|1000|-', 'time|15|ru|text|-']);
   });
 
   test('свой текст: окно ввода, текст сохраняется, тест идёт по нему', async ({ page }) => {
@@ -339,6 +410,58 @@ test.describe('ws: режимы', () => {
     expect(b.typed[0]).toBe('');
     await page.keyboard.press('Tab');
     expect((await state(page)).words).not.toEqual(a);
+  });
+
+  // Подписи кнопки и подсказок клавиш внизу = то, что Tab и Esc делают в этом режиме
+  const LABELS = {
+    time: ['Новый текст', 'новый текст', 'этот же текст заново'],
+    words: ['Новый текст', 'новый текст', 'этот же текст заново'],
+    text: ['Новый текст', 'новый текст', 'этот же текст заново'],
+    custom: ['Новый свой текст', 'ввести новый свой текст', 'этот же текст заново'],
+    zen: ['Стереть', 'стереть набранное', 'начать заново'],
+  };
+  for (const [mode, [btn, tab, escL]] of Object.entries(LABELS)) {
+    test(`${mode}: подпись кнопки и клавиш = действие Tab и Esc`, async ({ page }) => {
+      await openWs(page);
+      if (mode === 'custom') await custom(page, 'один два три');
+      else await page.evaluate((m) => __ws.set('mode', m), mode);
+      await expect(page.locator('#restart')).toHaveText(btn);
+      await expect(page.locator('#tab-label')).toHaveText(tab);
+      await expect(page.locator('#esc-label')).toHaveText(escL);
+      // Esc: то же самое заново, набранное стёрто
+      const before = await page.evaluate(() => __ws.state.words.map((w) => w.text).join(' '));
+      await page.keyboard.type(mode === 'zen' ? 'проба' : (await page.evaluate(() => __ws.state.words[0].text)).slice(0, 1));
+      await page.keyboard.press('Escape');
+      expect(await page.evaluate(() => ({ p: __ws.state.phase, z: __ws.state.zenText, t: __ws.state.typed[0] || '' }))).toEqual({ p: 'idle', z: '', t: '' });
+      expect(await page.evaluate(() => __ws.state.words.map((w) => w.text).join(' '))).toBe(before);
+      // Tab: своё действие режима
+      await page.keyboard.type(mode === 'zen' ? 'проба' : (await page.evaluate(() => __ws.state.words[0].text)).slice(0, 1));
+      await page.keyboard.press('Tab');
+      if (mode === 'custom') {
+        await expect(page.locator('#custom-sheet')).toBeVisible();
+        await expect(page.locator('#custom-text')).toHaveValue('один два три');
+      } else if (mode === 'zen') {
+        expect(await page.evaluate(() => [__ws.state.phase, __ws.state.zenText])).toEqual(['idle', '']);
+      } else {
+        expect(await page.evaluate(() => __ws.state.phase)).toBe('idle');
+        expect(await page.evaluate(() => __ws.state.words.map((w) => w.text).join(' '))).not.toBe(before);
+      }
+    });
+  }
+
+  test('Tab в окне своего текста ходит только по его полю и кнопкам', async ({ page }) => {
+    await openWs(page);
+    await page.click('[data-mode=custom]');
+    await expect(page.locator('#custom-sheet')).toBeVisible();
+    const seen = new Set();
+    for (let i = 0; i < 7; i++) {
+      await page.keyboard.press(i % 3 === 2 ? 'Shift+Tab' : 'Tab');
+      const where = await page.evaluate(() => ({ inSheet: !!document.activeElement.closest('#custom-sheet'), id: document.activeElement.id || document.activeElement.textContent.trim() }));
+      expect(where.inSheet, where.id).toBe(true);
+      seen.add(where.id);
+    }
+    expect(seen.size).toBeGreaterThanOrEqual(3);              // поле, «Печатать», «Отмена»
+    await expect(page.locator('#custom-sheet')).toBeVisible();
   });
 });
 
@@ -604,5 +727,350 @@ test.describe('ws: вид', () => {
     const letter = await page.evaluate(() => document.querySelectorAll('.word')[0].querySelectorAll('.l')[3].offsetLeft);
     expect(x1).toBeGreaterThan(x0);
     close(x1, letter, 0.5);
+  });
+});
+
+// ----------------------------------------------------------------------------------------
+// 1.1.0: набор текстов, видимость настроек, перенос длинных слов, нажатие в меню, китайский
+
+test.describe('ws: набор текстов', () => {
+  const LENS = [10, 20, 50, 100, 200, 300];
+  const LANGS = ['ru', 'uk', 'en', 'de', 'fr', 'es', 'zh'];
+  // Длина считается здесь заново, без функций страницы: слова с буквой или цифрой; у китайского - иероглифы
+  const lengthOf = (lang, t) => (lang === 'zh' ? [...t].filter((ch) => /[㐀-䶿一-鿿]/.test(ch)).length : t.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length);
+
+  test('каждый язык: ровно по 10 текстов на длину ~10/~20/~50/~100/~200/~300, допуск ±20 %, без повторов', async ({ page }) => {
+    await openWs(page);
+    const texts = await page.evaluate(() => __ws.texts);
+    expect(Object.keys(texts).sort()).toEqual([...LANGS].sort());
+    for (const lang of LANGS) {
+      const k = lang === 'zh' ? 2 : 1;
+      const seen = new Set();
+      for (const len of LENS) {
+        const list = texts[lang].filter((e) => e.len === len);
+        expect(list.length, `${lang} ~${len}`).toBe(10);
+        for (const e of list) {
+          const n = lengthOf(lang, e.t);
+          expect(n >= len * k * 0.8 && n <= len * k * 1.2, `${lang} ~${len}: ${n} - ${e.t.slice(0, 40)}`).toBe(true);
+          const key = e.t.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+          expect(seen.has(key), `${lang}: повтор ${e.t.slice(0, 40)}`).toBe(false);
+          seen.add(key);
+          if (e.src !== null) expect(typeof e.src === 'string' && e.src.length > 1).toBe(true);
+        }
+      }
+      expect(texts[lang].length).toBe(60);
+    }
+  });
+
+  test('тексты печатаются с обычной клавиатуры: без «ёлочек», длинного тире, многоточия и неразрывных пробелов', async ({ page }) => {
+    await openWs(page);
+    const texts = await page.evaluate(() => __ws.texts);
+    for (const lang of LANGS.filter((l) => l !== 'zh')) {
+      const bad = texts[lang].filter((e) => /[«»„“”’—–… ]/.test(e.t)).map((e) => e.t.slice(0, 40));
+      expect(bad, lang).toEqual([]);
+    }
+    const zhBad = texts.zh.filter((e) => /\s/.test(e.t));
+    expect(zhBad).toEqual([]);
+  });
+});
+
+test.describe('ws: видимость настроек по режимам', () => {
+  // Таблица «режим -> видимые настройки» (она же в README). Записана здесь заново, а не
+  // взята из страницы, чтобы закон ловил расхождение.
+  const ALL = ['times', 'src', 'counts', 'lens', 'edit', 'lang', 'size', 'zhInput', 'pyHint', 'punct', 'nums', 'caps', 'noBack', 'stop'];
+  const TABLE = [
+    ['ru', 'time', 'words', 'times src lang size punct nums caps noBack stop'],
+    ['ru', 'time', 'text', 'times src lang noBack stop'],
+    ['ru', 'words', 'words', 'counts lang size punct nums caps noBack stop'],
+    ['ru', 'text', 'words', 'lens lang noBack stop'],
+    ['ru', 'custom', 'words', 'edit noBack stop'],
+    ['ru', 'zen', 'words', 'noBack'],
+    ['zh', 'time', 'words', 'times src lang size zhInput pyHint noBack stop'],
+    ['zh', 'text', 'words', 'lens lang zhInput pyHint noBack stop'],
+    ['js', 'time', 'text', 'times lang nums noBack stop'],
+    ['js', 'words', 'words', 'counts lang nums noBack stop'],
+    ['js', 'text', 'words', 'lang noBack stop'],
+  ];
+  for (const [lang, mode, src, want] of TABLE) {
+    test(`${lang} ${mode}${mode === 'time' ? ' + ' + src : ''}: видно только «${want}»`, async ({ page }) => {
+      await openWs(page);
+      await page.evaluate(([l, m, s]) => { __ws.set('lang', l, false); __ws.set('timeSrc', s, false); __ws.set('mode', m); }, [lang, mode, src]);
+      if (mode === 'custom') await page.keyboard.press('Escape');
+      const shown = await page.evaluate((all) => all.filter((c) => { const el = document.querySelector(`[data-ctl="${c}"]`); return el && !el.hidden && el.offsetParent !== null; }), ALL);
+      expect(shown.sort()).toEqual(want.split(' ').sort());
+    });
+  }
+
+  test('спрятанная настройка не сбрасывается: знаки включены в «словах», в дзене их не видно, вернулись - включены', async ({ page }) => {
+    await openWs(page);
+    await page.click('[data-mode=words]');
+    await page.click('[data-flag=punct]');
+    await page.click('[data-mode=zen]');
+    await expect(page.locator('[data-flag=punct]')).toBeHidden();
+    await page.click('[data-mode=words]');
+    await expect(page.locator('[data-flag=punct]')).toHaveAttribute('aria-pressed', 'true');
+    await page.selectOption('#size', '200');
+    await page.click('[data-mode=text]');
+    await page.click('[data-mode=words]');
+    await expect(page.locator('#size')).toHaveValue('200');
+  });
+
+  test('словарь: понятная подпись и подсказка, на двух языках интерфейса', async ({ page }) => {
+    await openWs(page);
+    await page.click('[data-mode=words]');
+    await expect(page.locator('[data-ctl=size]')).toContainText('словарь');
+    expect(await page.locator('#size option').allTextContents()).toEqual(['200 частых слов', '1000 частых слов', '5000 частых слов']);
+    await expect(page.locator('[data-ctl=size]')).toHaveAttribute('title', /самых частых слов языка.*меньше - проще/);
+    await page.click('#ui-lang');
+    await expect(page.locator('[data-ctl=size]')).toContainText('vocabulary');
+    expect(await page.locator('#size option').allTextContents()).toEqual(['200 most common words', '1000 most common words', '5000 most common words']);
+    await expect(page.locator('[data-ctl=size]')).toHaveAttribute('title', /most common words.*fewer is easier/);
+  });
+});
+
+test.describe('ws: 1.0.0 -> 1.1.0, перенос рекордов «цитат»', () => {
+  test('рекорды и история «цитат» переезжают в «текст» нужной длины, лучший рекорд остаётся, режим «цитата» -> «текст»', async ({ page }) => {
+    const rec = {
+      'quote|short|ru|-|p': { wpm: 61, raw: 70, acc: 97, when: 1 },
+      'quote|medium|ru|-|-': { wpm: 55, raw: 60, acc: 95, when: 2 },
+      'quote|any|ru|-|-': { wpm: 58, raw: 62, acc: 96, when: 3 },
+      'quote|long|en|-|sb': { wpm: 70, raw: 75, acc: 99, when: 4 },
+      'time|30|ru|1000|-': { wpm: 80, raw: 85, acc: 98, when: 5 },
+    };
+    const hist = [{ when: 1, key: 'quote|short|ru|-|p', wpm: 61, raw: 70, acc: 97, cons: 80, dur: 10 }, { when: 5, key: 'time|30|ru|1000|-', wpm: 80, raw: 85, acc: 98, cons: 90, dur: 30 }];
+    const errors = await openWs(page, { storage: {
+      'typing:records': JSON.stringify(rec), 'typing:history': JSON.stringify(hist),
+      'typing:settings': JSON.stringify({ mode: 'quote', quote: 'long', lang: 'ru' }),
+    } });
+    const out = await page.evaluate(() => ({ rec: __ws.records(), hist: __ws.history().map((x) => x.key), s: [__ws.settings.mode, __ws.settings.textLen] }));
+    expect(out.rec).toEqual({
+      'text|10|ru|-|-': rec['quote|short|ru|-|p'],
+      'text|20|ru|-|-': rec['quote|any|ru|-|-'],                // из «средней» (55) и «любой» (58) - лучший
+      'text|50|en|-|sb': rec['quote|long|en|-|sb'],
+      'time|30|ru|1000|-': rec['time|30|ru|1000|-'],
+    });
+    expect(out.hist).toEqual(['text|10|ru|-|-', 'time|30|ru|1000|-']);
+    expect(out.s).toEqual(['text', 50]);
+    expect(errors).toEqual([]);
+    // повторный запуск ничего не меняет
+    await page.reload();
+    await page.waitForFunction(() => window.__ws && window.__ws.ready === true);
+    expect(await page.evaluate(() => __ws.records())).toEqual(out.rec);
+    await page.click('[data-view=history]');
+    await expect(page.locator('#records tr[data-key="text|10|ru|-|-"]')).toContainText('текст ~10 слов');
+  });
+});
+
+test.describe('ws: перенос длинных слов', () => {
+  async function checkWrap(page) {
+    // Строки едут вверх плавно (transition .14s), а мерить надо уже приехавшие: без анимаций
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const m = await page.evaluate(() => {
+      const wrap = document.querySelector('#words-wrap').getBoundingClientRect();
+      const ls = [...document.querySelectorAll('#words .l')].filter((l) => l.textContent.trim() && !l.classList.contains('zen-end'));
+      const last = ls[ls.length - 1].getBoundingClientRect();
+      const first = ls[0].getBoundingClientRect();
+      const caret = document.querySelector('#caret').getBoundingClientRect();
+      return { wrapRight: wrap.right, wrapTop: wrap.top, wrapBottom: wrap.bottom, lastRight: last.right, firstTop: first.top, lastTop: last.top, caretTop: caret.top, caretBottom: caret.bottom, scroll: document.documentElement.scrollWidth - innerWidth };
+    });
+    expect(m.lastRight).toBeLessThanOrEqual(m.wrapRight + 0.5);
+    expect(m.scroll).toBeLessThanOrEqual(0);
+    expect(m.lastTop).toBeGreaterThan(m.firstTop);                        // слово ушло на следующие строки
+    expect(m.caretTop).toBeGreaterThanOrEqual(m.wrapTop - 1);             // каретка видна в поле
+    expect(m.caretBottom).toBeLessThanOrEqual(m.wrapBottom + 1);
+    return m;
+  }
+
+  test('дзен: слово из 300 букв переносится, каретка на новой строке и видна', async ({ page }) => {
+    await openWs(page);
+    await page.click('[data-mode=zen]');
+    await page.keyboard.type('ж'.repeat(300));
+    const m = await checkWrap(page);
+    expect(Math.abs(m.caretTop - m.lastTop)).toBeLessThan(20);           // каретка там же, где последняя буква
+  });
+
+  test('свой текст: слово из 300 букв переносится, каретка идёт за ним', async ({ page }) => {
+    await openWs(page);
+    await custom(page, 'q'.repeat(300) + ' конец');
+    await page.keyboard.type('q'.repeat(250));
+    await checkWrap(page);
+  });
+
+  test('китайский текст без пробелов переносится по строкам', async ({ page }) => {
+    await openWs(page);
+    await page.evaluate(() => { __ws.set('lang', 'zh', false); __ws.set('textLen', 300, false); __ws.set('mode', 'text'); });
+    await checkWrap(page);
+  });
+});
+
+test.describe('ws: нажатие в меню', () => {
+  // Жалоба 1.0.0: зажатая на кнопке меню мышь подсвечивала фоном весь ряд. Причина - выделение
+  // текста ряда, когда мышь при нажатии чуть сдвигается (браузер красит выделение фоном).
+  for (const [row, btn] of [['#modes', '[data-mode=words]'], ['#flags', '[data-flag=caps]'], ['[data-ctl=times]', '[data-time="60"]']]) {
+    test(`${row}: при нажатии меняется только кнопка, ряд не подсвечивается и не выделяется`, async ({ page }) => {
+      await openWs(page);
+      const rowBox = await page.locator(row).boundingBox();
+      const b = await page.locator(btn).boundingBox();
+      await page.mouse.move(b.x + 6, b.y + b.height / 2);
+      const clip = { x: rowBox.x - 2, y: rowBox.y - 2, width: rowBox.width + 4, height: rowBox.height + 4 };
+      await page.waitForTimeout(300);                                     // наведение - без перехода цвета
+      const before = await page.screenshot({ clip, mask: [page.locator(row + ' button')] });
+      // нажатие на кнопке и в зазоре рядом, мышь зажата и сдвигается на 40 px. Кнопки ряда закрыты
+      // маской: мышь доезжает до соседней кнопки, и та честно светится наведением - это не ряд.
+      for (const startX of [b.x + 6, b.x - 2]) {
+        await page.mouse.move(startX, b.y + b.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(startX + 40, b.y + b.height / 2 + 2, { steps: 4 });
+        await page.waitForTimeout(300);
+        expect(await page.evaluate(() => getSelection().toString()), 'выделение').toBe('');
+        const during = await page.screenshot({ clip, mask: [page.locator(row + ' button')] });
+        expect(Buffer.compare(before, during), 'ряд вокруг кнопки не изменился').toBe(0);
+        await page.mouse.up();
+        await page.evaluate(() => getSelection().removeAllRanges());
+      }
+      const css = await page.evaluate((sel) => getComputedStyle(document.querySelector(sel)).userSelect, row);
+      expect(css).toBe('none');
+    });
+  }
+});
+
+test.describe('ws: китайский', () => {
+  const zhOpen = async (page, extra = {}) => {
+    await openWs(page);
+    await page.evaluate((x) => { for (const [k, v] of Object.entries({ lang: 'zh', zhInput: 'hanzi', ...x })) __ws.set(k, v, false); __ws.set('mode', x.mode || 'words'); }, extra);
+  };
+  // Имитация метода ввода: события composition* в поле ввода (так их шлёт Chromium/Electron)
+  async function ime(page, steps, result) {
+    await page.evaluate(([steps, result]) => {
+      const el = document.querySelector('#input');
+      el.dispatchEvent(new CompositionEvent('compositionstart', { data: '' }));
+      for (const s of steps) {
+        el.value = s;
+        el.dispatchEvent(new CompositionEvent('compositionupdate', { data: s }));
+        el.dispatchEvent(new InputEvent('input', { data: s, inputType: 'insertCompositionText', isComposing: true }));
+      }
+      el.value = result;
+      el.dispatchEvent(new CompositionEvent('compositionend', { data: result }));
+    }, [steps, result]);
+  }
+
+  test('список слов: 5000 слов из иероглифов, к каждому пиньинь латиницей без тонов', async ({ page }) => {
+    await openWs(page);
+    const w = await page.evaluate(() => [__ws.words('zh').split(' '), __ws.wordsPy('zh').split(' ')]);
+    expect(w[0].length).toBe(5000);
+    expect(new Set(w[0]).size).toBe(5000);
+    expect(w[0].every((x) => /^[一-鿿]{1,4}$/.test(x))).toBe(true);
+    expect(w[1].length).toBe(5000);
+    expect(w[1].every((x) => /^[a-zü]+$/.test(x))).toBe(true);
+    const at = (x) => w[1][w[0].indexOf(x)];
+    expect([at('我们'), at('中国'), at('时候')]).toEqual(['women', 'zhongguo', 'shihou']);
+  });
+
+  test('IME: пока идёт набор пиньиня, ничего не засчитывается и каретка стоит; итог сверяется по иероглифам', async ({ page }) => {
+    await zhOpen(page);
+    const w0 = await page.evaluate(() => __ws.state.words[0].text);
+    const caret0 = await page.evaluate(() => document.querySelector('#caret').style.transform);
+    await page.evaluate(() => {
+      const el = document.querySelector('#input');
+      el.dispatchEvent(new CompositionEvent('compositionstart', { data: '' }));
+      el.value = 'ni'; el.dispatchEvent(new CompositionEvent('compositionupdate', { data: 'ni' }));
+      el.dispatchEvent(new InputEvent('input', { data: 'ni', inputType: 'insertCompositionText', isComposing: true }));
+    });
+    expect(await page.evaluate(() => [__ws.state.keys.length, __ws.state.phase, __ws.state.typed[0]])).toEqual([0, 'idle', '']);
+    expect(await page.evaluate(() => document.querySelector('#caret').style.transform)).toBe(caret0);
+    await expect(page.locator('#ime')).toBeVisible();
+    await expect(page.locator('#ime')).toHaveText('ni');
+    await page.evaluate((r) => { const el = document.querySelector('#input'); el.value = r; el.dispatchEvent(new CompositionEvent('compositionend', { data: r })); }, w0);
+    await expect(page.locator('#ime')).toBeHidden();
+    const st = await page.evaluate(() => ({ wi: __ws.state.wi, keys: __ws.state.keys.length, ok: __ws.state.keys.every((k) => k.ok) }));
+    expect(st).toEqual({ wi: 1, keys: [...w0].length, ok: true });           // слово сдалось само, без пробела
+  });
+
+  test('IME настоящим путём Chromium (CDP imeSetComposition + insertText) тоже работает', async ({ page }) => {
+    await zhOpen(page);
+    const w = await page.evaluate(() => __ws.state.words.slice(0, 3).map((x) => [x.text, x.py]));
+    const cdp = await page.context().newCDPSession(page);
+    for (const [hz, py] of w) {
+      const before = await page.evaluate(() => __ws.state.keys.length);
+      await cdp.send('Input.imeSetComposition', { text: py, selectionStart: py.length, selectionEnd: py.length });
+      expect(await page.evaluate(() => __ws.state.keys.length), 'во время набора ничего не засчитано').toBe(before);
+      await cdp.send('Input.insertText', { text: hz });
+    }
+    expect(await page.evaluate(() => [__ws.state.wi, __ws.state.keys.every((k) => k.ok)])).toEqual([3, true]);
+  });
+
+  test('скорость - иероглифов в минуту (1 слово = 1 иероглиф), на поддельных часах', async ({ page }) => {
+    await zhOpen(page, { mode: 'words', count: 10 });
+    const words = await page.evaluate(() => __ws.state.words.map((w) => w.text));
+    const chars = words.join('');
+    for (const w of words) { await ime(page, ['x'], w); await page.clock.runFor(1000); }
+    const r = await result(page);
+    const min = (words.length - 1) / 60;      // первое слово - в 0, последнее - через (n-1) с
+    expect(r.unit).toBe(1);
+    close(r.wpm, [...chars].length / min);
+    close(r.cpm, [...chars].length / min);
+    close(r.acc, 100);
+    await expect(page.locator('#r-unit')).toHaveText('знаков в минуту');
+  });
+
+  test('пробел и Enter в китайском тесте ничего не делают', async ({ page }) => {
+    await zhOpen(page);
+    await page.keyboard.press('Space');
+    await page.keyboard.press('Enter');
+    expect(await page.evaluate(() => [__ws.state.wi, __ws.state.keys.length])).toEqual([0, 0]);
+  });
+
+  test('ошибки - списком по иероглифам вместо клавиатуры', async ({ page }) => {
+    await zhOpen(page, { mode: 'words', count: 10 });
+    const words = await page.evaluate(() => __ws.state.words.map((w) => w.text));
+    const wrong = words[0].length === 1 ? '错' : '错' + words[0].slice(1);
+    await ime(page, ['cuo'], wrong === words[0] ? '对' : wrong);
+    for (const w of words.slice(1)) await ime(page, ['x'], w);
+    await expect(page.locator('#heat-title')).toHaveText('Частые ошибки по иероглифам');
+    await expect(page.locator('#heatmap .key')).toHaveCount(0);
+    await expect(page.locator(`#heatmap .zh-err[data-key="${words[0][0]}"]`)).toHaveAttribute('data-errors', '1');
+  });
+
+  test('латиница без IME в китайском тесте - подсказка включить метод ввода', async ({ page }) => {
+    await zhOpen(page);
+    await page.keyboard.type('ni');
+    await expect(page.locator('#layout-hint')).toBeVisible();
+    await expect(page.locator('#layout-hint')).toContainText('IME');
+  });
+
+  test('пиньинь латиницей: печатается пиньинь через пробел, иероглифы - над ним', async ({ page }) => {
+    await zhOpen(page, { zhInput: 'pinyin', mode: 'words', count: 10 });
+    const w = await page.evaluate(() => __ws.state.words.map((x) => [x.text, x.hz]));
+    expect(w.every(([py, hz]) => /^[a-zü]+$/.test(py) && /^[一-鿿]+$/.test(hz))).toBe(true);
+    await expect(page.locator('#words .word').first().locator('rt')).toHaveText(w[0][1]);
+    await typeTimed(page, w.map((x) => x[0]).join(' '), 10);
+    const r = await result(page);
+    close(r.acc, 100);
+    expect(r.key).toBe('words|10|zh-py|1000|-');
+  });
+
+  test('подсказка-пиньинь над иероглифами включается кнопкой', async ({ page }) => {
+    await zhOpen(page);
+    await expect(page.locator('#words rt')).toHaveCount(0);
+    await page.click('[data-flag=pyHint]');
+    const first = await page.evaluate(() => [__ws.state.words[0].py, document.querySelector('#words .word rt') && document.querySelector('#words .word rt').textContent]);
+    expect(first[1]).toBe(first[0]);
+    await expect(page.locator('#words-wrap')).toHaveClass(/hints/);
+  });
+
+  test('китайский шрифт: системный CJK с запасными, без загрузки извне', async ({ page }) => {
+    await zhOpen(page);
+    const ff = await page.locator('#words-wrap').evaluate((el) => getComputedStyle(el).fontFamily);
+    for (const f of ['Microsoft YaHei', 'Noto Sans SC', 'PingFang SC']) expect(ff).toContain(f);
+  });
+
+  test('текст по-китайски: длины в иероглифах (~20...~600), набор через IME до конца', async ({ page }) => {
+    await zhOpen(page, { mode: 'text', textLen: 10 });
+    await expect(page.locator('[data-len="10"]')).toHaveText('~20');
+    await expect(page.locator('[data-len="300"]')).toHaveText('~600');
+    const words = await page.evaluate(() => __ws.state.words.map((w) => w.text));
+    for (const w of words) await ime(page, ['x'], w);
+    expect(await page.evaluate(() => __ws.state.phase)).toBe('done');
+    expect((await result(page)).key).toBe('text|10|zh|-|-');
   });
 });
