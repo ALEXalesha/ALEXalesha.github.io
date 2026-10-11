@@ -286,6 +286,7 @@ test('главная при 1280x720: все игры в два ряда без 
       namesPerRow: rows.map((t) => new Set(cards.filter((c) => c.top === t).map((c) => c.name)).size),
       playsPerRow: rows.map((t) => new Set(cards.filter((c) => c.top === t).map((c) => c.play)).size),
       minWidth: Math.min(...cards.map((c) => c.width)),
+      cards: cards.length,
     };
   });
   expect(r.overflow).toBeLessThanOrEqual(0);
@@ -295,22 +296,29 @@ test('главная при 1280x720: все игры в два ряда без 
   expect(r.namesPerRow).toEqual([1, 1]);
   // И кнопки «Играть» одного ряда на одной линии, хотя описания разной длины.
   expect(r.playsPerRow).toEqual([1, 1]);
-  expect(r.minWidth).toBeGreaterThanOrEqual(210);
+  // Карточка не уже 210 px, а при шести колонках (11-12 игр) - не уже 180 px.
+  expect(r.minWidth).toBeGreaterThanOrEqual(r.cards > 10 ? 180 : 210);
   // На широком экране описания разной длины (одна и две строки) - кнопки всё равно в линию.
-  await app.evaluate(() => globalThis.__igroteka.win.setContentSize(1920, 1080));
-  await sleep(500);
-  const wide = await shell.evaluate(() => {
-    const cards = [...document.querySelectorAll('#grid .card')].map((c) => ({
-      top: Math.round(c.getBoundingClientRect().top),
-      play: Math.round(c.querySelector('.play').getBoundingClientRect().top),
-      desc: (() => { const r = document.createRange(); r.selectNodeContents(c.querySelector('.desc')); return new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size; })(),
-    }));
-    const rows = [...new Set(cards.map((c) => c.top))];
-    return {
-      playsPerRow: rows.map((t) => new Set(cards.filter((c) => c.top === t).map((c) => c.play)).size),
-      descHeights: new Set(cards.map((c) => c.desc)).size,
-    };
-  });
+  // Ширина, где строк в описаниях разное число, зависит от числа колонок: ищется среди
+  // обычных экранов, иначе закон ничего бы не проверял.
+  let wide = null;
+  for (const [w, h] of [[1920, 1080], [1600, 900], [1440, 900], [1366, 768]]) {
+    await app.evaluate((_electron, size) => globalThis.__igroteka.win.setContentSize(size[0], size[1]), [w, h]);
+    await sleep(500);
+    wide = await shell.evaluate(() => {
+      const cards = [...document.querySelectorAll('#grid .card')].map((c) => ({
+        top: Math.round(c.getBoundingClientRect().top),
+        play: Math.round(c.querySelector('.play').getBoundingClientRect().top),
+        desc: (() => { const r = document.createRange(); r.selectNodeContents(c.querySelector('.desc')); return new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size; })(),
+      }));
+      const rows = [...new Set(cards.map((c) => c.top))];
+      return {
+        playsPerRow: rows.map((t) => new Set(cards.filter((c) => c.top === t).map((c) => c.play)).size),
+        descHeights: new Set(cards.map((c) => c.desc)).size,
+      };
+    });
+    if (wide.descHeights > 1) break;
+  }
   expect(wide.descHeights).toBeGreaterThan(1); // строк в описаниях разное число, иначе закон ничего не проверяет
   expect(wide.playsPerRow).toEqual([1, 1]);
 });

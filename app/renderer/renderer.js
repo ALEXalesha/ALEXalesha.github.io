@@ -102,7 +102,11 @@ function listJoin(words) {
 }
 
 function renderGrid() {
-  $('#grid').style.setProperty('--cols', String(Math.min(5, Math.max(4, Math.ceil(info.games.length / 2)))));
+  // Все игры в два ряда: колонок - половина игр (от 4 до 6). С 11-й игрой (10.10) пять
+  // колонок давали третий ряд под краем окна 1280x720 - шестая колонка с карточкой поуже.
+  const cols = Math.min(6, Math.max(4, Math.ceil(info.games.length / 2)));
+  $('#grid').style.setProperty('--cols', String(cols));
+  $('#grid').style.setProperty('--card-min', cols >= 6 ? '180px' : '210px');
   $('#grid').replaceChildren(...info.games.map(card));
   $('#programs').replaceChildren(...info.programs.map(card));
   $('#programs-section').hidden = !info.programs.length;
