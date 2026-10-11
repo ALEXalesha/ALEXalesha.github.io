@@ -4,6 +4,11 @@
 
 **EN**
 
+- MediaPlayer 1.0.1: the playlist scroll bar no longer covers the play button of each row.
+  Overlay scroll bars (Chrome on Windows 11, macOS) take no space and are drawn over the right
+  edge of the rows; the bar covered the button by 7 px. Now the page checks the scroll bar kind
+  and gives the list a 14 px right padding for an overlay bar. Law over 12 window sizes and five
+  themes, classic and overlay bars, gap at least 4 px; 3 new mutants.
 - New program: MediaPlayer (`web/media-player`) in the "Programs" section: 12 own songs from
   a song generator (no more than two equal notes in a row), your files, playlist, 10-band
   equalizer, visualizer, Media Session, five themes, RU/EN; its own Electron shell. 36 laws,
@@ -93,6 +98,11 @@
 
 **RU**
 
+- Медиаплеер 1.0.1: полоса прокрутки плейлиста больше не заходит на кнопку «играть» в строках.
+  Полоса поверх содержимого (Chrome в Windows 11, macOS) места не занимает и рисуется над правым
+  краем строк - она закрывала кнопку на 7 px. Теперь страница узнаёт вид полосы и для такой даёт
+  списку отступ справа 14 px. Закон на 12 размерах окна и пяти темах, классическая и наложенная
+  полоса, зазор не меньше 4 px; 3 новых мутанта.
 - Новая программа: Медиаплеер (`web/media-player`) в разделе «Программы»: 12 своих мелодий из
   генератора песен (не больше двух одинаковых нот подряд), ваши файлы, плейлист, эквалайзер
   10 полос, визуализация, Media Session, пять тем, RU/EN; своя оболочка Electron. 36 законов,

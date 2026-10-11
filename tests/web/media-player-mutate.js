@@ -28,6 +28,9 @@ const MUTANTS = [
   { name: 'настройки не запоминаются', from: "const saveSettings = () => Store.set('settings', settings);", to: 'const saveSettings = () => {};', g: 'переживают перезагрузку' },
   { name: 'позиция не запоминается', from: 'if (pos > 3 && pos < src.duration - 3)', to: 'if (false)', g: 'переживают перезагрузку|позиция своего файла' },
   { name: 'чужая тема из хранилища принимается', from: "theme: THEMES.includes(s.theme) ? s.theme : 'glass',", to: 'theme: s.theme,', g: 'испорченные записи' },
+  { name: 'нет отступа под overlay-полосу прокрутки', from: ':root.overlay-sb #playlist { padding-right: 14px; }', to: '', g: 'полоса прокрутки' },
+  { name: 'overlay-полоса не распознаётся', from: 'return w === 0; };', to: 'return false; };', g: 'полоса прокрутки' },
+  { name: 'отступ под overlay-полосу мал (8 px)', from: ':root.overlay-sb #playlist { padding-right: 14px; }', to: ':root.overlay-sb #playlist { padding-right: 8px; }', g: 'полоса прокрутки' },
 ];
 
 function runSpec(file, g) {

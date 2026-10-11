@@ -716,3 +716,93 @@ test.describe('mp: память и вид', () => {
     await expect(page.locator('#open-files')).toContainText('Открыть');
   });
 });
+
+// Полоса прокрутки плейлиста и кнопки. Обычный прогон идёт с --hide-scrollbars (полос нет вовсе),
+// поэтому здесь два своих запуска Chromium: классическая полоса (занимает место справа, Electron на
+// Windows - 15 px) и полоса поверх содержимого (overlay: Windows 11 в Chrome, macOS, телефоны) -
+// у неё ширина в DOM 0, а рисуется она поверх правого края строк. 11.10 в overlay полоса закрывала
+// кнопку «играть» в каждой строке на 7 px. Ширину overlay-полосы меряем по кадрам: с полосой и без неё.
+const SB_SIZES = [[420, 520], [480, 640], [559, 700], [561, 700], [800, 600], [899, 800], [901, 600], [1100, 760], [1280, 720], [1366, 768], [1600, 900], [1920, 1080]];
+const SB_THEMES = ['glass', 'formal', 'light', 'night', 'warm'];
+const SB_GAP = 4;
+
+async function overlayWidth(page) {
+  // кадр правой полосы списка с показанной полосой и с выключенной (scrollbar-width: none): разные столбцы - полоса
+  const R = await page.evaluate(() => { const r = document.querySelector('#playlist').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: Math.min(r.height, 300) }; });
+  const clip = { x: R.x + R.w - 40, y: R.y, width: 40, height: R.h };
+  await page.mouse.move(R.x + R.w - 3, R.y + 60);
+  await page.mouse.wheel(0, 30); await page.waitForTimeout(1200);
+  await page.mouse.move(R.x + R.w - 3, R.y + 80); await page.waitForTimeout(300);
+  const a = await page.screenshot({ clip });
+  const st = await page.addStyleTag({ content: '#playlist { scrollbar-width: none !important; }' }); await page.waitForTimeout(150);
+  const b = await page.screenshot({ clip });
+  await st.evaluate((el) => el.remove());
+  const cols = await page.evaluate(async ([a, b]) => {
+    const px = async (u) => { const im = new Image(); im.src = u; await im.decode(); const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0); return { w: im.width, h: im.height, d: g.getImageData(0, 0, im.width, im.height).data }; };
+    const A = await px(a), B = await px(b), out = [];
+    for (let x = 0; x < A.w; x++) { let n = 0; for (let y = 0; y < A.h; y++) { const i = (y * A.w + x) * 4; if (Math.abs(A.d[i] - B.d[i]) + Math.abs(A.d[i + 1] - B.d[i + 1]) + Math.abs(A.d[i + 2] - B.d[i + 2]) > 30) n++; } out.push(n); }
+    return out;
+  }, ['data:image/png;base64,' + a.toString('base64'), 'data:image/png;base64,' + b.toString('base64')]);
+  const first = cols.findIndex((n) => n > R.h * 0.2); // первый столбец, где полоса занимает заметную часть высоты
+  return first < 0 ? 0 : 40 - first;
+}
+
+async function sbGeometry(page, overlayW) {
+  return page.evaluate(([overlayW, gap]) => {
+    const ol = document.querySelector('#playlist'), R = ol.getBoundingClientRect(), cs = getComputedStyle(ol);
+    const scrolls = ol.scrollHeight > ol.clientHeight + 1;
+    const classic = ol.offsetWidth - ol.clientWidth - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth);
+    const sbW = classic > 0 ? classic : overlayW;
+    const sbLeft = R.right - parseFloat(cs.borderRightWidth) - sbW;
+    const bad = [];
+    if (scrolls) for (const b of ol.querySelectorAll('.item .go, .item .rm')) {
+      const r = b.getBoundingClientRect();
+      if (r.width && r.right + gap > sbLeft) { bad.push(`кнопка строки ${b.closest('.item').dataset.i}: правый край ${r.right.toFixed(1)}, полоса с ${sbLeft.toFixed(1)}`); break; }
+    }
+    // сама прокручиваемая область (вместе с полосой) не ближе 4 px к кнопкам управления плеером
+    const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden'; };
+    for (const b of document.querySelectorAll('button, input[type=range], select')) {
+      if (b.closest('#playlist-panel') || b.closest('.panel') || !vis(b)) continue;
+      const r = b.getBoundingClientRect();
+      if (r.right + gap > R.left && r.left - gap < R.right && r.bottom + gap > R.top && r.top - gap < R.bottom) bad.push(`список задевает ${b.id || b.className || b.tagName}`);
+    }
+    return { scrolls, sbW, bad };
+  }, [overlayW, SB_GAP]);
+}
+
+for (const mode of ['classic', 'overlay']) {
+  test.describe(`mp: полоса прокрутки плейлиста (${mode === 'classic' ? 'классическая' : 'поверх содержимого'})`, () => {
+    test(`полоса прокрутки списка не заходит на кнопки, зазор >= ${SB_GAP} px, все размеры окна и 5 тем`, async ({ playwright }) => {
+      test.setTimeout(240_000);
+      const browser = await playwright.chromium.launch({
+        ignoreDefaultArgs: ['--hide-scrollbars'],
+        args: ['--allow-file-access-from-files', '--autoplay-policy=no-user-gesture-required', '--mute-audio', ...(mode === 'overlay' ? ['--enable-features=OverlayScrollbar,FluentOverlayScrollbar'] : [])],
+      });
+      const page = await browser.newPage();
+      try {
+      let overlayW = 0;
+      if (mode === 'overlay') {
+        expect(await openMp(page, { size: { width: 1100, height: 760 } })).toEqual([]);
+        overlayW = await overlayWidth(page);
+        expect(overlayW, 'ширина overlay-полосы по кадрам').toBeGreaterThanOrEqual(6);
+        expect(overlayW).toBeLessThanOrEqual(24);
+      }
+      const problems = []; let scrolled = 0;
+      for (const theme of SB_THEMES) {
+        const errors = await openMp(page, { storage: { 'mplayer:settings': JSON.stringify({ theme }) }, size: { width: 1100, height: 760 } });
+        expect(errors).toEqual([]);
+        expect(await page.evaluate(() => document.documentElement.getAttribute('data-theme'))).toBe(theme === 'glass' ? null : theme);
+        for (const [width, height] of SB_SIZES) {
+          await page.setViewportSize({ width, height });
+          await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+          const g = await sbGeometry(page, overlayW);
+          if (g.scrolls) { scrolled++; if (mode === 'classic') expect(g.sbW).toBeGreaterThan(0); }
+          for (const b of g.bad) problems.push(`${theme} ${width}x${height}: ${b}`);
+        }
+      }
+      expect(scrolled, 'список прокручивается хотя бы на части размеров').toBeGreaterThanOrEqual(SB_THEMES.length * 6);
+      expect(problems.slice(0, 12)).toEqual([]);
+      } finally { await browser.close(); }
+    });
+  });
+}
