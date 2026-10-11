@@ -16,14 +16,15 @@
   shows only the settings that change it; zen: "new text" became "Erase"; custom text: Tab
   opens the new-text window; a long word without spaces wraps; Chinese (IME, characters per
   minute, "pinyin in Latin letters" mode, pinyin hint, mistakes by character, wordfreq zh).
-- Compiler (towards 1.1.0): input while the program runs - when the program waits for a line,
+- Compiler 1.1.0: input while the program runs - when the program waits for a line,
   an input box appears right in the output; Enter sends the line, Ctrl+D ends the input, Stop
   works while it waits, waiting does not use up the time limit. JS, TypeScript, Python, C/C++
   (WASI fd_read), Lua and Ruby; the worker sleeps in Atomics.wait on a SharedArrayBuffer.
   On a site the page is made cross-origin isolated by `coi-sw.js` (the coi-serviceworker idea,
   MIT); the app turns SharedArrayBuffer on with a Chromium switch; a page opened from disk keeps
   only the Input field and shows a hint (the field flashes) when the program wants more.
-  9 laws in `tests/web/compiler-input.spec.js` and one in `tests-app/programs.spec.js`.
+  9 laws in `tests/web/compiler-input.spec.js` and one in `tests-app/programs.spec.js`;
+  7 new mutants in `tests/web/compiler-mutate.js` (18 in all, all killed).
 - "Programs" gets a third card, Calibrate 3D Printer: a link to
   https://alexalesha.github.io/Calibrate3dPrinter/ (its own repository, no code copied). The new
   `url` field of `PROGRAMS`: the browser page opens the site in a new tab, the app in the system
@@ -104,14 +105,15 @@
   настройки; дзен: «новый текст» стал «Стереть»; свой текст: Tab - окно нового текста; длинное
   слово без пробелов переносится; китайский (IME, знаков в минуту, режим «пиньинь латиницей»,
   подсказка-пиньинь, ошибки по иероглифам, wordfreq zh).
-- Компилятор (к 1.1.0): ввод по ходу программы - когда программа ждёт строку, поле ввода
+- Компилятор 1.1.0: ввод по ходу программы - когда программа ждёт строку, поле ввода
   появляется прямо в выводе; Enter отправляет строку, Ctrl+D - конец ввода, «Стоп» работает
   во время ожидания, ожидание не тратит предел времени. JS, TypeScript, Python, C/C++ (WASI
   fd_read), Lua и Ruby; поток спит в Atomics.wait на SharedArrayBuffer. На сайте изоляцию
   страницы даёт `coi-sw.js` (мысль coi-serviceworker, MIT), приложение включает
   SharedArrayBuffer флагом Chromium; у страницы с диска только поле «Ввод (stdin)» и подсказка
   (поле мигает), когда программе нужно больше. 9 законов в `tests/web/compiler-input.spec.js`
-  и один в `tests-app/programs.spec.js`.
+  и один в `tests-app/programs.spec.js`; 7 новых мутантов в `tests/web/compiler-mutate.js` (всего 18,
+  все убиты).
 - В «Программах» третья карточка - «Калибровка 3D-принтера»: ссылка на
   https://alexalesha.github.io/Calibrate3dPrinter/ (свой репозиторий, код не копируется). Новое
   поле `url` в `PROGRAMS`: браузерная страница открывает сайт в новой вкладке, приложение - в
