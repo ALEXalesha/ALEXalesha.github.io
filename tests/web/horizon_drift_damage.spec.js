@@ -300,6 +300,31 @@ test.describe('horizon_drift_offline: повреждения', () => {
     expect(r.detached).toBe(true);
   });
 
+  test('целая машина рисуется простым кузовом (у трафика и соперников нет лишних треугольников), первая вмятина даёт мелкую сетку той же формы', async ({ page }) => {
+    await openDrift(page);
+    await page.evaluate(() => __drift.setSetting('damage', 'visual'));
+    await startQuick(page, { track: 'coast', mode: 'race', opp: 3, laps: 1 });
+    const r = await page.evaluate(() => {
+      const race = __drift.race, p = race.player, X = __drift.render.race, cms = race.cars.map((c) => X.cars[race.cars.indexOf(c)]), cm = cms[race.cars.indexOf(p)];
+      const tris = (g) => g.attributes.position.count / 3;
+      const box = (a) => { const b = [1e9, 1e9, 1e9, -1e9, -1e9, -1e9]; for (let i = 0; i < a.length; i += 3) for (let k = 0; k < 3; k++) { b[k] = Math.min(b[k], a[i + k]); b[k + 3] = Math.max(b[k + 3], a[i + k]); } return b; };
+      __drift.step(4 * 120, {});
+      const whole = cms.map((m) => [tris(m.dentable[0]), tris(m.dentable[1])]), box0 = box(cm.dentable[0].attributes.position.array);
+      race.teleport(p, 400, 0, 0); p.h += Math.PI / 2; p.vx = Math.sin(p.h) * 25; p.vz = Math.cos(p.h) * 25;
+      for (let k = 0; k < 60; k++) { __drift.step(1, {}); __drift.render.frame(1 / 60, 1, 'chase'); }
+      const g = cm.dentable[0], box1 = box(g.userData.rest);
+      return { whole, dents: p.dmg.dentN, hit: [tris(g), tris(cm.dentable[1])], meshIsDentable: cm.shell[0].geometry === g && cm.shell[1].geometry === cm.dentable[1],
+        boxDiff: Math.max(...box0.map((v, i) => Math.abs(v - box1[i]))), othersWhole: cms.every((m, i) => m === cm || race.cars[i].dmg.dentN > 0 || tris(m.dentable[0]) === whole[i][0]) };
+    });
+    expect(r.dents).toBeGreaterThan(0);
+    for (const [b, c] of r.whole) { expect(b).toBeLessThan(1500); expect(c).toBeLessThan(600); }
+    expect(r.hit[0]).toBeGreaterThan(r.whole[0][0] * 4);
+    expect(r.hit[1]).toBeGreaterThan(r.whole[0][1] * 2);
+    expect(r.meshIsDentable).toBe(true);
+    expect(r.boxDiff).toBeLessThan(1e-3);
+    expect(r.othersWhole).toBe(true);
+  });
+
   test('в игре: удар о стену мнёт меш машины, бампер улетает обломком на дорогу; HUD шин - только при «полных»', async ({ page }) => {
     await openDrift(page);
     await page.evaluate(() => __drift.setSetting('damage', 'visual'));
@@ -307,11 +332,11 @@ test.describe('horizon_drift_offline: повреждения', () => {
     const r = await page.evaluate(() => {
       const race = __drift.race, p = race.player, R = __drift.render, X = R.race, cm = X.cars[race.cars.indexOf(p)];
       __drift.step(4 * 120, {});                         // отсчёт
-      const rest = cm.dentable[0].attributes.position.array.slice();
+      // до удара у целой машины простой кузов; вмятина меняет его на мелкую сетку и мнёт её (исходная форма - userData.rest)
       // поперёк дороги в стену на 90 км/ч
       race.teleport(p, 400, 0, 0); p.h += Math.PI / 2; p.vx = Math.sin(p.h) * 25; p.vz = Math.cos(p.h) * 25;
       for (let k = 0; k < 60; k++) { __drift.step(1, {}); R.frame(1 / 60, 1, 'chase'); }
-      const pos = cm.dentable[0].attributes.position.array;
+      const pos = cm.dentable[0].attributes.position.array, rest = cm.dentable[0].userData.rest;
       let moved = 0, maxOff = 0;
       for (let i = 0; i < pos.length; i += 3) { const o = Math.hypot(pos[i] - rest[i], pos[i + 1] - rest[i + 1], pos[i + 2] - rest[i + 2]); if (o > 1e-4) moved++; maxOff = Math.max(maxOff, o); }
       const deb = X.debris.meshes.filter((m) => m && m.visible).map((m) => ({ part: m.userData.debris, y: m.position.y }));

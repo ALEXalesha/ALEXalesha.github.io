@@ -12,9 +12,11 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..', '..');
 const SRC = path.join(ROOT, 'web', 'horizon_drift_offline');
-const NITRO = 'tests/web/horizon_drift_nitro.spec.js', DAMAGE = 'tests/web/horizon_drift_damage.spec.js';
+const NITRO = 'tests/web/horizon_drift_nitro.spec.js', DAMAGE = 'tests/web/horizon_drift_damage.spec.js', WORLD = 'tests/web/horizon_drift_world.spec.js';
+const DUEL = 'зона дрифта считается только по ходу зоны';
 
-// file - файл в js/, from - точный кусок кода (ровно один раз), to - сломанный вариант, spec - чьи законы
+// file - файл в js/, from - точный кусок кода (ровно один раз), to - сломанный вариант, spec - чьи законы,
+// grep - только проверки с этим названием (большой спек мира целиком не гоняется)
 const MUTANTS = [
   { name: 'нитро: пустой баллон не запирается', file: 'core.js', spec: NITRO, from: 'if (inp.nitro && car.nitro > 0 && !car.nitroLock && car.gear > 0', to: 'if (inp.nitro && car.nitro > 0 && car.gear > 0' },
   { name: 'нитро: замок снимается сразу', file: 'core.js', spec: NITRO, from: 'if (car.nitroLock && car.nitro >= NITRO_REARM) car.nitroLock = false;', to: 'if (car.nitroLock && car.nitro >= 0) car.nitroLock = false;' },
@@ -50,6 +52,12 @@ const MUTANTS = [
   { name: 'экран: вмятины не рисуются в заезде', file: 'render.js', spec: DAMAGE, from: 'if (c.dmg) R.damageSync(cm, c, X.debris);', to: '' },
   { name: 'экран: HUD шин и при «только вид»', file: 'game.js', spec: DAMAGE, from: "const d = p && p.dmgFx ? p.dmg : null, el = $('hDmg');", to: "const d = p && p.dmg ? p.dmg : null, el = $('hDmg');" },
   { name: 'клавиша ремонта не работает', file: 'game.js', spec: DAMAGE, from: "if (act === 'repair' && !e.repeat)", to: "if (act === 'repairX' && !e.repeat)" },
+  // 11.10: целая машина - простой кузов (мелкая сетка у трафика давала +25% треугольников и вдвое меньше кадров в салоне)
+  { name: 'кузов: мелкая сетка у целой машины', file: 'render.js', spec: DAMAGE, from: 'const shell = carShell(shapeKey, false);', to: 'const shell = carShell(shapeKey, true);' },
+  { name: 'кузов: вмятина без мелкой сетки', file: 'render.js', spec: DAMAGE, from: '      fineShell(cm);', to: '' },
+  // 11.10: дуэль с бродячим соперником - закон теперь жмёт E в стоящем мире
+  { name: 'дуэль: E не вызывает соперника', file: 'game.js', spec: WORLD, grep: DUEL, from: 'if (w.nearRival) { startWorldDuel(w.nearRival); return true; }', to: '' },
+  { name: 'дуэль: соперник рядом только ближе 12 м', file: 'world.js', spec: WORLD, grep: DUEL, from: 'Math.hypot(a.car.x - p.x, a.car.z - p.z) < 30) this.nearRival = a;', to: 'Math.hypot(a.car.x - p.x, a.car.z - p.z) < 12) this.nearRival = a;' },
 ];
 
 function copyDir(a, b) {
@@ -59,8 +67,8 @@ function copyDir(a, b) {
     if (e.isDirectory()) copyDir(pa, pb); else fs.copyFileSync(pa, pb);
   }
 }
-function runSpec(dir, spec) {
-  const r = spawnSync(`npx playwright test ${spec} --workers=1 --max-failures=1 --reporter=dot`, {
+function runSpec(dir, spec, grep) {
+  const r = spawnSync(`npx playwright test ${spec} --workers=1 --max-failures=1 --reporter=dot${grep ? ` -g "${grep}"` : ''}`, {
     cwd: ROOT, env: { ...process.env, DRIFT_DIR: dir }, shell: true, encoding: 'utf8', timeout: 15 * 60 * 1000,
   });
   return { ok: r.status === 0, out: (r.stdout || '') + (r.stderr || '') };
@@ -74,9 +82,11 @@ function main() {
   try {
     copyDir(SRC, dir);
     const read = (f) => fs.readFileSync(path.join(SRC, 'js', f), 'utf8').replace(/\r\n/g, '\n');
-    for (const spec of [NITRO, DAMAGE]) {
-      const base = runSpec(dir, spec);
-      console.log(`исходная копия, ${path.basename(spec)}: ${base.ok ? 'проверки зелёные' : 'ПРОВЕРКИ КРАСНЫЕ'}`);
+    // исходная копия - только те законы, которыми проверяются выбранные мутанты
+    const bases = [...new Map(list.map((m) => [m.spec + '|' + (m.grep || ''), m])).values()];
+    for (const { spec, grep } of bases) {
+      const base = runSpec(dir, spec, grep);
+      console.log(`исходная копия, ${path.basename(spec)}${grep ? ' (' + grep + ')' : ''}: ${base.ok ? 'проверки зелёные' : 'ПРОВЕРКИ КРАСНЫЕ'}`);
       if (!base.ok) { console.log(base.out.slice(-3000)); process.exitCode = 2; return; }
     }
     for (const m of list) {
@@ -84,7 +94,7 @@ function main() {
       if (n !== 1) { console.log(`? ${m.name}: кусок кода найден ${n} раз - мутант устарел`); survived++; continue; }
       const file = path.join(dir, 'js', m.file);
       fs.writeFileSync(file, src.replace(m.from, m.to));
-      const r = runSpec(dir, m.spec);
+      const r = runSpec(dir, m.spec, m.grep);
       fs.writeFileSync(file, src);
       const failed = /\d+\) .*›.*›\s*(.+)/.exec(r.out);
       console.log(`${r.ok ? 'ВЫЖИЛ' : 'убит '}  ${m.name}${!r.ok && failed ? '  <- ' + failed[1].replace(/[─\s]+$/, '').slice(0, 90) : ''}`);

@@ -561,8 +561,10 @@ test.describe('horizon_drift_offline: открытый мир', () => {
     // дуэль: победа в тот же игровой день второй раз денег не даёт
     const money = [];
     for (let k = 0; k < 2; k++) {
-      await page.evaluate(() => { const w = __drift.world, a = w.rivals[0]; a.cool = 0; w.player.x = a.car.x + 10; w.player.z = a.car.z + 10; __drift.stepWorld(2); __drift.manual = false; });
-      await page.waitForFunction(() => __drift.world.nearRival);
+      // мир стоит (manual), пока жмём E: в живом мире соперник (25-32 м/с) уходит из 30 м за 0,7-1,5 с (замер 11.10),
+      // а на загруженном раннере CI ожидание + чтение денег + нажатие дольше - E попадало в пустоту (CI 460)
+      await page.evaluate(() => { const w = __drift.world, a = w.rivals[0]; a.cool = 0; w.player.x = a.car.x + 10; w.player.z = a.car.z + 10; __drift.stepWorld(2); });
+      expect(await page.evaluate(() => [!!__drift.world.nearRival, __drift.world.nearHub])).toEqual([true, null]);
       const m0 = await page.evaluate(() => __drift.career.money);
       await page.keyboard.press('KeyE');
       await page.waitForFunction(() => __drift.screen === 'race' && __drift.race);
