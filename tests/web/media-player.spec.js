@@ -717,6 +717,82 @@ test.describe('mp: память и вид', () => {
   });
 });
 
+// Наведение на кнопки панелей (перенос исправления WritingSpeed 1.1.1). Там при наведении на кнопку
+// меню светлела нижняя половина панели - полоса во всю ширину. Причина - backdrop-filter у стеклянных
+// панелей: при перерисовке одной кнопки Chromium на видеокарте пересчитывал размытие подложки только в
+// полосе панели и захватывал уже нарисованную панель. Безголовый Chromium рисует кадр целиком и полосу
+// не показывает, поэтому главный закон - про правило: у элементов с кнопками нет backdrop-filter (ни у
+// них, ни у ::before/::after); подложка панели - копия фона темы обычным filter.
+const HOVER_THEMES = ['glass', 'formal', 'light', 'night', 'warm'];
+const setThemeAttr = (page, t) => page.evaluate((t) => { if (t === 'glass') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); }, t);
+// Наибольшая разница каналов двух кадров одного размера (считается в странице: массивы не гоняются)
+const maxDiff = (page, a, b) => page.evaluate(async ([a, b]) => {
+  const load = async (b64) => { const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); return x.getImageData(0, 0, img.width, img.height).data; };
+  const [A, B] = [await load(a), await load(b)];
+  let m = 0;
+  for (let i = 0; i < A.length; i++) if ((i & 3) !== 3) m = Math.max(m, Math.abs(A[i] - B[i]));
+  return m;
+}, [a.toString('base64'), b.toString('base64')]);
+
+test.describe('mp: наведение на кнопки', () => {
+  test('у элементов с кнопками нет backdrop-filter (и у ::before/::after), во всех 5 темах', async ({ page }) => {
+    expect(await openMp(page)).toEqual([]);
+    for (const t of HOVER_THEMES) {
+      await setThemeAttr(page, t);
+      const bad = await page.evaluate(() => {
+        const out = [];
+        for (const el of document.querySelectorAll('body *')) {
+          if (!el.querySelector('button, select, input, textarea, a')) continue;
+          for (const pseudo of [null, '::before', '::after']) {
+            const bf = getComputedStyle(el, pseudo).backdropFilter;
+            if (bf && bf !== 'none') out.push((el.id || el.className || el.tagName) + (pseudo || '') + ': ' + bf);
+          }
+        }
+        return out;
+      });
+      expect(bad, `тема ${t}`).toEqual([]);
+      // вид стекла остался: под панелями копия фона темы с насыщенностью темы, сверху тон стекла
+      for (const sel of ['header.top', 'section.player', '#playlist-panel', '#eq']) {
+        const look = await page.evaluate((sel) => { const el = document.querySelector(sel); const b = getComputedStyle(el, '::before'), a = getComputedStyle(el, '::after'); return { att: b.backgroundAttachment, filter: b.filter, tone: a.backgroundColor, pos: getComputedStyle(el).position }; }, sel);
+        expect(look.att, `${t} ${sel}`).toContain('fixed');
+        expect(look.filter, `${t} ${sel}`).toMatch(/^saturate\(/);
+        expect(look.tone, `${t} ${sel}`).not.toBe('rgba(0, 0, 0, 0)');
+        expect(look.pos, `${t} ${sel}: подложка держится за панель`).not.toBe('static');
+      }
+    }
+  });
+
+  test('наведение на кнопку шапки или плеера меняет только эту кнопку, во всех 5 темах', async ({ page }) => {
+    test.setTimeout(300_000);
+    expect(await openMp(page)).toEqual([]);
+    for (const t of HOVER_THEMES) {
+      await setThemeAttr(page, t);
+      for (const panel of ['header.top', 'section.player']) {
+        const pb = await page.locator(panel).boundingBox();
+        const clip = { x: pb.x - 1, y: pb.y - 1, width: pb.width + 2, height: pb.height + 2 };
+        const btns = page.locator(panel + ' button:visible');
+        const n = await btns.count();
+        expect(n, panel).toBeGreaterThan(3);
+        for (let i = 0; i < n; i++) {
+          const btn = btns.nth(i);
+          // холст визуализации и круглая «играть» с градиентом перерисовываются сами (UI.update каждые
+          // 100 мс заново ставит значок): пиксели градиента скачут на 20-38 уровней и без наведения
+          const mask = [btn, page.locator('#viz-canvas'), page.locator('#play')];
+          await page.mouse.move(2, 2);
+          await page.waitForTimeout(300);                                 // переход цвета .15 с
+          const before = await page.screenshot({ clip, mask });
+          const b = await btn.boundingBox();
+          await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+          await page.waitForTimeout(300);
+          const during = await page.screenshot({ clip, mask });
+          // до 4 уровней - сглаженный край маски у самой кнопки; полоса по панели - больше 10
+          expect(await maxDiff(page, before, during), `${t} ${panel} кнопка ${i}: вне кнопки ничего не изменилось`).toBeLessThanOrEqual(4);
+        }
+      }
+    }
+  });
+});
+
 // Полоса прокрутки плейлиста и кнопки. Обычный прогон идёт с --hide-scrollbars (полос нет вовсе),
 // поэтому здесь два своих запуска Chromium: классическая полоса (занимает место справа, Electron на
 // Windows - 15 px) и полоса поверх содержимого (overlay: Windows 11 в Chrome, macOS, телефоны) -

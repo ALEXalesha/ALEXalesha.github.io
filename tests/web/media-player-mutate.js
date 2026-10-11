@@ -31,6 +31,10 @@ const MUTANTS = [
   { name: 'нет отступа под overlay-полосу прокрутки', from: ':root.overlay-sb #playlist { padding-right: 14px; }', to: '', g: 'полоса прокрутки' },
   { name: 'overlay-полоса не распознаётся', from: 'return w === 0; };', to: 'return false; };', g: 'полоса прокрутки' },
   { name: 'отступ под overlay-полосу мал (8 px)', from: ':root.overlay-sb #playlist { padding-right: 14px; }', to: ':root.overlay-sb #playlist { padding-right: 8px; }', g: 'полоса прокрутки' },
+  // 1.0.2: полоса на половину панели при наведении (backdrop-filter у панелей с кнопками, как в WritingSpeed 1.1.1)
+  { name: 'панели снова с backdrop-filter', from: '  box-shadow: var(--glass-shadow); position: relative; isolation: isolate;', to: '  box-shadow: var(--glass-shadow); position: relative; isolation: isolate; backdrop-filter: var(--blur);', g: 'наведение на кнопки' },
+  { name: 'подложка панели без насыщенности темы', from: 'background-attachment: fixed; filter: saturate(var(--glass-sat)); }', to: 'background-attachment: fixed; }', g: 'наведение на кнопки' },
+  { name: 'шапка светлеет при наведении на кнопку', from: '.btn:hover { background:', to: 'header.top:hover::after { background: rgb(255 255 255 / .1); } .btn:hover { background:', g: 'наведение на кнопки' },
 ];
 
 function runSpec(file, g) {
