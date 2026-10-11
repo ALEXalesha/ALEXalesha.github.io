@@ -74,6 +74,7 @@
     { id: 'compiler', name: 'Компилятор', desc: 'C, C++, Python, JavaScript, TypeScript, Lua, Ruby и SQL - запуск прямо здесь, без сети', storage: ['compiler.'],
       uses: ['python_ide'], files: ['web/compiler/**/*', 'web/python_ide/runtime.js', 'web/python_ide/vendor/**/*'], single: false },
     // Добавлена 11.10.2026 по слову владельца: свой репозиторий Calibrate3dPrinter, код сюда не копируется.
+    { id: 'files-manager', name: 'Файловый менеджер', desc: 'Проводник: дерево, вкладки, две панели, поиск и просмотр файлов; здесь - демо-диск', storage: ['idb:files-manager', 'files-manager.'] },
     { id: 'calibrate3dprinter', name: 'Калибровка 3D-принтера', desc: 'Calibrate 3D Printer: G-code десяти тестов для любого FDM-принтера и расчёт поправок - открывается на сайте',
       url: 'https://alexalesha.github.io/Calibrate3dPrinter/', storage: [] },
     // Добавлен 11.10.2026: «Медиаплеер» - своя музыка из генератора песен и файлы пользователя.

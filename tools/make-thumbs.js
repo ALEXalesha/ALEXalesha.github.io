@@ -37,6 +37,8 @@ const PLAY = {
   // «Скорость печати»: на картинке - тест на середине, несколько слов уже напечатаны
   writing_speed: { query: 'seed=5', noStart: true, hold: [], wait: 400, ready: '() => window.__ws && __ws.ready',
     type: '__ws.state.words.slice(0, 7).map((w) => w.text).join(" ") + " " + __ws.state.words[7].text.slice(0, 2)' },
+  // «Файловый менеджер»: на картинке - демо-диск, папка «Проекты» с кодом
+  files_manager: { noStart: true, hold: [], wait: 600, ready: '() => window.__fm && __fm.ready' },
   mario: { hold: ['ArrowRight'], wait: 1800 },
   jungle_strike: { hold: ['ArrowRight'], wait: 1500 },
   horizon_drift_offline: { buttons: [/Свободная езда/, /поехать/i], hold: ['ArrowUp'], wait: 5000, noStart: true },

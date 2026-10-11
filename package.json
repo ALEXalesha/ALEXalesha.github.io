@@ -61,6 +61,7 @@
       "web/space_shooter/**/*",
       "web/tetris/**/*",
       "web/sudoku/**/*",
+      "web/files-manager/index.html",
       "web/flappy-wings/**/*",
       "web/writing-speed/index.html",
       "web/media-player/index.html",

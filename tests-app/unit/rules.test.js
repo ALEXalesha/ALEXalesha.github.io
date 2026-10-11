@@ -165,7 +165,7 @@ test('демо систем: страница и картинка есть, хо
 
 test('программы: страница и картинка есть, ходить можно только в свою папку', () => {
   const progs = Games.programsCatalog(ROOT);
-  assert.deepEqual(progs.map((p) => p.id), ['writing-speed', 'compiler', 'calibrate3dprinter', 'media-player']);
+  assert.deepEqual(progs.map((p) => p.id), ['writing-speed', 'compiler', 'files-manager', 'calibrate3dprinter', 'media-player']);
   for (const p of progs.filter((x) => !x.link)) {
     assert.ok(fs.existsSync(p.page), p.page);
     assert.ok(p.desc && p.program && p.storage.length, p.id);
