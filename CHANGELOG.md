@@ -4,6 +4,11 @@
 
 **EN**
 
+- Compiler 1.1.1: a double click on a file in the list renames it again. The first click
+  opens the file and draws the list anew, so the double click went to the row that was
+  already gone and the rename field never showed. Now the second press on the same file
+  starts the rename. Law with the real mouse (`page.mouse.dblclick`) on the open file and on
+  another one; a new mutant (19 in all, all killed).
 - MediaPlayer 1.0.1: the playlist scroll bar no longer covers the play button of each row.
   Overlay scroll bars (Chrome on Windows 11, macOS) take no space and are drawn over the right
   edge of the rows; the bar covered the button by 7 px. Now the page checks the scroll bar kind
@@ -98,6 +103,11 @@
 
 **RU**
 
+- Компилятор 1.1.1: двойной щелчок по файлу в списке снова переименовывает его. Первый
+  щелчок открывает файл и рисует список заново, поэтому двойной щелчок уходил в строку,
+  которой уже нет, и поле имени не появлялось. Теперь переименование начинает второе нажатие
+  на тот же файл. Закон настоящей мышью (`page.mouse.dblclick`) по открытому и по другому
+  файлу; новый мутант (всего 19, все убиты).
 - Медиаплеер 1.0.1: полоса прокрутки плейлиста больше не заходит на кнопку «играть» в строках.
   Полоса поверх содержимого (Chrome в Windows 11, macOS) места не занимает и рисуется над правым
   краем строк - она закрывала кнопку на 7 px. Теперь страница узнаёт вид полосы и для такой даёт

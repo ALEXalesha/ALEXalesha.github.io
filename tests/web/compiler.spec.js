@@ -311,6 +311,27 @@ test('files: edits, a new file, rename and delete with undo survive a reload', a
   expect(keys.every((k) => k.startsWith('compiler.')), keys.join(', ')).toBe(true);
 });
 
+test('files: a double click with the real mouse renames, on the open file and on another one', async ({ page }) => {
+  await openPage(page);
+  // the first click opens the file and draws the list again: the second press must still rename
+  for (const [from, to] of [['main.lua', 'game.lua'], ['game.lua', 'play.lua'], ['main.sql', 'base.sql']]) {
+    const box = await page.locator(`#files .file[data-name="${from}"] .file-name`).boundingBox();
+    await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
+    const input = page.locator('#files .file input');
+    await expect(input, `double click on ${from}`).toHaveCount(1);
+    await expect(input).toBeFocused();
+    await input.fill(to);
+    await input.press('Enter');
+    await expect(page.locator(`#files .file[data-name="${to}"]`)).toHaveCount(1);
+    await expect(page.locator(`#files .file[data-name="${from}"]`)).toHaveCount(0);
+  }
+  // one click only opens the file, no rename field
+  await page.locator('#files .file[data-name="main.js"] .file-name').click();
+  await page.waitForTimeout(600);
+  await expect(page.locator('#files .file input')).toHaveCount(0);
+  await expect(page.locator('.tab.active')).toHaveAttribute('data-name', 'main.js');
+});
+
 test('files: a bad or taken name is refused with a reason', async ({ page }) => {
   await openPage(page);
   await page.locator('#newFile').click();

@@ -43,6 +43,8 @@ const MUTANTS = [
   { name: 'Python traceback line is not taken', file: 'js/runners.js', from: 'while ((m = re.exec(text))) last = { file: m[1], line: +m[2] };', to: 'while ((m = re.exec(text))) last = null;', grep: 'Python' },
   { name: 'input() ignores the Input field', file: 'js/runners.js', from: 'if (li < lines.length) return { text: lines[li++]', to: 'if (false) return { text: lines[li++]', grep: 'input\\(\\)' },
   { name: 'files are not saved', file: 'js/app.js', from: 'if (!setItem(STORE, JSON.stringify({ files, order, tabs, active, stdin: stdins }))) toast(t(\'saveFailed\'), false);', to: 'void 0;', grep: 'survive a reload' },
+  { name: 'a double click does not rename (the second press is not caught, 1.1.1)', file: 'js/app.js',
+    from: 'else if (e.detail === 2 && filePressed === name', to: 'else if (false && filePressed === name', grep: 'double click' },
   { name: 'theme is not applied', file: 'js/app.js', from: "else document.documentElement.setAttribute('data-theme', theme);", to: 'else void 0;', grep: 'themes' },
   // input while the program runs
   { name: 'the page never uses input in the output (always as from disk)', file: 'js/app.js', spec: INPUT,
@@ -93,18 +95,23 @@ function removeCopy({ tmp, links }) {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
+// MUTANT=part of a name runs only the matching mutants (a quick check of a new one)
+const ONLY = process.env.MUTANT || '';
+const CHOSEN = MUTANTS.filter((m) => m.name.includes(ONLY));
+
 function main() {
   const copyInfo = makeCopy();
   const { dir } = copyInfo;
   let survived = 0;
   try {
     for (const spec of [SPEC, INPUT]) {
-      const greps = [...new Set(MUTANTS.filter((m) => (m.spec || SPEC) === spec).map((m) => m.grep))].join('|');
+      const greps = [...new Set(CHOSEN.filter((m) => (m.spec || SPEC) === spec).map((m) => m.grep))].join('|');
+      if (!greps) continue;
       const base = runSpec(dir, greps, spec);
       console.log(`original copy, ${path.basename(spec)}: ${base.ok ? 'laws green' : 'LAWS RED'}`);
       if (!base.ok) { console.log(base.out.slice(-3000)); process.exitCode = 2; return; }
     }
-    for (const m of MUTANTS) {
+    for (const m of CHOSEN) {
       const file = path.join(dir, m.file);
       const src = fs.readFileSync(path.join(SRC, m.file), 'utf8');
       // a checkout with core.autocrlf has CRLF: the mutants are written with LF
@@ -119,7 +126,7 @@ function main() {
       console.log(`${r.ok ? 'SURVIVED' : 'killed  '}  ${m.name}${!r.ok && failed ? '  <- ' + failed[1].replace(/[─\s]+$/, '') : ''}`);
       if (r.ok) survived++;
     }
-    console.log(`total: killed ${MUTANTS.length - survived} of ${MUTANTS.length}`);
+    console.log(`total: killed ${CHOSEN.length - survived} of ${CHOSEN.length}`);
     if (survived) process.exitCode = 1;
   } finally {
     removeCopy(copyInfo);
