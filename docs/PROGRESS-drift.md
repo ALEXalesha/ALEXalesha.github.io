@@ -69,3 +69,14 @@
   всего законов Horizon Drift 104. Мутации: node tests/web/horizon_drift-mutate.js (копия игры во временной папке, DRIFT_DIR).
 - AiRacer держит копию core.js и data.js: после слияния - npm run sync-vendor и перезапись своих записей закона (нитро у
   нейросети может опустеть - теперь там другая физика); повреждения AiRacer не трогают (без damage.js машины как раньше).
+- 11.10 вечер: повторный прогон 4 бывших выживших (вмятина наружу, шины: юз, занос, сцепление) - убиты 4 из 4
+  (`node tests/web/horizon_drift-mutate.js "имя1|имя2"` - несколько имён через |). Итог мутаций 33 из 33.
+  Horizon Drift 1.1.0 уже в выпуске Игротеки на GitHub (publish 3722dff содержит f29cbe4).
+
+## Дальше: встраивание AiRacer (Алексей сказал «да»)
+- Не начато. AiRacer: C:\Work\Projects\AiGames\AiRacer (Gitea ALEXaloysha/AiRacer), основной гонщик
+  models/racer.json (v2), дрифтер models/drifter.json; датчики src/sensors.js, сеть src/mlp.js, руки src/driver.js.
+- Шаги: 1) в AiRacer `npm run sync-vendor` (core.js/data.js 1.1.0), перезаписать fixtures/law-*.json, law.test.js и
+  паспорт; 2) в игру - js/airacer.js (датчики+MLP+руки без node), веса JSON рядом; соперники карьеры/быстрой гонки
+  по выбору «ИИ: бот / нейросеть», бот игры остаётся запасным; 3) законы: нейросеть проходит круг на 4 трассах,
+  ввод как у геймпада, детерминизм; 4) генератор трасс (src/trackgen.js) - отдельный пункт меню «Новая трасса по коду».
