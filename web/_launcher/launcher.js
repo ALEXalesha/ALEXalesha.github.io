@@ -29,11 +29,12 @@
   // В «Игротеке одним файлом» (tools/make-single.js, window.__IGRO) нет программ с
   // single: false - их движки лежат соседними файлами, там их карточки не показываются.
   const PROGRAMS = (DATA.PROGRAMS || []).filter((p) => !(window.__IGRO && p.single === false));
-  const ITEMS = [...GAMES, ...PROGRAMS, ...SYSTEMS];
+  // Программа со своим сайтом (поле url) - только ссылка: вкладки у неё не бывает.
+  const ITEMS = [...GAMES, ...PROGRAMS.filter((p) => !p.url), ...SYSTEMS];
   const isProgram = (id) => PROGRAMS.some((p) => p.id === id);
-  // Демо и программы открывают, в игры играют
-  const playLabel = (g) => (g.style || isProgram(g.id) ? 'Открыть' : 'Играть');
-  const byId = new Map(ITEMS.map((g) => [g.id, g]));
+  // Демо и программы открывают, в игры играют, сайт открывается в новой вкладке браузера
+  const playLabel = (g) => (g.url ? 'Открыть сайт' : g.style || isProgram(g.id) ? 'Открыть' : 'Играть');
+  const byId = new Map([...ITEMS, ...PROGRAMS].map((g) => [g.id, g]));
   const KNOWN = ITEMS.map((g) => g.id);
 
   // Все пути относительные: страница работает и с диска, и из подпапки сайта
@@ -336,8 +337,10 @@
       el('div', { class: 'head' }, title),
       el('p', { class: 'desc', text: g.desc }),
       el('div', { class: 'actions' }, play));
-    c.addEventListener('click', () => open(g.id));
-    c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(g.id); } });
+    const go = () => (g.url ? window.open(g.url, '_blank', 'noopener') : open(g.id));
+    if (g.url) c.title = g.url;
+    c.addEventListener('click', go);
+    c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
     return c;
   }
 

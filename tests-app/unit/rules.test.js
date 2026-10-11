@@ -99,7 +99,8 @@ test('таблица игр одна: приложение читает web/_sha
 // читаются), поэтому берёт имя из таблицы. Чтобы карточки в приложении и в браузере
 // звались одинаково, имя в таблице обязано совпадать с именем из самой страницы.
 test('имя в таблице совпадает с именем из страницы - для игр и демо систем', () => {
-  for (const g of [...DATA.GAMES, ...DATA.SYSTEMS, ...DATA.PROGRAMS]) {
+  // программы со своим сайтом (url) страницы здесь не имеют
+  for (const g of [...DATA.GAMES, ...DATA.SYSTEMS, ...DATA.PROGRAMS.filter((p) => !p.url)]) {
     const html = fs.readFileSync(path.join(ROOT, 'web', g.id, 'index.html'), 'utf8');
     assert.equal(g.name, Games.pageName(html), g.id);
   }
@@ -164,8 +165,8 @@ test('демо систем: страница и картинка есть, хо
 
 test('программы: страница и картинка есть, ходить можно только в свою папку', () => {
   const progs = Games.programsCatalog(ROOT);
-  assert.deepEqual(progs.map((p) => p.id), ['writing-speed', 'compiler']);
-  for (const p of progs) {
+  assert.deepEqual(progs.map((p) => p.id), ['writing-speed', 'compiler', 'calibrate3dprinter']);
+  for (const p of progs.filter((x) => !x.link)) {
     assert.ok(fs.existsSync(p.page), p.page);
     assert.ok(p.desc && p.program && p.storage.length, p.id);
     assert.ok(fs.existsSync(path.join(ROOT, 'app', 'assets', 'thumbs', p.id + '.jpg')), 'нет картинки ' + p.id);
@@ -177,6 +178,13 @@ test('программы: страница и картинка есть, ход�
       assert.ok(fs.existsSync(path.join(ROOT, 'web', u)), 'нет папки ' + u);
       assert.equal(Security.allowRequest(url(path.join(ROOT, 'web', u, 'index.html')), folders), true, p.id + ' -> ' + u);
     }
+  }
+  // программа со своим сайтом: https-адрес, своей папки в web/ нет, хранилища нет, картинка карточки есть
+  for (const p of progs.filter((x) => x.link)) {
+    assert.match(p.url, /^https:\/\/alexalesha\.github\.io\/[\w-]+\/$/, p.id);
+    assert.ok(!fs.existsSync(path.join(ROOT, 'web', p.id)), 'папка web/' + p.id + ' не нужна');
+    assert.deepEqual(p.storage, []);
+    assert.ok(fs.existsSync(path.join(ROOT, 'app', 'assets', 'thumbs', p.id + '.jpg')), 'нет картинки ' + p.id);
   }
   assert.ok(Object.isFrozen(DATA.PROGRAMS) && DATA.PROGRAMS.every((p) => Object.isFrozen(p)));
 });
@@ -196,7 +204,7 @@ test('имя из заголовка: без пометки о фан-верси
 test('в сборку попадают только app/, таблица игр, папки игр и демо систем', () => {
   const files = pkg.build.files.filter((f) => !f.startsWith('!'));
   const expected = ['package.json', 'app/**/*', 'web/_shared/games-data.js', ...Games.IDS.map((id) => `web/${id}/**/*`),
-    ...Games.SYSTEM_IDS.map((id) => `web/${id}/**/*`), 'web/_os-shared/**/*', ...Games.PROGRAMS.flatMap((p) => p.files || [`web/${p.id}/index.html`])];
+    ...Games.SYSTEM_IDS.map((id) => `web/${id}/**/*`), 'web/_os-shared/**/*', ...Games.PROGRAMS.flatMap((p) => (p.url ? [] : p.files || [`web/${p.id}/index.html`]))];
   assert.deepEqual([...files].sort(), [...expected].sort());
 });
 

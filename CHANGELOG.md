@@ -4,6 +4,11 @@
 
 **EN**
 
+- "Programs" gets a third card, Calibrate 3D Printer: a link to
+  https://alexalesha.github.io/Calibrate3dPrinter/ (its own repository, no code copied). The new
+  `url` field of `PROGRAMS`: the browser page opens the site in a new tab, the app in the system
+  browser (no question - the address comes from the table), no tab, no storage, not in the
+  clear-data list; card picture shot from the site by `npm run thumbs`.
 - New program: the Compiler (`web/compiler`) in the "Programs" section of Igroteka (app and
   browser page; storage prefix `compiler.`). C and C++ are compiled by Clang 22 (YoWASP:
   clang, lld, wasi-libc, libc++ built for WebAssembly) and run with a small WASI host;
@@ -67,6 +72,11 @@
 
 **RU**
 
+- В «Программах» третья карточка - «Калибровка 3D-принтера»: ссылка на
+  https://alexalesha.github.io/Calibrate3dPrinter/ (свой репозиторий, код не копируется). Новое
+  поле `url` в `PROGRAMS`: браузерная страница открывает сайт в новой вкладке, приложение - в
+  системном браузере (без вопроса - адрес из таблицы), без вкладки и хранилища, в списке очистки
+  данных её нет; картинка карточки снята с сайта командой `npm run thumbs`.
 - Новая программа: «Компилятор» (`web/compiler`) в разделе «Программы» «Игротеки»
   (приложение и браузерная страница; приставка хранилища `compiler.`). C и C++ компилирует
   Clang 22 (YoWASP: clang, lld, wasi-libc, libc++, собранные под WebAssembly), запуск -

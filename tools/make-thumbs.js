@@ -59,6 +59,14 @@ async function shoot(browser, id, system) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 0.5 });
   const page = await ctx.newPage();
   await page.addInitScript(lockStub);
+  // Программа со своим сайтом (поле url): снимок самого сайта - единственный случай, когда
+  // сюда пускается сеть.
+  const link = PROGRAMS.find((p) => p.id === id && p.url);
+  if (link) {
+    await page.goto(link.url, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1500);
+    return snap(page, ctx, id);
+  }
   await page.route(/^https?:\/\//, (r) => r.abort());
   if (system) {
     await page.goto(pageUrl(id));

@@ -93,6 +93,8 @@ function systemsCatalog(root) {
  */
 function programsCatalog(root) {
   return PROGRAMS.map((p) => {
+    // своя страница на сайте (поле url): вкладки нет, карточка открывает системный браузер
+    if (p.url) return { ...p, program: true, link: true, keys: [] };
     const dir = path.join(root, 'web', p.id);
     const page = path.join(dir, 'index.html');
     let name = '';

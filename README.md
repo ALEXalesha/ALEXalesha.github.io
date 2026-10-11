@@ -30,7 +30,10 @@ concepts and are not affiliated with any rights holders.
   there, offline. They open in a tab like a game. Of WritingSpeed only its page goes into
   the app (its own Electron shell and tools stay next to it); the Compiler goes in with its
   engines and the Python of `web/python_ide` (about 80 MB) and is not part of the one-file
-  Igroteka.
+  Igroteka. The third card, Calibrate 3D Printer («Калибровка 3D-принтера»), is a link: the
+  program lives in its own repository and opens on its site
+  ([alexalesha.github.io/Calibrate3dPrinter](https://alexalesha.github.io/Calibrate3dPrinter/))
+  in a new browser tab, from the app in the system browser (the `url` field of the table).
 - **System demos.** Below the games is a "System demos" section: shells in the style of
   Windows 11, macOS, iOS and One UI (`win11_3`, `macos-tahoe`, `ios26`, `oneui7`; not
   affiliated with Apple/Microsoft/Samsung). Each opens in a tab like a game, with its own

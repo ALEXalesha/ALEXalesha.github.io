@@ -85,8 +85,9 @@ const withShim = (html) => html.replace(/<head([^>]*)>/i, (m) => `${m}<script>${
 
 function main() {
   const gamesSrc = read(path.join(ROOT, 'web/_shared/games-data.js'));
-  // программы с single: false (компилятор) не вкладываются - их движки грузятся соседними файлами
-  const skip = new Set(require(path.join(ROOT, 'web/_shared/games-data.js')).PROGRAMS.filter((p) => p.single === false).map((p) => p.id));
+  // программы с single: false (компилятор) не вкладываются - их движки грузятся соседними файлами;
+  // программы со своим сайтом (url) - тоже: их страницы здесь нет, карточка - ссылка
+  const skip = new Set(require(path.join(ROOT, 'web/_shared/games-data.js')).PROGRAMS.filter((p) => p.single === false || p.url).map((p) => p.id));
   const ids = [...gamesSrc.matchAll(/\bid:\s*'([^']+)'/g)].map((m) => m[1]).filter((id) => !skip.has(id));
   const pages = {};
   for (const id of ids) {
@@ -95,7 +96,9 @@ function main() {
     pages[id] = withShim(inlineHtml(file, true));
   }
   const thumbs = {};
-  for (const id of ids) {
+  // картинки и для карточек-ссылок (программы со своим сайтом): страницы у них нет, а карточка есть
+  const linkIds = require(path.join(ROOT, 'web/_shared/games-data.js')).PROGRAMS.filter((p) => p.url).map((p) => p.id);
+  for (const id of [...ids, ...linkIds]) {
     const p = path.join(ROOT, 'app/assets/thumbs', id + '.jpg');
     if (fs.existsSync(p)) thumbs[id] = dataUri(p);
   }

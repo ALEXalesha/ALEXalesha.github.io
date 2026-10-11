@@ -20,6 +20,8 @@ const DATA = require('../web/_shared/games-data.js');
 
 const ROOT = path.join(__dirname, '..');
 const ITEMS = [...DATA.GAMES, ...DATA.PROGRAMS, ...DATA.SYSTEMS];  // в порядке карточек на странице
+// то, что открывается во вкладке: программа со своим сайтом (url) - только ссылка
+const TAB_ITEMS = ITEMS.filter((g) => !g.url);
 const BASE_PATH = '/GameRoom/';
 
 test.describe.configure({ mode: 'serial' });
@@ -145,7 +147,7 @@ test('карточки - все игры, программы и демо сис�
     play: e.querySelector('.play').textContent,
   })));
   expect(await cards('#grid')).toEqual(DATA.GAMES.map((g) => ({ id: g.id, name: g.name, desc: g.desc, play: 'Играть' })));
-  expect(await cards('#programs')).toEqual(DATA.PROGRAMS.map((g) => ({ id: g.id, name: g.name, desc: g.desc, play: 'Открыть' })));
+  expect(await cards('#programs')).toEqual(DATA.PROGRAMS.map((g) => ({ id: g.id, name: g.name, desc: g.desc, play: g.url ? 'Открыть сайт' : 'Открыть' })));
   await expect(page.locator('#programs-section')).toBeVisible();
   expect((await cards('#systems')).map((c) => c.id)).toEqual(DATA.SYSTEMS.map((s) => s.id));
   expect((await cards('#systems')).map((c) => c.name)).toEqual(DATA.SYSTEMS.map((s) => s.name));
@@ -159,6 +161,22 @@ test('карточки - все игры, программы и демо сис�
   await expect(page.locator('#systems-note')).toHaveText('Демо в стиле Windows 11, macOS, iOS и One UI, не связано с Apple/Microsoft/Samsung.');
   await expect(page.locator('#gear')).toBeVisible();
 });
+
+// Программа со своим сайтом (Calibrate3dPrinter): карточка открывает её адрес в новой вкладке
+// браузера, своей вкладки в Игротеке не появляется.
+for (const p of DATA.PROGRAMS.filter((x) => x.url)) {
+  test(`«${p.name}»: карточка открывает сайт ${p.url} в новой вкладке браузера`, async ({ page }) => {
+    await launch(page, 'file');
+    // сеть в проверках закрыта: window.open подменён записью, что и куда открыли бы
+    await page.evaluate(() => { window.__opened = []; window.open = (...a) => { window.__opened.push(a); return null; }; });
+    const card = page.locator(`#programs .card[data-id="${p.id}"]`);
+    await expect(card.locator('.play')).toHaveText('Открыть сайт');
+    await card.click();
+    expect(await page.evaluate(() => window.__opened)).toEqual([[p.url, '_blank', 'noopener']]);
+    await expect(page.locator(`.tab.game[data-id="${p.id}"]`)).toHaveCount(0);
+    await expect(page.locator('#home')).toBeVisible();
+  });
+}
 
 test('все пути относительные, без внешних адресов; .nojekyll на месте', async () => {
   const files = ['index.html', 'web/_launcher/launcher.js', 'web/_launcher/launcher.css', 'web/_shared/games-data.js'];
@@ -176,7 +194,7 @@ test('все пути относительные, без внешних адре
 // --- каждая игра во вкладке ----------------------------------------------------------
 
 for (const mode of Object.keys(MODES)) {
-  for (const g of ITEMS) {
+  for (const g of TAB_ITEMS) {
     test(`${mode}: «${g.name}» открывается во вкладке без ошибок и без сети`, async ({ page }) => {
       const { errors, external } = await launch(page, mode);
       const frame = await openCard(page, g.id);

@@ -62,7 +62,15 @@ const file = (name) => path.join(app.getPath('userData'), name);
 const games = catalog(ROOT);
 const systems = systemsCatalog(ROOT);
 const programs = programsCatalog(ROOT);
-const items = [...games, ...programs, ...systems]; // всё, что открывается во вкладке
+const items = [...games, ...programs.filter((p) => !p.link), ...systems]; // всё, что открывается во вкладке
+// Программы со своим сайтом (поле url таблицы): карточка открывает адрес из таблицы в
+// системном браузере - без вопроса, это не ссылка со страницы, а выбор в самой оболочке.
+const links = new Map(programs.filter((p) => p.link).map((p) => [p.id, p.url]));
+const openedLinks = [];
+function openLink(url) {
+  openedLinks.push(url);
+  if (!TEST) shell.openExternal(url);   // в проверках браузер не открывается, только отметка
+}
 const byId = new Map(items.map((g) => [g.id, g]));
 const IDS = items.map((g) => g.id);
 
@@ -491,14 +499,17 @@ ipcMain.handle('shell:init', (e) => (!fromShell(e) ? null : {
   product: { name: PRODUCT.name, version: PRODUCT.version },
   games: games.map((g) => ({ id: g.id, name: g.name, desc: g.desc, keys: g.keys || [], escToGame: !!g.escToGame })),
   systems: systems.map((s) => ({ id: s.id, name: s.name, desc: s.desc, style: s.style, keys: [] })),
-  programs: programs.map((p) => ({ id: p.id, name: p.name, desc: p.desc, program: true, keys: [] })),
+  programs: programs.map((p) => ({ id: p.id, name: p.name, desc: p.desc, program: true, keys: [], ...(p.link ? { url: p.url } : {}) })),
   platform: process.platform,
   ...snapshot(),
 }));
 // Пока открыт вопрос, вкладки не переключаются и не закрываются: иначе «Перезапустить»
 // сработало бы уже не для той игры, о которой спрашивали.
 const tabsCommand = (fn) => (e, id) => { if (fromShell(e) && !busy()) fn(id); };
-ipcMain.on('tabs:open', tabsCommand((id) => { if (byId.has(id)) setTabs(Tabs.openTab(tabs, id)); }));
+ipcMain.on('tabs:open', tabsCommand((id) => {
+  if (links.has(id)) openLink(links.get(id));
+  else if (byId.has(id)) setTabs(Tabs.openTab(tabs, id));
+}));
 ipcMain.on('tabs:activate', tabsCommand((id) => setTabs(Tabs.activate(tabs, id))));
 ipcMain.on('tabs:close', tabsCommand((id) => setTabs(Tabs.closeTab(tabs, id))));
 ipcMain.on('tabs:menu', tabsCommand((id) => tabMenu(id)));
@@ -650,5 +661,5 @@ globalThis.__igroteka = {
   get maximized() { return TEST ? testMaximized : !!win && win.isMaximized(); },
   setMaximized(on) { if (TEST) { testMaximized = !!on; if (win) win.emit('maximize'); } else if (win) { if (on) win.maximize(); else win.unmaximize(); } },
   get windowFullScreen() { return TEST ? testFullScreen : !!win && win.isFullScreen(); },
-  views, errors, blocked, games, systems, programs, BAR_H,
+  views, errors, blocked, games, systems, programs, openedLinks, BAR_H,
 };

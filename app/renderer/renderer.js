@@ -41,7 +41,7 @@ function img(src, cls) {
 
 const gameById = (id) => info.games.find((g) => g.id === id) || info.programs.find((p) => p.id === id) || info.systems.find((s) => s.id === id);
 // Демо и программы открывают, в игры играют
-const playLabel = (g) => (g.style || g.program ? 'Открыть' : 'Играть');
+const playLabel = (g) => (g.url ? 'Открыть сайт' : g.style || g.program ? 'Открыть' : 'Играть');
 
 // --- полоса вкладок ------------------------------------------------------------------
 
@@ -158,7 +158,7 @@ function wireSettings() {
   }
   $('#clear-game').replaceChildren(
     el('optgroup', { label: 'Игры' }, ...info.games.map((g) => el('option', { value: g.id, text: g.name }))),
-    el('optgroup', { label: 'Программы' }, ...info.programs.map((p) => el('option', { value: p.id, text: p.name }))),
+    el('optgroup', { label: 'Программы' }, ...info.programs.filter((p) => !p.url).map((p) => el('option', { value: p.id, text: p.name }))),
     el('optgroup', { label: 'Демо систем' }, ...info.systems.map((s) => el('option', { value: s.id, text: s.name }))));
   $('#clear-game').addEventListener('change', () => { $('#clear-hint').textContent = CLEAR_HINT; });
   $('#clear-btn').addEventListener('click', async () => {

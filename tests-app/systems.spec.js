@@ -64,7 +64,7 @@ test('на домашнем экране - раздел «Демо систем�
   // Игры остались на месте и идут первыми.
   expect(await shell.locator('#grid .card').evaluateAll((els) => els.map((e) => e.dataset.id))).toEqual(DATA.GAMES.map((g) => g.id));
   // Данные демо стираются так же, как данные игр.
-  expect(await shell.locator('#clear-game option').evaluateAll((els) => els.map((o) => o.value))).toEqual([...DATA.GAMES, ...DATA.PROGRAMS, ...DATA.SYSTEMS].map((g) => g.id));
+  expect(await shell.locator('#clear-game option').evaluateAll((els) => els.map((o) => o.value))).toEqual([...DATA.GAMES, ...DATA.PROGRAMS.filter((p) => !p.url), ...DATA.SYSTEMS].map((g) => g.id));
 });
 
 for (const s of DATA.SYSTEMS) {

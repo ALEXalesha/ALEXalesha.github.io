@@ -29,6 +29,9 @@
 //   uses   - соседние папки web/, из которых страница грузит общие файлы (компилятор берёт
 //            Python и ядро редактора из web/python_ide): приложение пускает её и туда;
 //   files  - что из web/ идёт в сборку приложения, если не одна страница index.html;
+//   url    - программа живёт в своём репозитории и открывается на своём сайте: карточка -
+//            ссылка (браузерная страница - новая вкладка браузера, приложение - системный
+//            браузер), своей вкладки, папки в web/ и хранилища у неё нет (storage пустой);
 //   single - false: не вкладывать в «Игротеку одним файлом» (tools/make-single.js) - там
 //            карточки нет; так у компилятора, его движки - десятки мегабайт соседних файлов.
 (function (root, factory) {
@@ -70,6 +73,9 @@
     // Добавлен 10.10.2026 по слову владельца («добавим в Игротеку как программу»).
     { id: 'compiler', name: 'Компилятор', desc: 'C, C++, Python, JavaScript, TypeScript, Lua, Ruby и SQL - запуск прямо здесь, без сети', storage: ['compiler.'],
       uses: ['python_ide'], files: ['web/compiler/**/*', 'web/python_ide/runtime.js', 'web/python_ide/vendor/**/*'], single: false },
+    // Добавлена 11.10.2026 по слову владельца: свой репозиторий Calibrate3dPrinter, код сюда не копируется.
+    { id: 'calibrate3dprinter', name: 'Калибровка 3D-принтера', desc: 'Calibrate 3D Printer: G-code десяти тестов для любого FDM-принтера и расчёт поправок - открывается на сайте',
+      url: 'https://alexalesha.github.io/Calibrate3dPrinter/', storage: [] },
   ];
 
   for (const g of GAMES) { g.keys = g.keys || []; Object.freeze(g.keys); Object.freeze(g.storage); Object.freeze(g); }

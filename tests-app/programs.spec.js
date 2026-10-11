@@ -16,7 +16,7 @@ test('раздел «Программы»: карточка с картинко�
   const { shell } = ctx;
   await expect(shell.locator('#programs-section .section-title')).toHaveText('Программы');
   const cards = await shell.locator('#programs .card').evaluateAll((els) => els.map((e) => ({ id: e.dataset.id, play: e.querySelector('.play').textContent })));
-  expect(cards).toEqual(DATA.PROGRAMS.map((p) => ({ id: p.id, play: 'Открыть' })));
+  expect(cards).toEqual(DATA.PROGRAMS.map((p) => ({ id: p.id, play: p.url ? 'Открыть сайт' : 'Открыть' })));
   await shell.evaluate(() => Promise.all([...document.querySelectorAll('#programs img')].map((i) => i.decode().catch(() => {}))));
   const imgs = await shell.locator('#programs .card .shot img').evaluateAll((els) => els.map((i) => i.naturalWidth > 0));
   expect(imgs).toEqual(DATA.PROGRAMS.map(() => true));
@@ -27,7 +27,7 @@ test('раздел «Программы»: карточка с картинко�
   expect(order).toBe(true);
 });
 
-for (const p of DATA.PROGRAMS) {
+for (const p of DATA.PROGRAMS.filter((x) => !x.url)) {
   test(`${p.id}: открывается во вкладке со своим сеансом, печать работает, наружу запросов нет`, async () => {
     const { app, shell } = ctx;
     await shell.click(`#programs .card[data-id="${p.id}"] .play`);
@@ -50,5 +50,18 @@ for (const p of DATA.PROGRAMS) {
     expect(await H.errorsOf(app, p.id)).toEqual([]);
     expect(await app.evaluate(() => globalThis.__igroteka.blocked)).toEqual([]);
     await expect(shell.locator(`#programs .card[data-id="${p.id}"] .play`)).toHaveText('Вернуться');
+  });
+}
+
+// Программа со своим сайтом: карточка отдаёт адрес из таблицы системному браузеру (в проверках
+// браузер не открывается - только отметка openedLinks), вкладки не появляется.
+for (const p of DATA.PROGRAMS.filter((x) => x.url)) {
+  test(`${p.id}: карточка открывает ${p.url} в системном браузере, без вкладки`, async () => {
+    const { app, shell } = ctx;
+    await expect(shell.locator(`#programs .card[data-id="${p.id}"] .play`)).toHaveText('Открыть сайт');
+    await shell.click(`#programs .card[data-id="${p.id}"] .play`);
+    await expect.poll(() => app.evaluate(() => globalThis.__igroteka.openedLinks.slice())).toContain(p.url);
+    expect((await H.tabs(app)).open).not.toContain(p.id);
+    expect(await app.evaluate(() => globalThis.__igroteka.blocked)).toEqual([]);
   });
 }
