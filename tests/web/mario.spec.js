@@ -184,6 +184,9 @@ test.describe('mario (Прыг-скок): уровни', () => {
 test.describe('mario (Прыг-скок): правила', () => {
   test('автопилот честно проходит всю кампанию - 8 уровней и два босса - до экрана победы', async ({ page }) => {
     test.setTimeout(240000);
+    // Мир шагает только по __game.step: живой цикл страницы между уровнями менял состояние,
+    // и на загруженном раннере CI автопилот гиб трижды (10.10), а здесь - ни разу.
+    await page.addInitScript(() => { window.requestAnimationFrame = () => 0; });
     await openGame(page, 'mario', 'seed=1');
     await page.evaluate(() => localStorage.clear());
     const runs = [];
