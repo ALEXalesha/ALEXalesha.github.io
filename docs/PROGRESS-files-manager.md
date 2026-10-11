@@ -27,9 +27,12 @@
 - Законы страницы на выделенной копии: 2/2 зелёные. InstallAll 988cba0 (169 проверок), профиль fe5ac42, каталог проектов (mem e180fa1),
   строка в README GameRoom (EN/RU).
 
+- После выпуска: закон горячих клавиш (tests/web, 3-й; без Alt+← падает - проверено мутацией), перенесён в publish-web
+  (sync_tests) и перевыложен: GitHub и Gitea main c375b10, тег v1.0.0 остался на 4f47aed (состояние выпуска).
+
 ## Не сделано (точка продолжения)
 1. CI Gitea FilesManager на первом пуше не дожидался - посмотреть итог.
-2. Больше законов: горячие клавиши (F2, Ctrl+C/V, Alt+стрелки, Ctrl+Shift+N), вкладки и две панели в Electron, мутации
+2. Больше законов: вкладки и две панели в Electron (Shift+F5/F6 между панелями), мутации
    (как writing-speed-mutate.js), потом sync_tests.sh FilesManager и перевыкладка publish_web.sh FilesManager.
 3. Выпуск следующей версии: VERSION в index.html и electron/package.json, CHANGELOG в overlay, npm run fm:dist, Gitea+GitHub.
 
