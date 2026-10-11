@@ -31,7 +31,7 @@
   (sync_tests) и перевыложен: GitHub и Gitea main c375b10, тег v1.0.0 остался на 4f47aed (состояние выпуска).
 
 ## Не сделано (точка продолжения)
-1. CI Gitea FilesManager на первом пуше не дожидался - посмотреть итог.
+1. CI Gitea FilesManager зелёный (run 2 на 4f47aed, run 3 на c375b10); run 1 первого пуша отменён - запускал dispatch.
 2. Больше законов: вкладки и две панели в Electron (Shift+F5/F6 между панелями), мутации
    (как writing-speed-mutate.js), потом sync_tests.sh FilesManager и перевыкладка publish_web.sh FilesManager.
 3. Выпуск следующей версии: VERSION в index.html и electron/package.json, CHANGELOG в overlay, npm run fm:dist, Gitea+GitHub.
