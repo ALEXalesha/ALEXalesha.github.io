@@ -1,6 +1,10 @@
 // Помощники проверок «Horizon Drift»: открыть игру без сети с ?seed=, дождаться window.__drift,
 // поставить низкую графику (чтобы трассы грузились быстро), запустить заезд без рисования шагов.
+const path = require('path');
+const { pathToFileURL } = require('url');
 const { pageUrl } = require('../helpers');
+// DRIFT_DIR - папка с другой копией игры (так tests/web/horizon_drift-mutate.js гоняет законы на сломанной копии)
+const driftUrl = () => (process.env.DRIFT_DIR ? pathToFileURL(path.join(process.env.DRIFT_DIR, 'index.html')).href : pageUrl('horizon_drift_offline'));
 
 // Захват мыши в проверках - только поддельный: настоящий requestPointerLock у безголового Chromium на Windows
 // зажимает курсор пользователя в скрытом окне 0,0. Заглушка ставится до любых скриптов страницы:
@@ -27,7 +31,7 @@ async function openDrift(page, opts = {}) {
       if (!sessionStorage.getItem('drift-test-cleared')) { localStorage.clear(); sessionStorage.setItem('drift-test-cleared', '1'); }
     });
   }
-  await page.goto(pageUrl('horizon_drift_offline') + '?seed=' + (opts.seed || 1));
+  await page.goto(driftUrl() + '?seed=' + (opts.seed || 1));
   await page.waitForFunction(() => window.__drift && window.__drift.ready === true);
   if (opts.low !== false) await page.evaluate(() => { __drift.setSetting('quality', 'low'); });
   return errors;

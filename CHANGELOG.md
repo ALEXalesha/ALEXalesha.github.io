@@ -30,7 +30,23 @@
 - New section "Programs" in the app and the browser page, below the games: WritingSpeed
   opens in a tab like a game (button "Открыть"), with its own session; only its
   `index.html` goes into the app build.
-
+- Horizon Drift 1.1.0. Fix: "infinite nitro". The race added 0.012 per second to the nitro
+  supply on every physics step (free roam: 0.02), and any supply above zero switched the full
+  boost on, so with the button held the bar stayed empty while the car kept accelerating. An
+  empty bottle is now locked until it refills to 10%, and a last bit smaller than one step's
+  use gives only that share of the boost; the bar is dimmed while locked. 3 laws in
+  `tests/web/horizon_drift_nitro.spec.js`.
+- Horizon Drift: car damage with a setting in Settings → Game: "Off", "Visual only" (default)
+  and "Full". The body dents where it is hit (mesh vertices pushed in along the hit, fading
+  with distance, capped; light taps leave nothing), mirrors, bumpers and the hood fly off on
+  hard hits and lie on the road for 12 s (24 pieces at most). "Full" adds tyre wear from
+  locked-wheel braking, drifting and wheelspin (worn tyres grip up to 30% less), a steering
+  pull after a hit to a front wheel and less power with a crushed front; a car and tyre
+  diagram on the HUD. Career and time trials always use "Visual only". Repair: a new race,
+  the festival, or G in free roam. With damage off or visual the physics is bit-for-bit the
+  same as before (a law compares a hash of three runs with a recording made before the damage
+  code). 13 laws in `tests/web/horizon_drift_damage.spec.js`, 33 mutants in
+  `tests/web/horizon_drift-mutate.js`.
 - New game in the list: Flappy Wings («Летучая птичка», `web/flappy-wings`), a fan game
   in the fly-between-the-columns genre, not affiliated with the rights holders of its known
   games. Card, picture and description in the app and the browser page; storage prefix
@@ -78,7 +94,23 @@
 - Новый раздел «Программы» в приложении и на браузерной странице, под играми: «Скорость
   печати» открывается во вкладке, как игра (кнопка «Открыть»), со своим сеансом; в сборку
   приложения попадает только её `index.html`.
-
+- Horizon Drift 1.1.0. Исправлено «бесконечное нитро». Заезд каждый шаг физики добавлял к
+  запасу нитро 0.012 в секунду (свободная езда - 0.02), а толчок включался целиком при любом
+  запасе больше нуля: с зажатой кнопкой полоса стояла пустой, а машина разгонялась без конца.
+  Теперь пустой баллон заперт, пока запас не вернётся к 10%, а остаток меньше расхода за шаг
+  толкает только своей долей; запертая полоса тусклая. 3 закона в
+  `tests/web/horizon_drift_nitro.spec.js`.
+- Horizon Drift: повреждения машин и настройка «Настройки» → «Игра» → «Повреждения»: «Выкл»,
+  «Только вид» (по умолчанию) и «Полные». Кузов мнётся в месте удара (вершины меша сдвигаются
+  внутрь по направлению удара, сдвиг гаснет с расстоянием и ограничен; лёгкое касание следа не
+  оставляет), зеркала, бамперы и капот отлетают от сильного удара и 12 секунд лежат на дороге
+  (не больше 24 обломков). «Полные»: ещё шины стираются от торможения юзом, заносов и
+  пробуксовки (стёртые держат до 30% хуже), удар в переднее колесо уводит руль, смятый перед
+  отнимает мощность; на HUD - схема кузова и шин. В карьере и заездах на время всегда «Только
+  вид». Ремонт: новый заезд, фестиваль или G в свободной езде. С повреждениями «Выкл» и «Только
+  вид» физика бит в бит прежняя (закон сверяет хэш трёх заездов с записью, сделанной до кода
+  повреждений). 13 законов в `tests/web/horizon_drift_damage.spec.js`, 33 мутанта в
+  `tests/web/horizon_drift-mutate.js`.
 - Новая игра в списке: «Летучая птичка» / Flappy Wings (`web/flappy-wings`), фан-игра в
   жанре «пролети между колоннами», не связана с правообладателями известных игр жанра.
   Карточка, картинка и описание в приложении и на браузерной странице; приставка

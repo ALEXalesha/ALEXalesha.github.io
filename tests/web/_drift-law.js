@@ -1,7 +1,8 @@
 // Закон «повреждения выкл = физика как раньше»: три заезда (гонка с соперниками и стенами, дрифт ботом, свободная
 // езда с трафиком и предметами) идут фиксированными шагами, а состояние всех машин на каждом шаге (биты float64)
 // сворачивается в хэш FNV. Запись tests/web/fixtures/horizon_drift_law.json сделана до кода повреждений
-// (DRIFT_LAW_RECORD=1 перезаписывает её); с повреждениями «выкл» и «только вид» хэши обязаны совпасть бит в бит.
+// (в Chromium: page.evaluate(lawRun, null), результат - в файл; Node округляет Math иначе в последнем бите);
+// с повреждениями «выкл» и «только вид» хэши обязаны совпасть бит в бит. Меняя физику нарочно - записать заново.
 // Функция выполняется в странице: page.evaluate(lawRun, mode).
 async function lawRun(mode) {
   const C = __drift.core, WD = __drift.worldData, DM = window.DriftDamage, DT = C.DT;
@@ -45,7 +46,6 @@ async function lawRun(mode) {
   // 3. свободная езда: трафик, соперники, предметы и ограждения
   {
     const w = new WD.World({ map: 'metro', car: 'sapsan', seed: 5, attach: DM && mode ? attach : undefined });
-    if (!(DM && mode)) void 0;
     const pin = { thr: 1, brk: 0, steer: 0, hb: 0, nitro: 0 };
     out.world = trace(() => w.cars, 40 / DT, (i) => {
       const t = i * DT;

@@ -98,7 +98,7 @@ rights, Russian) and `dist/Igroteka-1.0.0-Portable.exe`, 98 MB each. Only `app/`
 eleven game folders go into the build.
 
 ```
-npm test                  # web/ pages in Chromium (284 checks)
+npm test                  # web/ pages in Chromium (1150 checks)
 npm run test:unit         # laws of the app modules and the icon (41)
 npm run test:app          # the real app through Playwright (73, windows off-screen)
 pip install -r requirements-py.txt
@@ -155,7 +155,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 |---|---|---|---|
 | `tetris` | Blocks: falling pieces by the classic rules, with hold and T-spins | 12 | 9 / 9 / 4 |
 | `sudoku` | Sudoku with a solver, hints, pause and records per level | 11 | 8 / 9 / 5 |
-| `horizon_drift_offline` | Horizon Drift: 3D drift racing, three tracks and three modes | 9 | 8 / 7 / 7 |
+| `horizon_drift_offline` | Horizon Drift: 3D racing and drifting, career, 8 cars and 8 tracks, free roam on 4 maps, car damage | 104 | 8 / 7 / 7 |
 | `space_shooter` | Space Shooter: waves of enemies and asteroids, power-ups, record | 12 | 8 / 7 / 5 |
 | `mario` | Hop-Skip: a two-level platformer with its own hero | 13 | 7 / 8 / 5 |
 | `jungle-strike` | Fire Jungle: a run-and-gun arcade with a boss | 11 | 7 / 7 / 6 |
