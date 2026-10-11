@@ -46,6 +46,21 @@ for (const p of DATA.PROGRAMS.filter((x) => !x.url)) {
       // Python - из соседней папки web/python_ide: вкладку туда пускает поле uses
       const py = await H.inGame(app, p.id, `(async () => { document.querySelector('#files .file[data-name="main.py"]').click(); const r = await __compiler.run(); return r.status + '|' + document.getElementById('out').textContent; })()`);
       expect(py).toMatch(/^ok\|[\s\S]*Hello, World!/);
+      // 1.1.0: приложение включает SharedArrayBuffer - программа ждёт строку, набранную прямо в выводе
+      const live = await H.inGame(app, p.id, `(async () => {
+        if (typeof SharedArrayBuffer !== 'function') return 'no SharedArrayBuffer';
+        document.querySelector('#files .file[data-name="main.js"]').click();
+        __compiler.cm.setValue('console.log("got " + prompt());\\n');
+        const done = __compiler.run();
+        let box = null;
+        for (let i = 0; i < 100 && !(box = document.getElementById('termIn')); i++) await new Promise((r) => setTimeout(r, 100));
+        if (!box) return 'no input box';
+        box.value = 'live';
+        box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        const r = await done;
+        return r.status + '|' + document.getElementById('out').textContent;
+      })()`);
+      expect(live).toMatch(/^ok\|[\s\S]*got live/);
     } else if (p.id === 'media-player') {
       // своя мелодия играет во вкладке; активная вкладка не молчит - сначала «без звука» самого плеера
       const pos = await H.inGame(app, p.id, `(async () => { __mp.player.setMuted(true); __mp.player.play(0); for (let i = 0; i < 100 && __mp.player.state().pos < 0.3; i++) await new Promise((r) => setTimeout(r, 100)); return __mp.player.state().pos; })()`);

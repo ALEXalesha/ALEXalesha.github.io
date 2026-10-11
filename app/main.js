@@ -43,6 +43,10 @@ const THEMES = {
 const TEST = process.env.IGROTEKA_TEST === '1';
 const TEST_AREA = { x: -6000, y: 0, width: 1920, height: 1080 };
 if (TEST) app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
+// Компилятор (1.1.0): программа в Worker ждёт строку, набранную в выводе, через SharedArrayBuffer.
+// На сайте его даёт изоляция страницы (COOP/COEP), а у страницы с диска (file://) заголовков нет -
+// SharedArrayBuffer включается флагом Chromium. Сети у вкладок нет, чужого кода в них тоже.
+app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
 let testMaximized = false;
 let testFullScreen = false;
 
