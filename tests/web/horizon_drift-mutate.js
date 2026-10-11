@@ -2,7 +2,7 @@
 // и гоняет на ней свои законы (tests/web/horizon_drift_nitro.spec.js или horizon_drift_damage.spec.js, через
 // DRIFT_DIR). Сломанное правило должно уронить хотя бы одну проверку («мутант убит»). Исходник web/horizon_drift_offline
 // не меняется, поэтому обрыв скрипта ничего не портит.
-// Запуск из корня репозитория: node tests/web/horizon_drift-mutate.js [часть имени мутанта]
+// Запуск из корня репозитория: node tests/web/horizon_drift-mutate.js [часть имени мутанта, несколько через |]
 // Файл не *.spec.js - Playwright его сам не запускает.
 'use strict';
 const fs = require('fs');
@@ -68,7 +68,7 @@ function runSpec(dir, spec) {
 
 function main() {
   const only = process.argv[2] || '';
-  const list = MUTANTS.filter((m) => m.name.includes(only));
+  const list = MUTANTS.filter((m) => only.split('|').some((s) => m.name.includes(s)));
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'drift-mutants-'));
   let survived = 0;
   try {
