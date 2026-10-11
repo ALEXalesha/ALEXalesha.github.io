@@ -695,6 +695,8 @@ test.describe('mp: память и вид', () => {
     expect(s.volume).toBeLessThanOrEqual(1);
     expect(s.eq.gains).toHaveLength(10);
     expect([0.5, 0.75, 1, 1.25, 1.5, 2]).toContain(s.rate);
+    // неизвестная тема - значит «Стеклянная» (у неё нет data-theme), а не пустые цвета
+    expect(await page.evaluate(() => document.documentElement.getAttribute('data-theme'))).toBeNull();
     expect(errors).toEqual([]);
   });
 
