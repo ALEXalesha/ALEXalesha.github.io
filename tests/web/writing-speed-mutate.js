@@ -53,6 +53,10 @@ const ALL_MUTANTS = [
   { v11: true, name: 'китайское слово не сдаётся само', from: 'if (S.cfg.cjk && S.typed[S.wi].length >= w.text.length) {', to: 'if (false) {' },
   { v11: true, name: 'пробел в китайском тесте сдаёт слово', from: "if (S.phase !== 'run' || S.cfg.cjk) return;", to: "if (S.phase !== 'run') return;" },
   { v11: true, name: 'китайский шрифт не ставится', from: '.words-wrap.cjk, .words-wrap rt {', to: '.words-wrap.cjk-x, .words-wrap rt {' },
+  // 1.1.1: полоса на половину панели при наведении (backdrop-filter у панелей с кнопками)
+  { v11: true, name: 'панели снова с backdrop-filter', from: '  box-shadow: var(--glass-shadow); position: relative; isolation: isolate;', to: '  box-shadow: var(--glass-shadow); position: relative; isolation: isolate; backdrop-filter: var(--blur);' },
+  { v11: true, name: 'светлая полоса на нижней половине панели', from: '.glass::after { background: var(--glass-bg);', to: '.glass::after { background: linear-gradient(transparent 50%, rgb(255 255 255 / .07) 50%), var(--glass-bg);' },
+  { v11: true, name: 'панель меню светлеет при наведении', from: '.btn:hover { background:', to: '.config:hover::after { background: rgb(255 255 255 / .1); } .btn:hover { background:' },
 ];
 
 // WS_MUT=old - только мутанты 1.0.0, WS_MUT=new - только 1.1.0 (по ~20 мин каждый), без - все; WS_MUT_NAMES=<регулярка> - только мутанты с таким именем

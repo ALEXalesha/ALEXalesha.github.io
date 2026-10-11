@@ -54,6 +54,15 @@ const result = (page) => page.evaluate(() => {
 const state = (page) => page.evaluate(() => ({ phase: __ws.state.phase, wi: __ws.state.wi, typed: __ws.state.typed.slice(0, 30), words: __ws.state.words.slice(0, 30).map((w) => w.text) }));
 const close = (a, b, eps = 1e-6) => expect(Math.abs(a - b), `${a} ≈ ${b}`).toBeLessThan(eps);
 
+// Наибольшая разница каналов двух кадров одного размера (считается в странице: массивы не гоняются)
+const maxDiff = (page, a, b) => page.evaluate(async ([a, b]) => {
+  const load = async (b64) => { const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); return x.getImageData(0, 0, img.width, img.height).data; };
+  const [A, B] = [await load(a), await load(b)];
+  let m = 0;
+  for (let i = 0; i < A.length; i++) if ((i & 3) !== 3) m = Math.max(m, Math.abs(A[i] - B[i]));
+  return m;
+}, [a.toString('base64'), b.toString('base64')]);
+
 async function custom(page, text) {
   await page.evaluate((t) => __ws.startCustom(t), text);
 }
@@ -946,7 +955,8 @@ test.describe('ws: нажатие в меню', () => {
         await page.waitForTimeout(300);
         expect(await page.evaluate(() => getSelection().toString()), 'выделение').toBe('');
         const during = await page.screenshot({ clip, mask: [page.locator(row + ' button')] });
-        expect(Buffer.compare(before, during), 'ряд вокруг кнопки не изменился').toBe(0);
+        // до 4 уровней - сглаженный край маски у нажатой кнопки (она темнеет), выделение ряда - десятки
+        expect(await maxDiff(page, before, during), 'ряд вокруг кнопки не изменился').toBeLessThanOrEqual(4);
         await page.mouse.up();
         await page.evaluate(() => getSelection().removeAllRanges());
       }
@@ -954,6 +964,102 @@ test.describe('ws: нажатие в меню', () => {
       expect(css).toBe('none');
     });
   }
+});
+
+test.describe('ws: наведение на меню', () => {
+  // Жалоба 1.1.0: при наведении на кнопку меню светлела нижняя половина панели (полоса во всю
+  // ширину, и у шапки тоже). Причина - backdrop-filter у панелей: при перерисовке одной кнопки
+  // Chromium на видеокарте пересчитывал размытие подложки в полосе панели и захватывал уже
+  // нарисованную панель. Безголовый Chromium рисует кадр целиком, полосу не показывает, поэтому
+  // главный закон - про правило: у панели с кнопками нет backdrop-filter (ни у неё, ни у её
+  // ::before/::after); подложка панели - копия фона темы обычным filter.
+  const THEMES5 = ['glass', 'formal', 'light', 'night', 'warm'];
+  const setTheme = (page, t) => page.evaluate((t) => { if (t === 'glass') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); }, t);
+
+  test('у панелей с кнопками нет backdrop-filter, во всех темах', async ({ page }) => {
+    await openWs(page);
+    for (const t of THEMES5) {
+      await setTheme(page, t);
+      const bad = await page.evaluate(() => {
+        const out = [];
+        for (const el of document.querySelectorAll('body *')) {
+          if (!el.querySelector('button, select, input, textarea, a')) continue;
+          for (const pseudo of [null, '::before', '::after']) {
+            const bf = getComputedStyle(el, pseudo).backdropFilter;
+            if (bf && bf !== 'none') out.push((el.id || el.className || el.tagName) + (pseudo || '') + ': ' + bf);
+          }
+        }
+        return out;
+      });
+      expect(bad, `тема ${t}`).toEqual([]);
+      // вид стекла остался: под панелью копия фона темы с насыщенностью темы
+      const look = await page.evaluate(() => { const s = getComputedStyle(document.querySelector('#config'), '::before'); return { att: s.backgroundAttachment, filter: s.filter }; });
+      expect(look.att, `тема ${t}`).toContain('fixed');
+      expect(look.filter, `тема ${t}`).toMatch(/^saturate\(/);
+    }
+  });
+
+  test('наведение на кнопку шапки или меню меняет только эту кнопку, во всех темах', async ({ page }) => {
+    test.setTimeout(240_000);
+    await openWs(page);
+    for (const t of THEMES5) {
+      await setTheme(page, t);
+      for (const panel of ['header.top', '#config']) {
+        const pb = await page.locator(panel).boundingBox();
+        const clip = { x: pb.x - 1, y: pb.y - 1, width: pb.width + 2, height: pb.height + 2 };
+        const btns = page.locator(panel + ' button:visible');
+        const n = await btns.count();
+        expect(n, panel).toBeGreaterThan(3);
+        for (let i = 0; i < n; i++) {
+          const btn = btns.nth(i);
+          await page.mouse.move(2, 790);
+          await page.waitForTimeout(300);                                 // переход цвета .15 с
+          const before = await page.screenshot({ clip, mask: [btn] });
+          const b = await btn.boundingBox();
+          await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+          await page.waitForTimeout(300);
+          const during = await page.screenshot({ clip, mask: [btn] });
+          // до 4 уровней - сглаженный край маски у самой кнопки; полоса по панели - больше 10
+          expect(await maxDiff(page, before, during), `${t} ${panel} кнопка ${i}: вне кнопки ничего не изменилось`).toBeLessThanOrEqual(4);
+        }
+      }
+    }
+  });
+
+  test('у шапки и меню нет резкой горизонтальной границы яркости, во всех темах', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openWs(page);
+    await page.mouse.move(2, 790);
+    for (const t of THEMES5) {
+      await setTheme(page, t);
+      for (const panel of ['header.top', '#config']) {
+        const shot = await page.screenshot({ clip: await page.locator(panel).boundingBox(), mask: [page.locator(panel + ' *')], maskColor: '#00FF00' });
+        // маска поверх кнопок и текста зелёная; её край сглажен - берём пиксели, у которых
+        // и соседи по столбцу не маска. Сравнение рядов - по столбцам (у шапки фон меняется
+        // слева направо, среднее по разному набору столбцов прыгало бы само)
+        const { jump, pairs } = await page.evaluate(async (b64) => {
+          const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+          const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+          const cx = c.getContext('2d'); cx.drawImage(img, 0, 0);
+          const d = cx.getImageData(0, 0, img.width, img.height).data, w = img.width, h = img.height;
+          const lum = (x, y) => { const i = (y * w + x) * 4; return d[i] + d[i + 1] + d[i + 2]; };
+          const masked = (x, y) => { const i = (y * w + x) * 4; return d[i + 1] - Math.max(d[i], d[i + 2]) > 40; };
+          let jump = 0, pairs = 0;
+          for (let y = 4; y < h - 6; y++) {                                 // без рамки и скруглений
+            let s = 0, k = 0;
+            for (let x = 20; x < w - 20; x++) {
+              if (masked(x, y - 1) || masked(x, y) || masked(x, y + 1) || masked(x, y + 2)) continue;
+              s += lum(x, y + 1) - lum(x, y); k++;
+            }
+            if (k > 50) { pairs++; jump = Math.max(jump, Math.abs(s / k / 3)); }
+          }
+          return { jump, pairs };
+        }, shot.toString('base64'));
+        expect(pairs, `${t} ${panel}: есть ряды без кнопок`).toBeGreaterThan(5);
+        expect(jump, `${t} ${panel}: скачок яркости между соседними рядами`).toBeLessThan(3);
+      }
+    }
+  });
 });
 
 test.describe('ws: китайский', () => {
