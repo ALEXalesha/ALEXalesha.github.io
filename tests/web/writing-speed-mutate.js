@@ -15,12 +15,12 @@ const SRC = path.join(ROOT, 'web', 'writing-speed', 'index.html');
 const SPEC = 'tests/web/writing-speed.spec.js';
 
 // from - точный кусок кода (должен встречаться ровно один раз), to - сломанный вариант
-const MUTANTS = [
-  { name: 'WPM делится на 4 знака, а не на 5', from: 'const wpm = net / 5 / min;', to: 'const wpm = net / 4 / min;' },
-  { name: 'пробел после верного слова не засчитан', from: 'if (t === w) { net += w.length; if (submitted) net += 1; }', to: 'if (t === w) { net += w.length; }' },
+const ALL_MUTANTS = [
+  { name: 'WPM делится на 4 знака, а не на 5', from: 'const wpm = net / unit / min;', to: 'const wpm = net / (unit * 0.8) / min;' },
+  { name: 'пробел после верного слова не засчитан', from: 'net += w.length; if (submitted && s.words[i].sep) net += 1; }', to: 'net += w.length; }' },
   { name: 'неверное слово засчитано в WPM', from: 'if (t === w) { net += w.length;', to: 'if (t.length === w.length) { net += w.length;' },
   { name: 'точность всегда 100%', from: 'const acc = total ? good / total * 100 : 0;', to: 'const acc = total ? 100 : 0;' },
-  { name: 'сырая скорость по верным нажатиям', from: 'const raw = total / 5 / min;', to: 'const raw = good / 5 / min;' },
+  { name: 'сырая скорость по верным нажатиям', from: 'const raw = total / unit / min;', to: 'const raw = good / unit / min;' },
   { name: 'ошибка записана на нажатую клавишу, а не на нужную', from: 'const key = keyOf(k.ok ? k.c : k.exp);', to: 'const key = keyOf(k.c);' },
   { name: 'ровность без tanh', from: 'return 100 * (1 - Math.tanh(v + v ** 3 / 3 + v ** 5 / 5));', to: 'return 100 * (1 - v);' },
   { name: 'тест на время идёт на 10% дольше', from: "if (S.cfg.mode === 'time' && clock() - S.t0 >= S.cfg.time * 1000) { finish(", to: "if (S.cfg.mode === 'time' && clock() - S.t0 >= S.cfg.time * 1100) { finish(" },
@@ -33,10 +33,31 @@ const MUTANTS = [
   { name: 'рекорд не записывается', from: "    Store.set('records', records);", to: '' },
   { name: 'настройки не запоминаются', from: "const saveSettings = () => Store.set('settings', settings);", to: 'const saveSettings = () => {};' },
   { name: 'запись в хранилище без try/catch', from: 'try { localStorage.setItem(STORE + key, JSON.stringify(value)); return true; } catch (e) { this.ok = false; return false; }', to: 'localStorage.setItem(STORE + key, JSON.stringify(value)); return true;' },
-  { name: 'список 200 слов не обрезается', from: "cache[key] = (lang === 'js' || lang === 'py') ? all : all.slice(0, size);", to: 'cache[key] = all;' },
+  { name: 'список 200 слов не обрезается', from: 'cache[key] = isCode(lang) ? all : all.slice(0, size);', to: 'cache[key] = all;' },
   { name: 'отступ кода надо печатать (indent не считается)', from: 'parts.forEach((p, i) => out.push({ text: p, sep: \' \', indent: i === 0 ? indent : 0 }));', to: 'parts.forEach((p, i) => out.push({ text: (i === 0 ? \' \'.repeat(indent) : \'\') + p, sep: \' \', indent: 0 }));' },
   { name: 'дзен считает время до Shift+Enter', from: 'finish(S.keys.length ? S.keys[S.keys.length - 1].t : clock()); return; }', to: 'finish(clock()); return; }' },
+  // 1.1.0: режим «текст», китайский, перенос, видимость настроек, меню без подсветки ряда (v11: true)
+  { v11: true, name: 'допуск длины текста ±30 % вместо ±20 %', from: 'n >= len * k * 0.8 && n <= len * k * 1.2', to: 'n >= len * k * 0.7 && n <= len * k * 1.3' },
+  { v11: true, name: 'китайские длины не удвоены', from: 'const CJK_FACTOR = 2;', to: 'const CJK_FACTOR = 1;' },
+  { v11: true, name: 'китайский: скорость в словах по 5 знаков, а не в иероглифах', from: 'cfg.unit = cfg.cjk ? 1 : 5;', to: 'cfg.unit = 5;' },
+  { v11: true, name: 'текст берётся любой длины, не выбранной', from: 'filter((e) => e.len === cfg.textLen)', to: 'filter((e) => e.len >= cfg.textLen)' },
+  { v11: true, name: 'время + текст: идут слова вместо текста', from: "} else if (cfg.mode === 'time' && cfg.timeSrc === 'text' && !isCode(cfg.lang)) {", to: '} else if (false) {' },
+  { v11: true, name: 'рекорды «цитат» не переезжают в «текст»', from: "if (raw.mode === 'quote') { s.mode = 'text'; s.textLen = QUOTE_TO_LEN[raw.quote] || 20; }", to: '' },
+  { v11: true, name: 'длинное слово не переносится', from: 'overflow-wrap: anywhere; word-break: break-all;', to: '' },
+  { v11: true, name: 'длины текста видны во всех режимах', from: "if (s.mode === 'text' && !code) v.add('lens');", to: "v.add('lens');" },
+  { v11: true, name: 'словарь виден и у текста', from: "if (wordGen && !code) v.add('size');", to: "if (!code) v.add('size');" },
+  { v11: true, name: 'пиньинь-подсказка видна и при вводе пиньинем', from: "if (s.zhInput === 'hanzi') v.add('pyHint');", to: "v.add('pyHint');" },
+  { v11: true, name: 'знаки/цифры/заглавные видны у китайского', from: "if (wordGen && !zh) { v.add('nums');", to: "if (wordGen) { v.add('nums');" },
+  { v11: true, name: '«слова/текст» виден и у кода', from: "if (s.mode === 'time') { v.add('times'); if (!code) v.add('src'); }", to: "if (s.mode === 'time') { v.add('times'); v.add('src'); }" },
+  { v11: true, name: 'меню выделяет текст ряда (нет user-select:none)', from: 'header.top, .config, .under, .actions, .tabs, .kbd-map, .zh-errs { -webkit-user-select: none; user-select: none; }', to: '' },
+  { v11: true, name: 'китайское слово не сдаётся само', from: 'if (S.cfg.cjk && S.typed[S.wi].length >= w.text.length) {', to: 'if (false) {' },
+  { v11: true, name: 'пробел в китайском тесте сдаёт слово', from: "if (S.phase !== 'run' || S.cfg.cjk) return;", to: "if (S.phase !== 'run') return;" },
+  { v11: true, name: 'китайский шрифт не ставится', from: '.words-wrap.cjk, .words-wrap rt {', to: '.words-wrap.cjk-x, .words-wrap rt {' },
 ];
+
+// WS_MUT=old - только мутанты 1.0.0, WS_MUT=new - только 1.1.0 (по ~20 мин каждый), без - все; WS_MUT_NAMES=<регулярка> - только мутанты с таким именем
+const MUTANTS = ALL_MUTANTS.filter((m) => process.env.WS_MUT === 'old' ? !m.v11 : process.env.WS_MUT === 'new' ? m.v11 : true)
+  .filter((m) => !process.env.WS_MUT_NAMES || new RegExp(process.env.WS_MUT_NAMES).test(m.name));   // выбрать по имени
 
 function runSpec(file) {
   const r = spawnSync(`npx playwright test ${SPEC} --workers=1 --max-failures=1 --reporter=dot`, {
@@ -72,4 +93,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { MUTANTS };
+module.exports = { MUTANTS: ALL_MUTANTS };

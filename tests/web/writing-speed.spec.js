@@ -762,6 +762,26 @@ test.describe('ws: набор текстов', () => {
     }
   });
 
+  test('длина текста: границы ±20 % ровно (у китайского вдвое), длина каждого текста по счёту страницы = его ~длина', async ({ page }) => {
+    await openWs(page);
+    const r = await page.evaluate(() => {
+      const c = __ws.core;
+      const b = (lang, n) => c.lengthBucket(lang, n);
+      const mism = [];
+      for (const [lang, list] of Object.entries(__ws.texts)) {
+        for (const e of list) { const got = b(lang, c.textLength(lang, e.t)); if (got !== e.len) mism.push(lang + ' ~' + e.len + ' -> ' + got); }
+      }
+      return {
+        en: [7, 8, 12, 13, 15, 16, 24, 25, 39, 40, 60, 61, 79, 80, 120, 121, 240, 241, 360, 361].map((n) => b('en', n)),
+        zh: [15, 16, 24, 25, 79, 80, 120, 121, 719, 720, 721].map((n) => b('zh', n)),
+        mism,
+      };
+    });
+    expect(r.en).toEqual([null, 10, 10, null, null, 20, 20, null, null, 50, 50, null, null, 100, 100, null, 200, 300, 300, null]);
+    expect(r.zh).toEqual([null, 10, 10, null, null, 50, 50, null, 300, 300, null]);
+    expect(r.mism).toEqual([]);
+  });
+
   test('тексты печатаются с обычной клавиатуры: без «ёлочек», длинного тире, многоточия и неразрывных пробелов', async ({ page }) => {
     await openWs(page);
     const texts = await page.evaluate(() => __ws.texts);
@@ -787,14 +807,16 @@ test.describe('ws: видимость настроек по режимам', () 
     ['ru', 'zen', 'words', 'noBack'],
     ['zh', 'time', 'words', 'times src lang size zhInput pyHint noBack stop'],
     ['zh', 'text', 'words', 'lens lang zhInput pyHint noBack stop'],
+    ['zh', 'text', 'words', 'lens lang zhInput noBack stop', 'pinyin'],
+    ['zh', 'time', 'words', 'times src lang size zhInput noBack stop', 'pinyin'],
     ['js', 'time', 'text', 'times lang nums noBack stop'],
     ['js', 'words', 'words', 'counts lang nums noBack stop'],
     ['js', 'text', 'words', 'lang noBack stop'],
   ];
-  for (const [lang, mode, src, want] of TABLE) {
-    test(`${lang} ${mode}${mode === 'time' ? ' + ' + src : ''}: видно только «${want}»`, async ({ page }) => {
+  for (const [lang, mode, src, want, zhInput = 'hanzi'] of TABLE) {
+    test(`${lang} ${mode}${mode === 'time' ? ' + ' + src : ''}${zhInput !== 'hanzi' ? ', ввод ' + zhInput : ''}: видно только «${want}»`, async ({ page }) => {
       await openWs(page);
-      await page.evaluate(([l, m, s]) => { __ws.set('lang', l, false); __ws.set('timeSrc', s, false); __ws.set('mode', m); }, [lang, mode, src]);
+      await page.evaluate(([l, m, s, z]) => { __ws.set('lang', l, false); __ws.set('timeSrc', s, false); __ws.set('zhInput', z, false); __ws.set('mode', m); }, [lang, mode, src, zhInput]);
       if (mode === 'custom') await page.keyboard.press('Escape');
       const shown = await page.evaluate((all) => all.filter((c) => { const el = document.querySelector(`[data-ctl="${c}"]`); return el && !el.hidden && el.offsetParent !== null; }), ALL);
       expect(shown.sort()).toEqual(want.split(' ').sort());
@@ -1013,11 +1035,22 @@ test.describe('ws: китайский', () => {
     await expect(page.locator('#r-unit')).toHaveText('знаков в минуту');
   });
 
-  test('пробел и Enter в китайском тесте ничего не делают', async ({ page }) => {
+  test('пробел и Enter в китайском тесте ничего не делают - ни в начале, ни посреди слова', async ({ page }) => {
     await zhOpen(page);
     await page.keyboard.press('Space');
     await page.keyboard.press('Enter');
     expect(await page.evaluate(() => [__ws.state.wi, __ws.state.keys.length])).toEqual([0, 0]);
+    // посреди слова: набраны все слова до первого двухзнакового и его первый иероглиф
+    const words = await page.evaluate(() => __ws.state.words.map((w) => w.text));
+    const k = words.findIndex((w) => [...w].length >= 2);
+    expect(k).toBeGreaterThanOrEqual(0);
+    for (const w of words.slice(0, k)) await ime(page, ['x'], w);
+    await ime(page, ['x'], [...words[k]][0]);
+    const before = await page.evaluate(() => [__ws.state.wi, __ws.state.keys.length, __ws.state.typed[__ws.state.wi]]);
+    expect(before[0]).toBe(k);
+    await page.keyboard.press('Space');
+    await page.keyboard.press('Enter');
+    expect(await page.evaluate(() => [__ws.state.wi, __ws.state.keys.length, __ws.state.typed[__ws.state.wi]])).toEqual(before);
   });
 
   test('ошибки - списком по иероглифам вместо клавиатуры', async ({ page }) => {
