@@ -158,6 +158,37 @@ test('C: scanf reads typed lines through WASI fd_read until Ctrl+D', async ({ pa
   await expect(out(page)).toContainText(/─── компиляция/);
 });
 
+test('C++: std::cin and std::getline read typed lines', async ({ page }) => {
+  test.setTimeout(300_000);
+  await openServed(page);
+  await pick(page, 'main.cpp');
+  await expect(page.locator('#statusText')).toHaveText(/^Clang \d+\.\d+\.\d+ готов$/, { timeout: 240_000 });
+  await page.fill('#stdin', '');
+  await setCode(page, '#include <iostream>\n#include <string>\n\nint main() {\n    int n;\n    std::cout << "n? " << std::flush;\n    std::cin >> n;\n    std::string rest, line;\n    std::getline(std::cin, rest);\n    std::getline(std::cin, line);\n    std::cout << n * 2 << " [" << line << "]" << std::endl;\n    return 0;\n}\n');
+  await page.locator('#runBtn').click();
+  await expect(out(page)).toContainText('n? ', { timeout: 120_000 });
+  await typeLine(page, '21');
+  await typeLine(page, 'привет мир');
+  await expect(out(page)).toContainText('42 [привет мир]');
+  await expect(out(page)).toContainText(/─── компиляция/);
+});
+
+test('Ruby: gets waits for typed lines, nil after Ctrl+D', async ({ page }) => {
+  test.setTimeout(180_000);
+  await openServed(page);
+  await pick(page, 'main.rb');
+  await expect(page.locator('#statusText')).toHaveText(/^Ruby 3\.\d+\.\d+ готов$/, { timeout: 120_000 });
+  await page.fill('#stdin', '');
+  await setCode(page, 'a = gets.to_i\nputs "twice: #{a * 2}"\nputs gets.nil? ? "eof" : "more"\n');
+  await page.locator('#runBtn').click();
+  await typeLine(page, '21');
+  await expect(out(page)).toContainText('twice: 42');
+  await expect(page.locator('#termIn')).toBeVisible();
+  await page.locator('#termIn').press('Control+d');
+  await expect(out(page)).toContainText('eof');
+  await expect(out(page)).toContainText(/─── готово за/);
+});
+
 test('without headers the service worker makes the page isolated (GitHub Pages)', async ({ page }) => {
   isolateHeaders = false;
   try {
