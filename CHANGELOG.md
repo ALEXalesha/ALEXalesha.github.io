@@ -4,6 +4,10 @@
 
 **EN**
 
+- New program: MediaPlayer (`web/media-player`) in the "Programs" section: 12 own songs from
+  a song generator (no more than two equal notes in a row), your files, playlist, 10-band
+  equalizer, visualizer, Media Session, five themes, RU/EN; its own Electron shell. 36 laws,
+  11 of 11 mutants killed.
 - WritingSpeed 1.1.0: pressing a menu button no longer highlights the whole row (the row text
   was selected when the mouse moved a little); the "quote" mode became "text" - classic
   passages and original texts of ~10/~20/~50/~100/~200/~300 words, 10 per length and language
@@ -80,6 +84,10 @@
 
 **RU**
 
+- Новая программа: Медиаплеер (`web/media-player`) в разделе «Программы»: 12 своих мелодий из
+  генератора песен (не больше двух одинаковых нот подряд), ваши файлы, плейлист, эквалайзер
+  10 полос, визуализация, Media Session, пять тем, RU/EN; своя оболочка Electron. 36 законов,
+  мутантов убито 11 из 11.
 - «Скорость печати» 1.1.0: нажатие кнопки меню больше не подсвечивает весь ряд (мышь чуть
   сдвигалась и выделяла текст ряда); режим «цитата» стал «текстом» - отрывки классиков и свои
   тексты на ~10/~20/~50/~100/~200/~300 слов, по 10 на длину и язык (длина ±20 %), рекорды

@@ -11,9 +11,9 @@
 - Мутации (11.10): `node tests/web/media-player-mutate.js` - 11 из 11 убиты (около 4 мин). Закон «испорченные записи» теперь проверяет и тему.
 
 - Законы оболочки (11.10): `npx playwright test --config=playwright.app.config.js tests-app/media-player-app.spec.js` - 2 зелёных; в MP_TEST окно скрыто, без фокуса и без звука (`setAudioMuted`).
+- Хаб (11.10): карточка в «Программах» (`PROGRAMS` в web/_shared/games-data.js, картинка `npm run thumbs -- media-player`), закон во вкладке (tests-app/programs.spec.js, плеер сначала «без звука»), в сборке Хаба `web/media-player/index.html`, команды `npm run mp:*`, README и CHANGELOG.
 
 ## Осталось (по порядку)
 
 1. Сборка: `npx electron-builder` в `web/media-player/electron` (как у WritingSpeed), установщик и portable в dist.
-2. Карточка в Хабе, раздел «Программы» (как Скорость печати и Компилятор).
-3. Репозиторий MediaPlayer на Gitea и GitHub (publish-скрипт), Pages, выпуск 1.0.0, InstallAll, профиль.
+2. Репозиторий MediaPlayer на Gitea и GitHub (publish-скрипт), Pages, выпуск 1.0.0, InstallAll, профиль.

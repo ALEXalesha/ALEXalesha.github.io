@@ -46,6 +46,10 @@ for (const p of DATA.PROGRAMS.filter((x) => !x.url)) {
       // Python - из соседней папки web/python_ide: вкладку туда пускает поле uses
       const py = await H.inGame(app, p.id, `(async () => { document.querySelector('#files .file[data-name="main.py"]').click(); const r = await __compiler.run(); return r.status + '|' + document.getElementById('out').textContent; })()`);
       expect(py).toMatch(/^ok\|[\s\S]*Hello, World!/);
+    } else if (p.id === 'media-player') {
+      // своя мелодия играет во вкладке; активная вкладка не молчит - сначала «без звука» самого плеера
+      const pos = await H.inGame(app, p.id, `(async () => { __mp.player.setMuted(true); __mp.player.play(0); for (let i = 0; i < 100 && __mp.player.state().pos < 0.3; i++) await new Promise((r) => setTimeout(r, 100)); return __mp.player.state().pos; })()`);
+      expect(pos).toBeGreaterThan(0.3);
     }
     expect(await H.errorsOf(app, p.id)).toEqual([]);
     expect(await app.evaluate(() => globalThis.__igroteka.blocked)).toEqual([]);

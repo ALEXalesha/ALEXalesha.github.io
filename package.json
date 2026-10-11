@@ -29,7 +29,11 @@
     "ws:icon": "node web/writing-speed/electron/make-icon.js",
     "ws:mutate": "node tests/web/writing-speed-mutate.js",
     "fm:start": "electron web/files-manager/electron",
-    "fm:dist": "electron-builder --projectDir web/files-manager/electron --win nsis portable --x64"
+    "fm:dist": "electron-builder --projectDir web/files-manager/electron --win nsis portable --x64",
+    "mp:start": "electron web/media-player/electron",
+    "mp:dist": "electron-builder --projectDir web/media-player/electron --win nsis portable --x64",
+    "mp:icon": "node web/media-player/electron/make-icon.js",
+    "mp:mutate": "node tests/web/media-player-mutate.js"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
@@ -59,6 +63,7 @@
       "web/sudoku/**/*",
       "web/flappy-wings/**/*",
       "web/writing-speed/index.html",
+      "web/media-player/index.html",
       "web/compiler/**/*",
       "web/python_ide/runtime.js",
       "web/python_ide/vendor/**/*",

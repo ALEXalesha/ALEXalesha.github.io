@@ -76,6 +76,8 @@
     // Добавлена 11.10.2026 по слову владельца: свой репозиторий Calibrate3dPrinter, код сюда не копируется.
     { id: 'calibrate3dprinter', name: 'Калибровка 3D-принтера', desc: 'Calibrate 3D Printer: G-code десяти тестов для любого FDM-принтера и расчёт поправок - открывается на сайте',
       url: 'https://alexalesha.github.io/Calibrate3dPrinter/', storage: [] },
+    // Добавлен 11.10.2026: «Медиаплеер» - своя музыка из генератора песен и файлы пользователя.
+    { id: 'media-player', name: 'Медиаплеер', desc: 'Своя музыка без интернета и ваши файлы: плейлист, эквалайзер 10 полос, визуализация', storage: ['mplayer:'] },
   ];
 
   for (const g of GAMES) { g.keys = g.keys || []; Object.freeze(g.keys); Object.freeze(g.storage); Object.freeze(g); }

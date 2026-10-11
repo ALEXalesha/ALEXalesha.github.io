@@ -31,6 +31,8 @@ const PLAY = {
   flappy_wings: { hold: [], wait: 2600, after: '__game.setAutopilot(true)' },
   fps_1: { hold: ['KeyW'], wait: 1500, click: true },
   // «Компилятор»: на картинке - пример после запуска, с выводом
+  // Медиаплеер: снимок, когда своя мелодия уже играет и визуализация рисует полосы
+  media_player: { noStart: true, hold: [], wait: 2500, ready: '() => window.__mp && window.__mp.ready === true', after: '__mp.player.play(0)' },
   compiler: { noStart: true, hold: [], wait: 1500, ready: '() => document.documentElement.dataset.ready === "1"', after: 'document.getElementById("runBtn").click()' },
   // «Скорость печати»: на картинке - тест на середине, несколько слов уже напечатаны
   writing_speed: { query: 'seed=5', noStart: true, hold: [], wait: 400, ready: '() => window.__ws && __ws.ready',
