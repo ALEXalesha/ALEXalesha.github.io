@@ -15,10 +15,9 @@
 
 - Сборка (11.10): `npm run mp:dist` - `web/media-player/electron/dist/MediaPlayer-1.0.0-Setup.exe` и `-Portable.exe` (по 98 МБ, в worktree wip/media-player, в git не идут). Собранный exe проверен скрыто: окно «Медиаплеер / MediaPlayer 1.0.0», мелодия играет, звук выключен. У Алексея ещё не установлен.
 
-## Осталось (точка продолжения)
+- Выпуск 1.0.0 (11.10): publish-web 9c88efa (publish/MediaPlayer: config.sh, overlay README EN/RU, кадры tools/screenshots.js), GitHub ALEXalesha/MediaPlayer main 34d2ba0 (заглушку «Initial commit» от 10.10 заменил; publish_web.sh упал на push HTTP 408 - допушил тот же pub/MediaPlayer с http.postBuffer), Pages https://alexalesha.github.io/MediaPlayer/, выпуск v1.0.0 (Setup+Portable, заметки electron/release-notes/v1.0.0.md). Законы в собранном репо: 38 зелёных. InstallAll 8d53757 (25 программ, 168 проверок), установлен у Алексея («MediaPlayer 1.0.0» в реестре), профиль ALEXalesha 057d350.
 
-Выпуск 1.0.0 не начат (не хватило недельного лимита). Всё ниже - по образцу WritingSpeed (память writing-speed-project.md):
-1. Ветка `publish-web` репо GameRoom: `publish/MediaPlayer/config.sh` (REPO=ALEXalesha/MediaPlayer, MAP `web/media-player/=`, TESTS: tests/web/media-player.spec.js, tests/web/media-player-mutate.js, tests-app/media-player-app.spec.js; TEST_SED как у WritingSpeed с заменой writing-speed -> media-player) и overlay: README.md/README.ru.md, package.json (electron, playwright), tests/pages.json, tools/screenshots.js, кадры docs/screens.
-2. `publish/publish_web.sh MediaPlayer`, Pages (alexalesha.github.io/MediaPlayer/), `gh release create v1.0.0` с Setup и Portable. Gitea: отдельный репо MediaPlayer пустой, источник - GameRoom.
-3. Строка в InstallAll, установить у себя (Setup /S через powershell.exe Start-Process), профиль GitHubProfile, проверка свежести GitHub.
-4. GameRoom на GitHub с карточкой Медиаплеера не перевыложен (publish_web.sh GameRoom идёт больше 1,5 ч).
+## Осталось
+
+- GameRoom на GitHub (Хаб с карточкой Медиаплеера) не перевыложен: publish_web.sh GameRoom идёт больше 1,5 ч.
+- CI Gitea на этих пушах не дожидался (один раннер, очередь других агентов).

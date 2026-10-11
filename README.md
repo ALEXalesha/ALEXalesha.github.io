@@ -174,7 +174,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | Folder | What it is | Own laws | Score |
 |---|---|---|---|
 | `writing-speed` | WritingSpeed: typing speed test - time, words, quotes, custom text, zen; six languages and code; WPM/CPM, accuracy, consistency, mistakes by key, records. Also a separate Electron app (`web/writing-speed/electron`) | 40 | not reviewed yet |
-| `media-player` | MediaPlayer: 12 own songs from a song generator (Web Audio, nothing downloaded), your files (audio and video), playlist, shuffle/repeat, speed, 10-band equalizer, 3 visualizers, mini mode, Media Session, five Paint themes, RU/EN. Also a separate Electron app (`web/media-player/electron`) | 36 (+11 mutants) | not reviewed yet |
+| `media-player` | MediaPlayer: 12 own songs from a song generator (Web Audio, nothing downloaded), your files (audio and video), playlist, shuffle/repeat, speed, 10-band equalizer, 3 visualizers, mini mode, Media Session, five Paint themes, RU/EN. Also a separate Electron app (`web/media-player/electron`) and a standalone repository: [MediaPlayer](https://github.com/ALEXalesha/MediaPlayer) | 36 (+11 mutants) | not reviewed yet |
 | `compiler` | Compiler: C, C++ (Clang 22 → WebAssembly), Python, JavaScript, TypeScript, Lua, Ruby and SQL in the browser; time limit, Stop, stdin and typing input while the program runs, errors on their line, five Paint themes, RU/EN. Also a standalone repository: [Compiler](https://github.com/ALEXalesha/Compiler) | 27 (+11 mutants) | not reviewed yet |
 | `python_ide` | Offline Python 3.13: editor, Stop, `input()`, files | 11 | 8 |
 | `calculator` | Calculator with exact decimal arithmetic and operator precedence | 40 | 8 |
