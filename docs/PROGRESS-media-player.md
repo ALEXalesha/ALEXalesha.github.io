@@ -13,7 +13,12 @@
 - Законы оболочки (11.10): `npx playwright test --config=playwright.app.config.js tests-app/media-player-app.spec.js` - 2 зелёных; в MP_TEST окно скрыто, без фокуса и без звука (`setAudioMuted`).
 - Хаб (11.10): карточка в «Программах» (`PROGRAMS` в web/_shared/games-data.js, картинка `npm run thumbs -- media-player`), закон во вкладке (tests-app/programs.spec.js, плеер сначала «без звука»), в сборке Хаба `web/media-player/index.html`, команды `npm run mp:*`, README и CHANGELOG.
 
-## Осталось (по порядку)
+- Сборка (11.10): `npm run mp:dist` - `web/media-player/electron/dist/MediaPlayer-1.0.0-Setup.exe` и `-Portable.exe` (по 98 МБ, в worktree wip/media-player, в git не идут). Собранный exe проверен скрыто: окно «Медиаплеер / MediaPlayer 1.0.0», мелодия играет, звук выключен. У Алексея ещё не установлен.
 
-1. Сборка: `npx electron-builder` в `web/media-player/electron` (как у WritingSpeed), установщик и portable в dist.
-2. Репозиторий MediaPlayer на Gitea и GitHub (publish-скрипт), Pages, выпуск 1.0.0, InstallAll, профиль.
+## Осталось (точка продолжения)
+
+Выпуск 1.0.0 не начат (не хватило недельного лимита). Всё ниже - по образцу WritingSpeed (память writing-speed-project.md):
+1. Ветка `publish-web` репо GameRoom: `publish/MediaPlayer/config.sh` (REPO=ALEXalesha/MediaPlayer, MAP `web/media-player/=`, TESTS: tests/web/media-player.spec.js, tests/web/media-player-mutate.js, tests-app/media-player-app.spec.js; TEST_SED как у WritingSpeed с заменой writing-speed -> media-player) и overlay: README.md/README.ru.md, package.json (electron, playwright), tests/pages.json, tools/screenshots.js, кадры docs/screens.
+2. `publish/publish_web.sh MediaPlayer`, Pages (alexalesha.github.io/MediaPlayer/), `gh release create v1.0.0` с Setup и Portable. Gitea: отдельный репо MediaPlayer пустой, источник - GameRoom.
+3. Строка в InstallAll, установить у себя (Setup /S через powershell.exe Start-Process), профиль GitHubProfile, проверка свежести GitHub.
+4. GameRoom на GitHub с карточкой Медиаплеера не перевыложен (publish_web.sh GameRoom идёт больше 1,5 ч).
