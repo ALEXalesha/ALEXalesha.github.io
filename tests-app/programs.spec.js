@@ -61,6 +61,16 @@ for (const p of DATA.PROGRAMS.filter((x) => !x.url)) {
         return r.status + '|' + document.getElementById('out').textContent;
       })()`);
       expect(live).toMatch(/^ok\|[\s\S]*got live/);
+    } else if (p.id === 'calibrate3dprinter') {
+      // копия страницы Калибровки (tools/sync-calibrate.js): G-code одного теста строится во вкладке, без сети
+      const g = await H.inGame(app, p.id, `(async () => {
+        for (let i = 0; i < 100 && !window.calib3dApp; i++) await new Promise((r) => setTimeout(r, 100));
+        const S = window.calib3dApp.state;
+        S.selected = S.selected.slice(0, 1); // один тест - первый в списке
+        const f = window.calib3dApp.files();
+        return f.length + '|' + f[0].name + '|' + f[0].text.length + '|' + /^G1 /m.test(f[0].text);
+      })()`);
+      expect(g).toMatch(/^1\|[^|]+\|\d{4,}\|true$/);
     } else if (p.id === 'media-player') {
       // своя мелодия играет во вкладке; активная вкладка не молчит - сначала «без звука» самого плеера
       const pos = await H.inGame(app, p.id, `(async () => { __mp.player.setMuted(true); __mp.player.play(0); for (let i = 0; i < 100 && __mp.player.state().pos < 0.3; i++) await new Promise((r) => setTimeout(r, 100)); return __mp.player.state().pos; })()`);

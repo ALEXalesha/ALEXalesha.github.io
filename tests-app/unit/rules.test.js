@@ -179,7 +179,15 @@ test('программы: страница и картинка есть, ход�
       assert.equal(Security.allowRequest(url(path.join(ROOT, 'web', u, 'index.html')), folders), true, p.id + ' -> ' + u);
     }
   }
-  // программа со своим сайтом: https-адрес, своей папки в web/ нет, хранилища нет, картинка карточки есть
+  // Ни одна карточка «Программ» не уводит во внешнее окно: у программы нет адреса сайта, а есть
+  // своя страница web/<id>/index.html во вкладке. Исключение - только явная пометка external: true
+  // (11.10.2026 владелец: «почему калибровка открывается не в игротеке, а в соседнем окне»).
+  for (const p of DATA.PROGRAMS) {
+    if (p.external === true) { assert.ok(p.url, p.id + ': external без адреса'); continue; }
+    assert.equal(p.url, undefined, p.id + ': карточка уводит на сайт ' + p.url + ' - нужна копия в web/' + p.id + ' (или явная пометка external: true)');
+    assert.ok(fs.existsSync(path.join(ROOT, 'web', p.id, 'index.html')), 'нет страницы web/' + p.id + '/index.html');
+  }
+  // программа со своим сайтом (только с external: true): https-адрес, своей папки в web/ нет, хранилища нет, картинка карточки есть
   for (const p of progs.filter((x) => x.link)) {
     assert.match(p.url, /^https:\/\/alexalesha\.github\.io\/[\w-]+\/$/, p.id);
     assert.ok(!fs.existsSync(path.join(ROOT, 'web', p.id)), 'папка web/' + p.id + ' не нужна');

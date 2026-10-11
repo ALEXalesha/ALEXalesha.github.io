@@ -65,6 +65,7 @@
       "web/flappy-wings/**/*",
       "web/writing-speed/index.html",
       "web/media-player/index.html",
+      "web/calibrate3dprinter/**/*",
       "web/compiler/**/*",
       "web/python_ide/runtime.js",
       "web/python_ide/vendor/**/*",

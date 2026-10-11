@@ -13,7 +13,7 @@ tabs of one window.
 
 The interface of all projects is in Russian.
 
-![Igroteka home screen](docs/screens/app-home.png)
+![Igroteka home screen: games and the "Programs" section](docs/screens/app-home.png)
 
 ## Igroteka
 
@@ -24,16 +24,19 @@ concepts and are not affiliated with any rights holders.
 
 ![A game in a tab](docs/screens/app-game.png)
 
-- **Programs.** Below the games is a "Programs" section: WritingSpeed («Скорость печати»,
-  `web/writing-speed`), a typing speed test, and the Compiler («Компилятор»,
+- **Programs.** Below the games is a "Programs" section with five programs: WritingSpeed
+  («Скорость печати», `web/writing-speed`), a typing speed test; the Compiler («Компилятор»,
   `web/compiler`): C, C++, Python, JavaScript, TypeScript, Lua, Ruby and SQL run right
-  there, offline. They open in a tab like a game. Of WritingSpeed only its page goes into
+  there, offline; FilesManager («Файловый менеджер», `web/files-manager`) on a demo disk;
+  Calibrate 3D Printer («Калибровка 3D-принтера», `web/calibrate3dprinter`): G-code of ten
+  calibration tests for any FDM printer; MediaPlayer («Медиаплеер», `web/media-player`).
+  Each opens in a tab like a game and works offline. Of WritingSpeed only its page goes into
   the app (its own Electron shell and tools stay next to it); the Compiler goes in with its
   engines and the Python of `web/python_ide` (about 80 MB) and is not part of the one-file
-  Igroteka. The third card, Calibrate 3D Printer («Калибровка 3D-принтера»), is a link: the
-  program lives in its own repository and opens on its site
-  ([alexalesha.github.io/Calibrate3dPrinter](https://alexalesha.github.io/Calibrate3dPrinter/))
-  in a new browser tab, from the app in the system browser (the `url` field of the table).
+  Igroteka. Calibrate 3D Printer lives in its own repository
+  ([site](https://alexalesha.github.io/Calibrate3dPrinter/)); `web/calibrate3dprinter` is a
+  copy of its `web/` folder, version <!--calib-ver-->1.0.0<!--/calib-ver-->, refreshed with
+  `node tools/sync-calibrate.js [folder]` (or `CALIBRATE_DIR`). No card leads out of the app.
 - **System demos.** Below the games is a "System demos" section: shells in the style of
   Windows 11, macOS, iOS and One UI (`win11_3`, `macos-tahoe`, `ios26`, `oneui7`; not
   affiliated with Apple/Microsoft/Samsung). Each opens in a tab like a game, with its own
@@ -80,6 +83,10 @@ game (a browser security rule: after leaving pointer lock with Esc a new click i
 | Question over a game | Settings | Light theme |
 |---|---|---|
 | ![](docs/screens/app-question.png) | ![](docs/screens/app-settings.png) | ![](docs/screens/app-light.png) |
+
+| "Programs" section | "Programs", light theme |
+|---|---|
+| ![](docs/screens/app-programs.png) | ![](docs/screens/app-programs-light.png) |
 
 The app icon is drawn by code: `app/assets/logo.svg`; `npm run icon` renders it into
 `app/assets/icon.ico` (16-256 px, with a simplified drawing for 16-32 px) and `icon.png`.

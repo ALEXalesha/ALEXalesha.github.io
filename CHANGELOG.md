@@ -4,6 +4,17 @@
 
 **EN**
 
+- Calibrate 3D Printer opens in a tab of the app, offline, like the other programs (before,
+  the card opened the site in the system browser). `web/calibrate3dprinter` is a copy of the
+  `web/` folder of Calibrate3dPrinter 1.0.0 (commit 12cbdca), made by
+  `node tools/sync-calibrate.js [folder]` (or `CALIBRATE_DIR`): it takes the files of the last
+  commit, adds `<meta name="application-name">` and writes the version into `SOURCE.txt` and
+  the READMEs. Law: no card of "Programs" leads out of the app unless marked `external: true`
+  (mutant: the old `url` back on the card - the law fails). In the app the tab builds the
+  G-code of one test, with no outside requests and no console errors.
+- New README frames made by `npm run screenshots`: the home screen with games and the whole
+  "Programs" section, and the "Programs" section in the dark and light themes.
+
 - Compiler 1.1.1: a double click on a file in the list renames it again. The first click
   opens the file and draws the list anew, so the double click went to the row that was
   already gone and the rename field never showed. Now the second press on the same file
@@ -102,6 +113,17 @@
   "Операция: Периметр"; now `<meta name="application-name">` comes first.
 
 **RU**
+
+- «Калибровка 3D-принтера» открывается во вкладке приложения и без сети, как остальные
+  программы (раньше карточка открывала сайт в системном браузере). `web/calibrate3dprinter` -
+  копия папки `web/` из Calibrate3dPrinter 1.0.0 (коммит 12cbdca), её делает
+  `node tools/sync-calibrate.js [папка]` (или `CALIBRATE_DIR`): берёт файлы последнего коммита,
+  добавляет `<meta name="application-name">`, пишет версию в `SOURCE.txt` и в README. Закон: ни
+  одна карточка «Программ» не уводит из приложения, если не помечена `external: true` (мутант:
+  старый `url` на карточке - закон краснеет). В приложении вкладка строит G-code одного теста,
+  без запросов наружу и без ошибок в консоли.
+- Новые кадры README (`npm run screenshots`): главная с играми и всем разделом «Программы» и
+  раздел «Программы» в тёмной и светлой темах.
 
 - Компилятор 1.1.1: двойной щелчок по файлу в списке снова переименовывает его. Первый
   щелчок открывает файл и рисует список заново, поэтому двойной щелчок уходил в строку,

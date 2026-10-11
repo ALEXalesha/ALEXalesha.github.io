@@ -37,44 +37,41 @@ async function composite(app, shell, id) {
   return Buffer.from(png, 'base64');
 }
 
-// Щелчок по кнопке внутри игры - настоящим вводом, как мышью.
-async function clickIn(app, id, selector) {
-  const at = await H.inGame(app, id, `(() => { const r = document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; })()`);
-  await app.evaluate((_e, [gid, p]) => {
-    const wc = globalThis.__igroteka.views.get(gid).webContents;
-    wc.sendInputEvent({ type: 'mouseDown', ...p, button: 'left', clickCount: 1 });
-    wc.sendInputEvent({ type: 'mouseUp', ...p, button: 'left', clickCount: 1 });
-  }, [id, at]);
-}
-
-const key = (app, id, type, keyCode) => app.evaluate((_e, [gid, t, k]) => {
-  globalThis.__igroteka.views.get(gid).webContents.sendInputEvent({ type: t, keyCode: k });
-}, [id, type, keyCode]);
-
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const ctx = await H.launch();
   const { app, shell } = ctx;
   const save = (name, buf) => { fs.writeFileSync(path.join(OUT, name), buf); console.log('docs/screens/' + name); };
   try {
-    await app.evaluate(() => { const w = globalThis.__igroteka.win; w.setContentSize(1280, 800); });
-    await sleep(800);
+    const size = async (w, h) => { await app.evaluate((_e, [cw, ch]) => globalThis.__igroteka.win.setContentSize(cw, ch), [w, h]); await sleep(800); };
+    // Раздел «Программы» - вверху окна (кадры app-programs*.png).
+    const programs = async (name) => {
+      await shell.evaluate(() => document.querySelector('#programs-section').scrollIntoView({ block: 'start' }));
+      await shell.evaluate(() => Promise.all([...document.querySelectorAll('#programs img')].map((i) => i.decode().catch(() => {}))));
+      await sleep(400);
+      save(name, await shell.screenshot());
+      await shell.evaluate(() => document.querySelector('#grid').scrollIntoView({ block: 'start' }));
+    };
 
-    save('app-home.png', await shell.screenshot());
+    // Главная целиком до конца раздела «Программы»: окно на время кадра выше обычного
+    // (Windows даёт поставить окно выше экрана - оно за краем экрана и так).
+    await size(1280, 1600);
+    await shell.evaluate(() => Promise.all([...document.querySelectorAll('img')].map((i) => i.decode().catch(() => {}))));
+    const bottom = await shell.evaluate(() => Math.ceil(document.querySelector('#programs-section').getBoundingClientRect().bottom + 24));
+    const vh = await shell.evaluate(() => window.innerHeight);
+    save('app-home.png', await shell.screenshot({ clip: { x: 0, y: 0, width: 1280, height: Math.min(bottom, vh) } }));
+    await size(1280, 800);
+    await programs('app-programs.png');
 
-    // Игра во вкладке: «Horizon Drift» после старта, газ пару секунд.
+    // Игра во вкладке: «Horizon Drift» (с 1.1.0 открывается главным меню - кадр меню).
     for (const id of ['dino', 'mario', 'horizon_drift_offline']) {
       await H.press(app, 'shell', 'T', ['control']);
       await shell.click(`.card[data-id="${id}"]`);
       await H.gameLoaded(app, id);
     }
     await sleep(800);
-    await clickIn(app, 'horizon_drift_offline', '#startBtn');
-    await sleep(600);
-    await key(app, 'horizon_drift_offline', 'keyDown', 'Up');
-    await sleep(2500);
+    await sleep(1500);
     save('app-game.png', await composite(app, shell, 'horizon_drift_offline'));
-    await key(app, 'horizon_drift_offline', 'keyUp', 'Up');
 
     // Вопрос F5 поверх снимка игры.
     await H.press(app, 'horizon_drift_offline', 'F5');
@@ -94,6 +91,7 @@ const key = (app, id, type, keyCode) => app.evaluate((_e, [gid, t, k]) => {
     await shell.click('#settings [data-close]');
     await sleep(400);
     save('app-light.png', await shell.screenshot());
+    await programs('app-programs-light.png');
   } finally {
     await H.close(ctx);
     H.rmData(ctx.dataDir);
