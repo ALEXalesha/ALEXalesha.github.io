@@ -27,7 +27,9 @@
     "ws:start": "electron web/writing-speed/electron",
     "ws:dist": "electron-builder --projectDir web/writing-speed/electron --win nsis portable --x64",
     "ws:icon": "node web/writing-speed/electron/make-icon.js",
-    "ws:mutate": "node tests/web/writing-speed-mutate.js"
+    "ws:mutate": "node tests/web/writing-speed-mutate.js",
+    "fm:start": "electron web/files-manager/electron",
+    "fm:dist": "electron-builder --projectDir web/files-manager/electron --win nsis portable --x64"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
