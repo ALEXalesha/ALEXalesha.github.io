@@ -74,7 +74,7 @@
   Horizon Drift 1.1.0 уже в выпуске Игротеки на GitHub (publish 3722dff содержит f29cbe4).
 
 ## Дальше: встраивание AiRacer (Алексей сказал «да»)
-- Не начато. AiRacer: C:\Work\Projects\AiGames\AiRacer (Gitea ALEXaloysha/AiRacer), основной гонщик
+- Не начато. AiRacer: `../../AiGames/AiRacer` от корня репозитория (Gitea ALEXaloysha/AiRacer), основной гонщик
   models/racer.json (v2), дрифтер models/drifter.json; датчики src/sensors.js, сеть src/mlp.js, руки src/driver.js.
 - Шаги: 1) в AiRacer `npm run sync-vendor` (core.js/data.js 1.1.0), перезаписать fixtures/law-*.json, law.test.js и
   паспорт; 2) в игру - js/airacer.js (датчики+MLP+руки без node), веса JSON рядом; соперники карьеры/быстрой гонки
