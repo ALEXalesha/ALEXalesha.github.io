@@ -56,3 +56,66 @@ test('новая папка, вкладка, две панели, удалени
   expect(await page.evaluate(() => window.__fm.settings.dual)).toBe(true);
   expect(errors).toEqual([]);
 });
+
+// Горячие клавиши Проводника на демо-диске: создать папку и назвать её, F2, копировать-вставить,
+// войти и выйти (Enter, Alt+стрелка), вкладки Ctrl+T / Ctrl+W, вторая панель Ctrl+\.
+test('горячие клавиши: Ctrl+Shift+N, F2, Ctrl+C/V, Enter, Alt+←, Ctrl+T/W, Ctrl+обратная косая', async ({ page }) => {
+  const errors = await openFm(page);
+  const tab = () => page.evaluate(() => window.__fm.tab());
+  const idle = () => page.evaluate(() => window.__fm.idle());
+  const tabsCount = () => page.evaluate(() => { const A = window.__fm.App; return A.panels[A.active].tabs.length; });
+
+  // новая папка: имя сразу в поле, набранное заменяет выделенное
+  await page.keyboard.press('Control+Shift+N');
+  await idle();
+  await expect(page.locator('input.rename')).toBeFocused();
+  await page.keyboard.type('Ключи');
+  await page.keyboard.press('Enter');
+  await idle();
+  expect((await tab()).names).toContain('Ключи');
+
+  // F2 - переименовать выбранное
+  await page.evaluate(() => window.__fm.select(['Ключи']));
+  await page.keyboard.press('F2');
+  await expect(page.locator('input.rename')).toBeFocused();
+  await page.keyboard.type('Ключи-2');
+  await page.keyboard.press('Enter');
+  await idle();
+  const t1 = await tab();
+  expect(t1.names).toContain('Ключи-2');
+  expect(t1.names).not.toContain('Ключи');
+
+  // копировать файл, войти в папку Enter, вставить, назад Alt+←
+  const file = t1.names.find((n) => /\.txt$/.test(n));
+  expect(file).toBeTruthy();
+  await page.evaluate((n) => window.__fm.select([n]), file);
+  await page.keyboard.press('Control+C');
+  await page.evaluate(() => window.__fm.select(['Ключи-2']));
+  await page.keyboard.press('Enter');
+  await idle();
+  expect((await tab()).path).toContain('Ключи-2');
+  expect((await tab()).names).toEqual([]);
+  await page.keyboard.press('Control+V');
+  await idle();
+  expect((await tab()).names).toEqual([file]);
+  await page.keyboard.press('Alt+ArrowLeft');
+  await idle();
+  const t2 = await tab();
+  expect(t2.names).toContain('Ключи-2');
+  expect(t2.names).toContain(file); // копия, а не перенос
+  expect(t2.fwd).toBe(1);
+
+  // вкладки и вторая панель
+  const n0 = await tabsCount();
+  await page.keyboard.press('Control+T');
+  await idle();
+  expect(await tabsCount()).toBe(n0 + 1);
+  await page.keyboard.press('Control+W');
+  await idle();
+  expect(await tabsCount()).toBe(n0);
+  const dual0 = await page.evaluate(() => window.__fm.settings.dual);
+  await page.keyboard.press('Control+Backslash');
+  await idle();
+  expect(await page.evaluate(() => window.__fm.settings.dual)).toBe(!dual0);
+  expect(errors).toEqual([]);
+});
