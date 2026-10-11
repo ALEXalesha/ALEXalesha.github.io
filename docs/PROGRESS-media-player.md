@@ -10,8 +10,10 @@
 - Electron (11.10): `main.js`, `window-state.js` (копия из WritingSpeed), `package.json` 1.0.0, значок `icon.svg` -> `icon.ico/png` (`node web/media-player/electron/make-icon.js`). Сборку ещё не делали.
 - Мутации (11.10): `node tests/web/media-player-mutate.js` - 11 из 11 убиты (около 4 мин). Закон «испорченные записи» теперь проверяет и тему.
 
+- Законы оболочки (11.10): `npx playwright test --config=playwright.app.config.js tests-app/media-player-app.spec.js` - 2 зелёных; в MP_TEST окно скрыто, без фокуса и без звука (`setAudioMuted`).
+
 ## Осталось (по порядку)
 
-1. `tests-app/media-player-app.spec.js` - закон оболочки (по образцу `writing-speed-app.spec.js`, MP_TEST=1, окно скрыто). `npm i` и `npx electron-builder` в `web/media-player/electron`.
+1. Сборка: `npx electron-builder` в `web/media-player/electron` (как у WritingSpeed), установщик и portable в dist.
 2. Карточка в Хабе, раздел «Программы» (как Скорость печати и Компилятор).
 3. Репозиторий MediaPlayer на Gitea и GitHub (publish-скрипт), Pages, выпуск 1.0.0, InstallAll, профиль.
