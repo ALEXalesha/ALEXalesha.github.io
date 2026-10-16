@@ -4,6 +4,18 @@
 
 **EN**
 
+- FilesManager 1.0.3: tabs and the folder are saved at once (a new tab followed by a reload or a
+  closed window was lost - it was written 200 ms later); ">" in the address bar on the demo disk
+  opens the folder menu again (the document click closed it in the same click) and has a tooltip;
+  after a command bar button, sorting, a tab, the address or a menu item the focus goes back to the
+  list, as in Windows Explorer; the focus frame of a column header is drawn inside it. 4 laws (red
+  on 1.0.2), 13 mutants.
+- Compiler 1.1.3: × on the last tab and on the last file (and the middle button, Delete in the
+  list) explain why they stay instead of doing nothing silently - a tooltip and the same words at
+  the bottom (RU/EN). 33 laws, 27 mutants.
+- Games on kit.js (Dino Run, Hop-Skip, Blocks, Sudoku, Space Shooter, Fire Jungle, and the frame of
+  Flappy Wings): "How to play" names the keys set now, not the default ones (the same bug as in
+  Flappy Wings). `keysText()` and `howtoHtml()` in kit.js; a law for all six games, 5 mutants.
 - New game: RailRunner («Бег по рельсам», `web/rail-runner`) - run along three tracks in 3D, jump,
   slide under bars, dodge trains. It lives in its own repository RailRunner (Pages /RailRunner/);
   `web/rail-runner` is a copy of its `web/` folder (1.0.0, commit 87e9f72), refreshed with
@@ -28,6 +40,18 @@
 
 **RU**
 
+- Файловый менеджер 1.0.3: вкладки и папка сохраняются сразу (новая вкладка и сразу перезагрузка
+  или закрытое окно - вкладки не было: писалось через 200 мс); «>» в адресе на демо-диске снова
+  открывает меню папок (его закрывал общий щелчок того же нажатия) и подсказывает; после кнопки
+  панели команд, сортировки, вкладки, адреса и пункта меню фокус возвращается в список, как в
+  Проводнике; рамка фокуса заголовка столбца - внутри кнопки. 4 закона (красные на 1.0.2), 13 мутантов.
+- Компилятор 1.1.3: × у последней вкладки и последнего файла (и средняя кнопка, Delete в списке)
+  объясняет, почему они остаются, а не молчит - подсказка и те же слова внизу (RU/EN). 33 закона,
+  27 мутантов.
+- Игры на kit.js («Дино-бег», «Прыг-скок», «Блоки», «Судоку», «Космический стрелок», «Огненные
+  джунгли» и каркас «Летучей птички»): «Как играть» называет назначенные сейчас клавиши, а не
+  клавиши по умолчанию (та же ошибка, что была в «Летучей птичке»). `keysText()` и `howtoHtml()` в
+  kit.js; закон для всех шести игр, 5 мутантов.
 - Новая игра: «Бег по рельсам» (RailRunner, `web/rail-runner`) - бег по трём путям в 3D: прыгай,
   ныряй под перекладины, уходи от поездов. Живёт в своём репозитории RailRunner (Pages /RailRunner/);
   `web/rail-runner` - копия его папки `web/` (1.0.0, коммит 87e9f72), обновляется
