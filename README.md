@@ -171,7 +171,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `jungle-strike` | Fire Jungle: a run-and-gun arcade with a boss | 11 | 7 / 7 / 6 |
 | `minecraft_clone_3d_1` | Cube World: a voxel sandbox, builds are saved | 11 | 7 / 7 / 6 |
 | `dino` | Dino Run: jump over cacti and duck under birds | 11 | 6 / 8 / 3 |
-| `flappy-wings` | Flappy Wings: fly between columns, one file, a fan game not affiliated with the rights holders of the genre's known games | 24 | not reviewed yet |
+| `flappy-wings` | Flappy Wings: fly between columns, one file, a fan game not affiliated with the rights holders of the genre's known games | 25 | not reviewed yet |
 | `fps_1` | 3D Shooting Range: timed target shooting | 10 | 6 / 7 / 4 |
 | `roblox-mini` | Cube Parkour: collect coins on platforms against the clock | 10 | 5 / 7 / 4 |
 | `volshebnyy-sad` | Magic Garden: a toy for small children, flowers and butterflies | 9 | 4 / 8 / 7 |
@@ -180,10 +180,10 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 
 | Folder | What it is | Own laws | Score |
 |---|---|---|---|
-| `writing-speed` | WritingSpeed: typing speed test - time, words, quotes, custom text, zen; six languages and code; WPM/CPM, accuracy, consistency, mistakes by key, records. Also a separate Electron app (`web/writing-speed/electron`) | 40 | not reviewed yet |
+| `writing-speed` | WritingSpeed: typing speed test - time, words, quotes, custom text, zen; six languages and code; WPM/CPM, accuracy, consistency, mistakes by key, records. Also a separate Electron app (`web/writing-speed/electron`) | 91 | not reviewed yet |
 | `media-player` | MediaPlayer: 12 own songs from a song generator (Web Audio, nothing downloaded), your files (audio and video), playlist, shuffle/repeat, speed, 10-band equalizer, 3 visualizers, mini mode, Media Session, five Paint themes, RU/EN. Also a separate Electron app (`web/media-player/electron`) and a standalone repository: [MediaPlayer](https://github.com/ALEXalesha/MediaPlayer) | 38 (+14 mutants) | not reviewed yet |
 | `files-manager` | FilesManager: a file explorer - folder tree, tiles/list/table, tabs, two panels, wildcard search, preview of images, text, code, audio, video, PDF, Windows Explorer hotkeys, five Paint themes, RU/EN. In the browser: a demo disk in IndexedDB or real folders through the File System Access API. Also a separate Electron app (`web/files-manager/electron`, disk work over IPC, delete only to the Recycle Bin) and a standalone repository: [FilesManager](https://github.com/ALEXalesha/FilesManager) | 3 (+1 Electron) | not reviewed yet |
-| `compiler` | Compiler: C, C++ (Clang 22 → WebAssembly), Python, JavaScript, TypeScript, Lua, Ruby and SQL in the browser; time limit, Stop, stdin and typing input while the program runs, errors on their line, five Paint themes, RU/EN. Also a standalone repository: [Compiler](https://github.com/ALEXalesha/Compiler) | 28 (+19 mutants) | not reviewed yet |
+| `compiler` | Compiler: C, C++ (Clang 22 → WebAssembly), Python, JavaScript, TypeScript, Lua, Ruby and SQL in the browser; time limit, Stop, stdin and typing input while the program runs, errors on their line, five Paint themes, RU/EN. Also a standalone repository: [Compiler](https://github.com/ALEXalesha/Compiler) | 32 (+23 mutants) | not reviewed yet |
 | `python_ide` | Offline Python 3.13: editor, Stop, `input()`, files | 11 | 8 |
 | `calculator` | Calculator with exact decimal arithmetic and operator precedence | 40 | 8 |
 | `player` | Player for your own files, remembers them after a restart | 12 | 8 |

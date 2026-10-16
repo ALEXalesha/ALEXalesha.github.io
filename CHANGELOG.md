@@ -4,6 +4,23 @@
 
 **EN**
 
+- Independent review (16.10) of the released programs, each finding with a law that is red on
+  the old code and a mutant:
+  - WritingSpeed 1.1.2: a short Russian custom text or zen text got the QWERTY map of mistakes,
+    and a mistake on a Russian letter went to "Other characters". The key name `space` was counted
+    as five Latin letters. The speed chart with one point (the first test in History, a test
+    shorter than a second) was empty - now the point is drawn. The page description no longer
+    says "quotes" (the mode is "text" since 1.1.0). 91 laws, 2 new mutants.
+  - Compiler 1.1.2: in a narrow window the open file list covered the ☰ button and a click beside
+    it did nothing - only picking a file closed it. Now the list starts under the top bar and
+    closes with ☰, a click beside it or Esc. The top bar had backdrop-filter with buttons inside
+    (the cause of the light band on hover in WritingSpeed 1.1.1 and MediaPlayer 1.0.2) - now the
+    same glass without it. With many files the overlay scroll bar of the list covered the ×
+    button - now the list gets room for it. 32 laws, 4 new mutants (23 in all).
+  - Flappy Wings: the hint before the flight and "How to play" named the default keys (Space, ↑,
+    P) even after the keys were changed in the settings. Now they name the keys set now. 2 new
+    mutants.
+
 - Calibrate 3D Printer opens in a tab of the app, offline, like the other programs (before,
   the card opened the site in the system browser). `web/calibrate3dprinter` is a copy of the
   `web/` folder of Calibrate3dPrinter 1.0.0 (commit 12cbdca), made by
@@ -113,6 +130,23 @@
   "Операция: Периметр"; now `<meta name="application-name">` comes first.
 
 **RU**
+
+- Независимая проверка (16.10) выпущенных программ, каждая находка - с законом, красным на старом
+  коде, и мутантом:
+  - WritingSpeed 1.1.2: короткий русский текст в «своём тексте» и дзене получал карту ошибок QWERTY,
+    а ошибка по русской букве уходила в «Другие знаки». Имя клавиши `space` считалось пятью
+    латинскими буквами. График скорости из одной точки (первый тест в «Истории», тест короче
+    секунды) был пустым - теперь точка рисуется. В описании страницы больше нет «цитат» (режим с
+    1.1.0 называется «текст»). 91 закон, 2 новых мутанта.
+  - Компилятор 1.1.2: в узком окне открытый список файлов закрывал кнопку ☰, а щелчок мимо списка
+    ничего не делал - закрыть можно было только выбором файла. Теперь список начинается под
+    верхней панелью и закрывается ☰, щелчком мимо и Esc. У верхней панели был backdrop-filter с
+    кнопками внутри (причина светлой полосы при наведении в WritingSpeed 1.1.1 и Медиаплеере
+    1.0.2) - теперь то же стекло без него. При многих файлах overlay-полоса прокрутки списка
+    закрывала кнопку × - теперь у списка есть место под неё. 32 закона, 4 новых мутанта (всего 23).
+  - «Летучая птичка»: подсказка перед полётом и «Как играть» называли клавиши по умолчанию
+    (пробел, ↑, P), даже когда их переназначили в настройках. Теперь - назначенные сейчас.
+    2 новых мутанта.
 
 - «Калибровка 3D-принтера» открывается во вкладке приложения и без сети, как остальные
   программы (раньше карточка открывала сайт в системном браузере). `web/calibrate3dprinter` -
