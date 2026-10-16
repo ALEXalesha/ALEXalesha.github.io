@@ -1,5 +1,67 @@
 # Changelog / Журнал изменений
 
+## Unreleased
+
+**EN**
+
+- Horizon Drift 1.2.0: rivals are driven by the AiRacer neural network (the AiRacer project: a
+  small 35-20-14-4 network trained on the game's own physics). It sees only what a driver would
+  see - rays to the walls and to the cars nearby, its own speed and slide, the road 10-90 m ahead -
+  and presses the same throttle, brake, wheel, handbrake and nitro as the player, with the
+  player's default assists; no racing line, no speed profile. Damage and nitro work for it by the
+  player's rules (it even fills nitro in a slide). The level follows the pace the game would give
+  a bot (cup and difficulty), so the career balance stays: a weaker level takes corners more
+  carefully. "Settings → Game → Rival AI" brings the old bot back. Drift races may have up to 3
+  rivals (the AiRacer drifter on rear-wheel-drive cars); points of all drivers are counted by one
+  rule, the board and the results are sorted by points. Time per physics step with 5 network
+  rivals in headless Chromium: 0.14 ms on average (bot 0.07 ms), at 60 fps that is 0.3 ms of a
+  16.7 ms frame; rivals decide 30 times a second, each on its own physics step.
+- "New track" in the menu: a closed track from a code like `R2M-3F9K1Z` (type: race / drift /
+  mountain / city, difficulty, length, seed). The same code always gives the same track, so it can
+  be shared. The game's bot and the network check that the lap can be driven; the more
+  interesting of two passing variants is taken. Tracks can be saved; records are kept per code.
+  If the game's bot gets stuck in tight S-bends (its known weakness), a track the network drives
+  without a single reset is accepted.
+- The festival key is no longer E: E stays "gear up", the festival, events and duels in free roam
+  are on T (a new action in the settings; on a gamepad - B). The prompt, the hint line and the help
+  show the key set now. A key the player has already given to another action is not taken by the
+  new action. Law: default keys are unique and do not hit M, F and Esc.
+- Laws: 7 in `tests/web/horizon_drift_ai.spec.js` (117 Horizon Drift laws in the browser) and 10
+  in `tests-app/unit/drift-ai.test.js` (node): the network finishes a lap on all 8 tracks with 5
+  cars at 3 levels; it does not see the racing line or cars farther than 90 m; the same seed gives
+  the same race; tracks can be driven for 200 codes of all types. 23 new mutants
+  (`node tests/web/horizon_drift-mutate.js`, now runs the node laws too).
+
+**RU**
+
+- Horizon Drift 1.2.0: соперников ведёт нейросеть AiRacer (проект AiRacer: маленькая сеть
+  35-20-14-4, обученная на физике самой игры). Она видит только то, что видел бы водитель, - лучи
+  до стен и машин рядом, свою скорость и занос, дорогу на 10-90 м вперёд - и жмёт те же газ,
+  тормоз, руль, ручник и нитро, что игрок, с помощниками игрока по умолчанию; гоночной линии и
+  профиля скорости у неё нет. Повреждения и нитро у неё по правилам игрока (нитро копится и в
+  заносе). Уровень берётся из темпа, который игра дала бы боту (кубок и сложность), поэтому баланс
+  карьеры прежний: слабый уровень осторожнее в поворотах. «Настройки» → «Игра» → «ИИ соперников»
+  возвращает прежнего бота. В дрифте теперь до 3 соперников (нейросеть-дрифтер на заднеприводных
+  машинах); очки у всех по одним правилам, таблица и итоги - по очкам. Время шага физики с 5
+  соперниками-нейросетями в Chromium без окна: в среднем 0,14 мс (бот - 0,07 мс), при 60 fps это
+  0,3 мс из 16,7 мс кадра; соперники решают 30 раз в секунду, каждый на своём шаге физики.
+- «Новая трасса» в меню: замкнутая трасса по коду вида `R2M-3F9K1Z` (тип: гонка / дрифт / горы /
+  город, сложность, длина, зерно). Тот же код всегда даёт ту же трассу - им можно поделиться. Бот
+  игры и нейросеть проверяют, что круг проходим; из двух прошедших вариантов берётся более
+  интересный. Трассы сохраняются, рекорды - по коду. Если бот игры застревает в тесных
+  S-поворотах (его известная слабость), трасса принимается, когда нейросеть проходит круг без
+  единого сброса.
+- Фестиваль больше не на E: E - по-прежнему «передача вверх», а фестиваль, события и дуэли в
+  свободной езде - на T (новое действие в настройках; на геймпаде - B). Подсказка, строка клавиш и
+  «Помощь» показывают назначенную сейчас клавишу. Клавишу, которую игрок уже отдал другому
+  действию, новое действие не забирает. Закон: клавиши по умолчанию уникальны и не попадают на M,
+  F и Esc.
+- Законы: 7 в `tests/web/horizon_drift_ai.spec.js` (законов Horizon Drift в браузере 117) и 10 в
+  `tests-app/unit/drift-ai.test.js` (node): нейросеть проходит круг на всех 8 трассах на 5 машинах
+  и 3 уровнях; не видит гоночной линии и машин дальше 90 м; одинаковый сид - одинаковый заезд;
+  трассы проходимы для 200 кодов всех типов. 23 новых мутанта (`node tests/web/horizon_drift-mutate.js`,
+  теперь гоняет и законы в node).
+
 ## 1.1.1 - 2026-10-17
 
 **EN**

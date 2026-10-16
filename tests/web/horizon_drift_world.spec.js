@@ -246,7 +246,7 @@ test.describe('horizon_drift_offline: открытый мир', () => {
     await startWorld(page, 'coast');
     await page.evaluate(() => { const w = __drift.world, pt = w.M.pointById('ev-city'); w.placeAt(pt.x, pt.z); const p = w.player; p.x = pt.x; p.z = pt.z; p.y = w.M.groundAt(p.x, p.z).y; __drift.stepWorld(5); __drift.manual = false; });
     await expect(page.locator('#wPrompt')).toContainText('События');
-    await page.keyboard.press('KeyE');
+    await page.keyboard.press('KeyT');                     // 1.2.0: фестиваль и события - клавиша «Фестиваль» (T), E - передача вверх
     await expect(page.locator('#scrHub')).toBeVisible();
     await page.evaluate(() => { __drift.manual = true; });
     await page.locator('#hubList button[data-evt="c1e1"]').click();
@@ -561,14 +561,15 @@ test.describe('horizon_drift_offline: открытый мир', () => {
     // дуэль: победа в тот же игровой день второй раз денег не даёт
     const money = [];
     for (let k = 0; k < 2; k++) {
-      // мир стоит (manual), пока жмём E: в живом мире соперник (25-32 м/с) уходит из 30 м за 0,7-1,5 с (замер 11.10),
+      // мир стоит (manual), пока жмём T (до 1.2.0 - E): в живом мире соперник (25-32 м/с) уходит из 30 м за 0,7-1,5 с (замер 11.10),
       // а на загруженном раннере CI ожидание + чтение денег + нажатие дольше - E попадало в пустоту (CI 460)
       await page.evaluate(() => { const w = __drift.world, a = w.rivals[0]; a.cool = 0; w.player.x = a.car.x + 10; w.player.z = a.car.z + 10; __drift.stepWorld(2); });
       expect(await page.evaluate(() => [!!__drift.world.nearRival, __drift.world.nearHub])).toEqual([true, null]);
       const m0 = await page.evaluate(() => __drift.career.money);
-      await page.keyboard.press('KeyE');
+      await page.keyboard.press('KeyT');
       await page.waitForFunction(() => __drift.screen === 'race' && __drift.race);
-      await page.evaluate(() => { __drift.manual = true; const r = __drift.race; r.cars.find((c) => !c.isPlayer).ai.pace = 0.3; r.setAutopilot(r.player, 1); for (let i = 0; i < 400 * 120 && r.phase !== 'done'; i++) __drift.step(1); __drift.showResults(); });
+      // соперник медленный, чтобы игрок выиграл: у нейросети (1.2.0) - бот вместо мозга и темп 0.3
+      await page.evaluate(() => { __drift.manual = true; const r = __drift.race, a = r.cars.find((c) => !c.isPlayer); a.ai.brain = null; a.ai.pace = 0.3; r.setAutopilot(r.player, 1); for (let i = 0; i < 400 * 120 && r.phase !== 'done'; i++) __drift.step(1); __drift.showResults(); });
       money.push((await page.evaluate(() => __drift.career.money)) - m0);
       await page.locator('#resNext').click();
       await page.waitForFunction(() => __drift.screen === 'world');

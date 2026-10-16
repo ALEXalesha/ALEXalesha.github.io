@@ -15,6 +15,7 @@ const SRC = path.join(ROOT, 'web', 'horizon_drift_offline');
 const NITRO = 'tests/web/horizon_drift_nitro.spec.js', DAMAGE = 'tests/web/horizon_drift_damage.spec.js', WORLD = 'tests/web/horizon_drift_world.spec.js';
 const DUEL = 'зона дрифта считается только по ходу зоны';
 const REVIEW = 'tests/web/horizon_drift_review.spec.js';
+const AISPEC = 'tests/web/horizon_drift_ai.spec.js', UNIT = 'tests-app/unit/drift-ai.test.js';     // UNIT - законы в node (node --test)
 
 // file - файл в js/, from - точный кусок кода (ровно один раз), to - сломанный вариант, spec - чьи законы,
 // grep - только проверки с этим названием (большой спек мира целиком не гоняется)
@@ -57,7 +58,7 @@ const MUTANTS = [
   { name: 'кузов: мелкая сетка у целой машины', file: 'render.js', spec: DAMAGE, from: 'const shell = carShell(shapeKey, false);', to: 'const shell = carShell(shapeKey, true);' },
   { name: 'кузов: вмятина без мелкой сетки', file: 'render.js', spec: DAMAGE, from: '      fineShell(cm);', to: '' },
   // 11.10: дуэль с бродячим соперником - закон теперь жмёт E в стоящем мире
-  { name: 'дуэль: E не вызывает соперника', file: 'game.js', spec: WORLD, grep: DUEL, from: 'if (w.nearRival) { startWorldDuel(w.nearRival); return true; }', to: '' },
+  { name: 'дуэль: клавиша фестиваля не вызывает соперника', file: 'game.js', spec: WORLD, grep: DUEL, from: 'if (w.nearRival) { startWorldDuel(w.nearRival); return true; }', to: '' },
   { name: 'дуэль: соперник рядом только ближе 12 м', file: 'world.js', spec: WORLD, grep: DUEL, from: 'Math.hypot(a.car.x - p.x, a.car.z - p.z) < 30) this.nearRival = a;', to: 'Math.hypot(a.car.x - p.x, a.car.z - p.z) < 12) this.nearRival = a;' },
   // 16.10 независимая проверка: узкое окно, пауза во время загрузки, клавиши мира, подсказки (file без js/ - от папки игры)
   { name: 'окно: гараж не сужается', file: 'index.html', spec: REVIEW, grep: 'гараж в окне', from: '    #gPanel { width: auto; flex: 1 1 0; min-width: 0; }\n', to: '' },
@@ -71,6 +72,29 @@ const MUTANTS = [
   { name: 'подсказки: совет заезда называет R', file: 'game.js', spec: REVIEW, grep: 'подсказки называют', from: ".replace('{reset}', bindName('reset'))", to: ".replace('{reset}', 'R')" },
   { name: 'подсказки: совет мира называет R', file: 'game.js', spec: REVIEW, grep: 'подсказки называют', from: "${bindName('reset')} - вернуться на дорогу", to: 'R - вернуться на дорогу' },
   { name: 'подсказки: справка без вида из салона', file: 'game.js', spec: REVIEW, grep: 'подсказки называют', from: 'с капота, из салона</li>', to: 'с капота</li>' },
+  // 1.2.0: соперники - нейросеть AiRacer, генератор трасс, клавиша фестиваля
+  { name: 'ИИ: соперники остаются ботом', file: 'game.js', spec: AISPEC, grep: 'соперников ведёт нейросеть', from: '      AI.attachRace(race);', to: '' },
+  { name: 'ИИ: у нейросети помощники бота', file: 'airacer.js', spec: UNIT, grep: 'рулит через ввод игрока', from: '      c.assist = Object.assign({}, PLAYER_ASSIST);', to: '' },
+  { name: 'ИИ: видит гоночную линию', file: 'airacer.js', spec: UNIT, grep: 'видит только то', from: '    out[o++] = pr.d / tr.W;', to: '    out[o++] = (pr.d - tr.line[pr.i]) / tr.W;' },
+  { name: 'ИИ: видит машины за 400 м', file: 'airacer.js', spec: UNIT, grep: 'видит только то', from: 'Math.abs(o.x - car.x) > RAY_MAX || Math.abs(o.z - car.z) > RAY_MAX) continue;', to: 'false) continue;' },
+  { name: 'ИИ: все решают на одном шаге', file: 'airacer.js', spec: UNIT, grep: 'рулит через ввод игрока', from: '    let n = phase | 0;', to: '    let n = 0;' },
+  { name: 'ИИ: решение каждый шаг', file: 'airacer.js', spec: UNIT, grep: 'рулит через ввод игрока', from: '  const EVERY = 4;', to: '  const EVERY = 1;' },
+  { name: 'ИИ: уровень не зависит от темпа', file: 'airacer.js', spec: UNIT, grep: 'нейросеть', from: 'pace: p >= 0.98 ? 1 : p - 0.06, label', to: 'pace: 1, label' },
+  { name: 'ИИ: осторожность не тормозит', file: 'airacer.js', spec: UNIT, grep: 'проходит круг', from: '      if (h.pace && h.pace < 1) caution(obs, a, h.pace);', to: '' },
+  { name: 'ИИ: нитро не по правилам (не жмёт)', file: 'airacer.js', spec: UNIT, grep: 'одинаковый сид', from: '        nitro: o[3] > 0 ? 1 : 0,', to: '        nitro: 0,' },
+  { name: 'ИИ: дрифт соперника без очков', file: 'airacer.js', spec: AISPEC, grep: 'дрифт с соперниками', from: '      c.ai.after = driftAfter;\n      c.assist', to: '      c.assist' },
+  { name: 'ИИ: удар не срывает серию соперника', file: 'airacer.js', spec: UNIT, grep: 'дрифт:', from: '    if (c.hit > 2.5) sc.crash();', to: '' },
+  { name: 'ИИ: дрифт на переднем приводе', file: 'game.js', spec: AISPEC, grep: 'дрифт с соперниками', from: "if (q.mode === 'drift') { const rwd", to: "if (false) { const rwd" },
+  { name: 'генератор: код не определяет трассу', file: 'trackgen.js', spec: UNIT, grep: 'код трассы', from: '    const rng = C.mulberry32((p.seed ^ Math.imul(sub + 1, 0x9E3779B1)) >>> 0);', to: '    const rng = Math.random;' },
+  { name: 'генератор: принимает чужую тему', file: 'trackgen.js', spec: UNIT, grep: 'код трассы', from: ' || !D.THEMES[def.theme] ||', to: ' ||' },
+  { name: 'генератор: проверка всегда «да»', file: 'trackgen.js', spec: UNIT, grep: '200 кодов', from: 'return Object.assign({ ok: botOk && ai.finished && ai.resets === 0, ai }, b);', to: 'return Object.assign({ ok: true, ai }, b);' },
+  { name: 'генератор: поле кода не читается', file: 'game.js', spec: AISPEC, grep: 'код из поля', from: "    else if (genCodeFromInput() === null) {", to: "    else if (false) {" },
+  { name: 'генератор: сохранённые не загружаются', file: 'game.js', spec: AISPEC, grep: 'код из поля', from: '  G.genSaved = TG.sanitizeSaved(load(KEY.gen));', to: '  G.genSaved = [];' },
+  { name: 'рекорды: новая трасса пишет в рекорды игры', file: 'game.js', spec: AISPEC, grep: 'рекорд круга', from: '    if (gen) {                                  // новая трасса', to: '    if (false) {' },
+  { name: 'клавиши: фестиваль на E', file: 'data.js', spec: UNIT, grep: 'клавиши по умолчанию', from: "    festival: ['KeyT', ''],", to: "    festival: ['KeyE', '']," },
+  { name: 'клавиши: новое действие забирает клавишу', file: 'core.js', spec: UNIT, grep: 'старые настройки', from: "s.bindings[a] = s.bindings[a].map((k) => (k && used.has(k) ? '' : k));", to: '{}' },
+  { name: 'клавиши: фестиваль всё ещё на E в мире', file: 'game.js', spec: AISPEC, grep: 'фестиваль - на своей клавише', from: "if (act === 'festival' && !e.repeat && worldInteract())", to: "if (e.code === 'KeyE' && !e.repeat && worldInteract())" },
+  { name: 'подсказки: фестиваль с буквой E', file: 'game.js', spec: AISPEC, grep: 'фестиваль - на своей клавише', from: "const fk = `<kbd>${esc(bindName('festival'))}</kbd>`;", to: "const fk = '<kbd>E</kbd>';" },
 ];
 
 function copyDir(a, b) {
@@ -81,7 +105,9 @@ function copyDir(a, b) {
   }
 }
 function runSpec(dir, spec, grep) {
-  const r = spawnSync(`npx playwright test ${spec} --workers=1 --max-failures=1 --reporter=dot${grep ? ` -g "${grep}"` : ''}`, {
+  const cmd = spec === UNIT ? `node --test${grep ? ` --test-name-pattern="${grep}"` : ''} ${spec}`
+    : `npx playwright test ${spec} --workers=1 --max-failures=1 --reporter=dot${grep ? ` -g "${grep}"` : ''}`;
+  const r = spawnSync(cmd, {
     cwd: ROOT, env: { ...process.env, DRIFT_DIR: dir }, shell: true, encoding: 'utf8', timeout: 15 * 60 * 1000,
   });
   return { ok: r.status === 0, out: (r.stdout || '') + (r.stderr || '') };
