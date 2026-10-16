@@ -296,3 +296,51 @@ test('сообщение {mix:"pause"} принимается только от 
   await page.waitForTimeout(100);
   expect(await page.evaluate(() => __game.kit.mode)).toBe('paused');
 });
+// 16.10 (как в Летучей птичке): «Как играть» называл клавиши по умолчанию и после переназначения в
+// настройках. Теперь {keys:действие} в тексте заменяется назначенными сейчас клавишами.
+// Закон: все действия переназначаются на F2, F3, ... (Insert, Home...); в «Как играть» для каждого
+// действия, клавиши которого текст называл по умолчанию, стоят новые, а старых нет.
+const FREE_CODES = ['F2', 'F3', 'F4', 'F6', 'F7', 'F8', 'F9', 'F10', 'Insert', 'Home', 'End', 'PageUp', 'PageDown', 'Pause', 'ScrollLock', 'NumpadDivide', 'NumpadMultiply'];
+async function howtoText(page) {
+  await page.click('[data-screen=main] [data-id=howto]');
+  const txt = await page.evaluate(() => {
+    const m = document.querySelector('[data-screen=howto]') || [...document.querySelectorAll('.kit-screen, .kit-modal')].pop();
+    // фразы о геймпаде не про клавиатуру (там A, B, X, Y - кнопки геймпада)
+    return [...m.querySelectorAll('p')].map((p) => p.textContent.replace(/Геймпад:[^.]*\./g, '')).join('\n');
+  });
+  await page.keyboard.press('Escape');
+  return txt;
+}
+// имя клавиши как отдельное слово: не часть другого слова и не «Ctrl+Z»
+function hasKey(text, name) {
+  const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9+])${esc}(?![A-Za-zА-Яа-яЁё0-9])`).test(text);
+}
+for (const game of KIT_GAMES) {
+  test(`${game}: «Как играть» называет назначенные сейчас клавиши, а не клавиши по умолчанию`, async ({ page }) => {
+    const errors = await openGame(page, game, 'seed=1');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.waitForFunction(() => window.__game && window.__game.ready === true);
+    const before = await howtoText(page);
+    const acts = await page.evaluate(() => { const k = window.__kit; return Object.keys(k.actions).map((a) => ({ a, names: k.bindings[a].filter(Boolean).map(GameKit.keyName) })); });
+    const mentioned = acts.filter((x) => x.names.some((n) => hasKey(before, n)));
+    expect(mentioned.length, 'текст «Как играть» называет хотя бы одну клавишу').toBeGreaterThan(0);
+    const fresh = {};
+    acts.forEach((x, i) => { fresh[x.a] = [FREE_CODES[i], null]; });
+    const id = await page.evaluate(() => window.__kit.id);
+    await page.evaluate(([k, v]) => localStorage.setItem(k, v), [id + ':bindings', JSON.stringify(fresh)]);
+    await page.reload();
+    await page.waitForFunction(() => window.__game && window.__game.ready === true);
+    expect(await page.evaluate(() => window.__kit.bindings[Object.keys(window.__kit.actions)[0]][0])).toBe(FREE_CODES[0]);
+    const after = await howtoText(page);
+    const bad = [];
+    for (const x of mentioned) {
+      const now = await page.evaluate((c) => GameKit.keyName(c), fresh[x.a][0]);
+      if (!hasKey(after, now)) bad.push(`${x.a}: нет новой клавиши ${now}`);
+      for (const n of x.names) if (hasKey(after, n)) bad.push(`${x.a}: всё ещё «${n}»`);
+    }
+    expect(bad).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}
