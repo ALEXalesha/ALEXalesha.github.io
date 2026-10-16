@@ -235,6 +235,45 @@ test('http: Компилятор во вкладке Хаба ждёт стро�
   expect(errors).toEqual([]);
 });
 
+// Медиаплеер во вкладке Хаба: ушли с вкладки - пауза, вернулись - играет дальше (до 1.0.4
+// фоновая вкладка только молчала, а песня шла). Скрыли всю страницу Хаба (вкладку браузера) -
+// музыка не прерывается: это не уход с вкладки плеера.
+test('http: Медиаплеер встаёт на паузу, когда уходишь с его вкладки, и играет дальше, когда вернулся', async ({ page }) => {
+  const { errors, external } = await launch(page, 'http');
+  const mp = await openCard(page, 'media-player');
+  await mp.waitForFunction(() => window.__mp && window.__mp.ready);
+  const state = () => mp.evaluate(() => window.__mp.player.state());
+  await mp.evaluate(async () => { const p = window.__mp.player; p.setMuted(true); p.play(0); for (let i = 0; i < 100 && p.state().pos < 0.3; i++) await new Promise((r) => setTimeout(r, 50)); });
+  expect((await state()).playing).toBe(true);
+  // домашний экран
+  await page.locator('.tab.home').click();
+  await expect.poll(async () => (await state()).playing).toBe(false);
+  const at = (await state()).pos;
+  await page.waitForTimeout(700);
+  expect((await state()).pos, 'песня стоит, а не идёт без звука').toBeCloseTo(at, 2);
+  // назад на вкладку плеера - играет с того же места
+  await page.locator('.tab.game[data-id="media-player"]').click();
+  await expect.poll(async () => (await state()).playing).toBe(true);
+  expect((await state()).pos).toBeGreaterThanOrEqual(at - 0.05);
+  // другая вкладка Хаба - тоже уход
+  await openCard(page, 'dino');
+  await expect.poll(async () => (await state()).playing).toBe(false);
+  await page.locator('.tab.game[data-id="media-player"]').click();
+  await expect.poll(async () => (await state()).playing).toBe(true);
+  // скрыли всю страницу Хаба (так шлёт оболочка на visibilitychange) - музыка идёт дальше
+  await page.evaluate(() => document.querySelector('#stage iframe[data-id="media-player"]').contentWindow.postMessage({ mix: 'pause', why: 'page' }, '*'));
+  await page.waitForTimeout(300);
+  expect((await state()).playing).toBe(true);
+  // поставил паузу сам - возврат на вкладку её не снимает
+  await mp.evaluate(() => window.__mp.player.pause());
+  await page.locator('.tab.home').click();
+  await page.locator('.tab.game[data-id="media-player"]').click();
+  await page.waitForTimeout(300);
+  expect((await state()).playing).toBe(false);
+  expect(external).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('hub-coi-sw.js: заголовки изоляции только у файлов Хаба, соседние сайты адреса - как есть', async () => {
   const src = fs.readFileSync(path.join(ROOT, 'hub-coi-sw.js'), 'utf8');
   const OWN = new Function('BASE', `const OWN = ${/const OWN = ([^\n]+);/.exec(src)[1]}; return OWN;`)('/');

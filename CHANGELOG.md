@@ -23,6 +23,14 @@
   (`/PaintPro/`, `/Compiler/`, ...) stay untouched. Laws: the Compiler in a Hub tab gets a
   typed line (red without the worker), the worker touches only the Hub's paths; all 61 laws
   of the page pass with the isolation on.
+- MediaPlayer 1.0.4: in a tab of the Hub the player pauses when you leave its tab and plays on
+  from the same place when you come back (before, the background tab only went quiet while
+  the song kept going); a pause you set yourself stays. The app sends the page of the tab
+  `{hub: 'pause' | 'resume'}` (`postMix` in `app/main.js`), the browser Hub and the system
+  demos send the frame `{mix: ...}`; when the whole Hub page is hidden (another browser tab)
+  the browser Hub adds `why: 'page'`, and the player keeps playing. On its own the player
+  keeps playing in the background as before. Laws: the page (top window and a frame), the
+  browser Hub, the app; 3 new mutants.
 
 - Independent review (16.10) of the released programs, each finding with a law that is red on
   the old code and a mutant:
@@ -169,6 +177,14 @@
   и другие) он не трогает. Законы: «Компилятор» во вкладке Хаба получает набранную строку
   (красный без worker), worker трогает только пути Хаба; все 61 закон страницы проходят с
   изоляцией.
+- Медиаплеер 1.0.4: во вкладке Хаба плеер встаёт на паузу, когда уходишь с его вкладки, и
+  играет с того же места, когда возвращаешься (раньше фоновая вкладка только молчала, а песня
+  шла); паузу, поставленную самим человеком, возврат не снимает. Приложение шлёт странице
+  вкладки `{hub: 'pause' | 'resume'}` (`postMix` в `app/main.js`), браузерный Хаб и демо
+  систем - рамке `{mix: ...}`; когда скрыта вся страница Хаба (другая вкладка браузера),
+  браузерный Хаб добавляет `why: 'page'`, и плеер играет дальше. Сам по себе плеер, как и
+  раньше, играет в фоне. Законы: страница (верхнее окно и рамка), браузерный Хаб,
+  приложение; 3 новых мутанта.
 
 - Независимая проверка (16.10) выпущенных программ, каждая находка - с законом, красным на старом
   коде, и мутантом:

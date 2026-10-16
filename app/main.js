@@ -306,9 +306,11 @@ function destroyView(id) {
 // вкладка и так получает visibilitychange, но демо системы по этому сообщению ещё и
 // останавливают свои окна с играми так же, как при сворачивании окна в самом демо.
 // У страницы игры рамок нет - сообщение уходит в пустоту.
+// Самой странице вкладки уходит {hub: 'pause' | 'resume'}: его слушает Медиаплеер (ушли с его
+// вкладки - пауза, вернулись - играет дальше). Игры его не слушают: им хватает visibilitychange.
 function postMix(view, mix) {
   if (!view || view.webContents.isDestroyed()) return;
-  const js = `for (const f of document.querySelectorAll('iframe')) { try { f.contentWindow.postMessage({ mix: ${JSON.stringify(mix)} }, '*'); } catch (e) { /* рамка ещё грузится */ } }`;
+  const js = `window.postMessage({ hub: ${JSON.stringify(mix)} }, '*'); for (const f of document.querySelectorAll('iframe')) { try { f.contentWindow.postMessage({ mix: ${JSON.stringify(mix)} }, '*'); } catch (e) { /* рамка ещё грузится */ } }`;
   view.webContents.executeJavaScript(js, true).catch(() => {});
 }
 

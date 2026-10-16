@@ -38,6 +38,10 @@ const MUTANTS = [
   { name: 'стрелки на ползунке снова у горячих клавиш', from: "  if (tag === 'INPUT' && t.id !== 'seek' && /^(Arrow|Page|Home|End)/.test(e.code)) return;", to: '', g: 'стрелки на ползунке' },
   { name: 'рамка фокуса строки снаружи строки', from: '.item:focus-visible { outline-offset: -2px; }', to: '', g: 'рамка фокуса строки' },
   { name: 'у «Открыть файлы» нет подсказки', from: '<button class="btn" id="open-files" data-i18n-title="open" title="Открыть файлы">', to: '<button class="btn" id="open-files">', g: 'без подписи есть подсказка' },
+  // 1.0.4: вкладка Хаба - уход ставит паузу, возврат играет дальше
+  { name: 'уход с вкладки Хаба не ставит паузу', from: 'if (player.state().playing) { paused = true; player.pause(); }', to: '', g: 'вкладка' },
+  { name: 'возврат на вкладку Хаба не включает песню', from: 'if (paused && !player.state().playing) player.play();', to: '', g: 'вкладка' },
+  { name: 'скрытая страница Хаба (why: page) ставит паузу', from: " && d.why !== 'page'", to: '', g: 'вкладка' },
   { name: 'шапка светлеет при наведении на кнопку', from: '.btn:hover { background:', to: 'header.top:hover::after { background: rgb(255 255 255 / .1); } .btn:hover { background:', g: 'наведение на кнопки' },
 ];
 

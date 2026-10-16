@@ -94,3 +94,26 @@ for (const p of DATA.PROGRAMS.filter((x) => x.url)) {
     expect(await app.evaluate(() => globalThis.__igroteka.blocked)).toEqual([]);
   });
 }
+
+// Медиаплеер во вкладке приложения: ушли с вкладки - пауза (до 1.0.4 скрытая вкладка только
+// молчала, а песня шла дальше), вернулись - играет с того же места. Оболочка шлёт странице
+// вкладки {hub: 'pause' | 'resume'} (app/main.js, postMix).
+test('media-player: уход с вкладки ставит песню на паузу, возврат - играет дальше', async () => {
+  const { app, shell } = ctx;
+  const st = () => H.inGame(app, 'media-player', '(() => { const s = __mp.player.state(); return { playing: s.playing, pos: s.pos }; })()');
+  await shell.click('#programs .card[data-id="media-player"] .play');
+  await expect.poll(() => H.tabs(app).then((t) => t.active)).toBe('media-player');
+  await H.gameLoaded(app, 'media-player', 30000);
+  await H.inGame(app, 'media-player', `(async () => { __mp.player.setMuted(true); if (!__mp.player.state().playing) __mp.player.play(0); for (let i = 0; i < 100 && __mp.player.state().pos < 0.3; i++) await new Promise((r) => setTimeout(r, 100)); })()`);
+  expect((await st()).playing).toBe(true);
+  await shell.click('.tab.home');
+  await expect.poll(() => H.tabs(app).then((t) => t.active)).toBe('home');
+  await expect.poll(async () => (await st()).playing).toBe(false);
+  const at = (await st()).pos;
+  await new Promise((r) => setTimeout(r, 700));
+  expect((await st()).pos).toBeCloseTo(at, 2);
+  await shell.click('.tab.game[data-id="media-player"]');
+  await expect.poll(async () => (await st()).playing).toBe(true);
+  expect((await st()).pos).toBeGreaterThanOrEqual(at - 0.05);
+  expect(await H.errorsOf(app, 'media-player')).toEqual([]);
+});

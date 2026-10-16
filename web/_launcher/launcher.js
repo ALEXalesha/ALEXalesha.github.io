@@ -109,10 +109,12 @@
 
   // --- сообщения игре -----------------------------------------------------------------
 
-  function post(id, mix) {
+  // why: 'page' - скрыли или вернули саму страницу Хаба (вкладку браузера, окно), а не ушли с
+  // вкладки игры. Игры встают на паузу и так, а Медиаплеер музыку из-за этого не прерывает.
+  function post(id, mix, why) {
     const f = frames.get(id);
     if (!f || !f.contentWindow) return;
-    try { f.contentWindow.postMessage({ mix }, '*'); } catch { /* рамка ещё грузится */ }
+    try { f.contentWindow.postMessage(why ? { mix, why } : { mix }, '*'); } catch { /* рамка ещё грузится */ }
   }
 
   // --- громкость ----------------------------------------------------------------------
@@ -498,7 +500,7 @@
   // Вкладку браузера скрыли или свернули окно - активная игра встаёт на паузу.
   document.addEventListener('visibilitychange', () => {
     if (tabs.active === Tabs.HOME) return;
-    post(tabs.active, document.hidden ? 'pause' : 'resume');
+    post(tabs.active, document.hidden ? 'pause' : 'resume', 'page');
   });
 
   // Вкладки прошлого раза открываются как в приложении: видна домашняя или та, что была

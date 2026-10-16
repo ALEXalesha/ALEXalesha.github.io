@@ -967,3 +967,57 @@ for (const mode of ['classic', 'overlay']) {
     });
   });
 }
+
+// 1.0.4: плеер во вкладке Хаба (и в окне демо систем) - ушли с вкладки, пауза; вернулись, играет
+// дальше, если паузу поставил уход. Приложение Хаба шлёт самой странице {hub: ...}, браузерный Хаб
+// и демо - рамке {mix: ...}; {mix, why: 'page'} - скрыли всю страницу Хаба, это не уход с вкладки.
+// Без Хаба фон музыку не прерывает: отдельная вкладка браузера и своя программа играют и скрытыми.
+test('вкладка Хаба: уход ставит паузу, возврат играет дальше; без Хаба фон не прерывает', async ({ page }) => {
+  const errors = await openMp(page);
+  const st = () => page.evaluate(() => window.__mp.player.state().playing);
+  const play = () => page.evaluate(async () => { const p = window.__mp.player; p.setMuted(true); p.play(0); for (let i = 0; i < 100 && p.state().pos < 0.2; i++) await new Promise((r) => setTimeout(r, 50)); });
+  const post = (msg) => page.evaluate(async (m) => { window.postMessage(m, '*'); await new Promise((r) => setTimeout(r, 120)); }, msg);
+  await play();
+  expect(await st()).toBe(true);
+  // своё окно скрыто (свёрнутая программа, фоновая вкладка браузера) - играет дальше
+  await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }); Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }); document.dispatchEvent(new Event('visibilitychange')); });
+  await page.waitForTimeout(150);
+  expect(await st(), 'скрытая страница без Хаба').toBe(true);
+  await page.evaluate(() => { delete document.hidden; delete document.visibilityState; document.dispatchEvent(new Event('visibilitychange')); });
+  // {mix} от самого себя - не оболочка (у верхнего окна оболочки нет)
+  await post({ mix: 'pause' });
+  expect(await st(), '{mix} в верхнем окне').toBe(true);
+  // приложение Хаба: {hub}
+  await post({ hub: 'pause' });
+  expect(await st()).toBe(false);
+  await post({ hub: 'resume' });
+  expect(await st()).toBe(true);
+  // паузу поставил человек - возврат на вкладку её не снимает
+  await page.evaluate(() => window.__mp.player.pause());
+  await post({ hub: 'pause' });
+  await post({ hub: 'resume' });
+  expect(await st()).toBe(false);
+  expect(errors).toEqual([]);
+});
+
+test('вкладка браузерного Хаба (рамка): {mix: pause} ставит паузу, скрытая страница Хаба (why: page) - нет', async ({ page }) => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'mp-frame-'));
+  const wrap = path.join(dir, 'hub.html');
+  fs.writeFileSync(wrap, `<!doctype html><meta charset="utf-8"><iframe id="f" src="${URL}" style="width:900px;height:600px"></iframe>`);
+  try {
+    await page.route(/^(https?|wss?):\/\//, (route) => route.abort());
+    await page.goto(pathToFileURL(wrap).href);
+    const frame = page.frames().find((f) => f !== page.mainFrame()) || (await (await page.$('#f')).contentFrame());
+    await frame.waitForFunction(() => window.__mp && window.__mp.ready === true, null, { timeout: 20_000 });
+    const st = () => frame.evaluate(() => window.__mp.player.state().playing);
+    const post = (msg) => page.evaluate(async (m) => { document.getElementById('f').contentWindow.postMessage(m, '*'); await new Promise((r) => setTimeout(r, 120)); }, msg);
+    await frame.evaluate(async () => { const p = window.__mp.player; p.setMuted(true); p.play(0); for (let i = 0; i < 100 && p.state().pos < 0.2; i++) await new Promise((r) => setTimeout(r, 50)); });
+    expect(await st()).toBe(true);
+    await post({ mix: 'pause', why: 'page' });
+    expect(await st(), 'скрыли страницу Хаба').toBe(true);
+    await post({ mix: 'pause' });
+    expect(await st(), 'ушли с вкладки').toBe(false);
+    await post({ mix: 'resume' });
+    expect(await st(), 'вернулись').toBe(true);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
