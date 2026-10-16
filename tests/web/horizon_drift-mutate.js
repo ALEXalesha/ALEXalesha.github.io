@@ -14,6 +14,7 @@ const ROOT = path.join(__dirname, '..', '..');
 const SRC = path.join(ROOT, 'web', 'horizon_drift_offline');
 const NITRO = 'tests/web/horizon_drift_nitro.spec.js', DAMAGE = 'tests/web/horizon_drift_damage.spec.js', WORLD = 'tests/web/horizon_drift_world.spec.js';
 const DUEL = 'зона дрифта считается только по ходу зоны';
+const REVIEW = 'tests/web/horizon_drift_review.spec.js';
 
 // file - файл в js/, from - точный кусок кода (ровно один раз), to - сломанный вариант, spec - чьи законы,
 // grep - только проверки с этим названием (большой спек мира целиком не гоняется)
@@ -58,6 +59,18 @@ const MUTANTS = [
   // 11.10: дуэль с бродячим соперником - закон теперь жмёт E в стоящем мире
   { name: 'дуэль: E не вызывает соперника', file: 'game.js', spec: WORLD, grep: DUEL, from: 'if (w.nearRival) { startWorldDuel(w.nearRival); return true; }', to: '' },
   { name: 'дуэль: соперник рядом только ближе 12 м', file: 'world.js', spec: WORLD, grep: DUEL, from: 'Math.hypot(a.car.x - p.x, a.car.z - p.z) < 30) this.nearRival = a;', to: 'Math.hypot(a.car.x - p.x, a.car.z - p.z) < 12) this.nearRival = a;' },
+  // 16.10 независимая проверка: узкое окно, пауза во время загрузки, клавиши мира, подсказки (file без js/ - от папки игры)
+  { name: 'окно: гараж не сужается', file: 'index.html', spec: REVIEW, grep: 'гараж в окне', from: '    #gPanel { width: auto; flex: 1 1 0; min-width: 0; }\n', to: '' },
+  { name: 'окно: подсказка клавиш в одну строку под спидометр', file: 'index.html', spec: REVIEW, grep: 'HUD в окне', from: '  #hKeys { max-width: calc(100% - 380px); white-space: normal; }', to: '' },
+  { name: 'окно: подсказка E на прежнем месте', file: 'index.html', spec: REVIEW, grep: 'HUD в окне', from: '(max-width: 1180px) and (max-height: 760px) { #wPrompt { bottom: 226px; } }', to: '(max-width: 1180px) and (max-height: 760px) { #wPrompt { bottom: 120px; } }' },
+  { name: 'окно: кнопка паузы на панели мира', file: 'index.html', spec: REVIEW, grep: 'HUD в окне', from: '    #hPauseBtn { left: auto; right: 16px; transform: none; top: 216px; }', to: '' },
+  { name: 'загрузка: просьба о паузе забывается', file: 'game.js', spec: REVIEW, grep: 'во время загрузки', from: 'function pauseLater() { if (G.loading) G.pauseAfterLoad = true; }', to: 'function pauseLater() { }' },
+  { name: 'загрузка: мир не включает отложенную паузу', file: 'game.js', spec: REVIEW, grep: 'во время загрузки', from: '      pauseIfAsked();\n      saveWorld();', to: '      saveWorld();' },
+  { name: 'загрузка: потеря фокуса не откладывает паузу', file: 'game.js', spec: REVIEW, grep: 'во время загрузки', from: 'clearInput(); if (!G.manual) pauseLater();', to: 'clearInput();' },
+  { name: 'клавиши: F и M назначаются действию', file: 'game.js', spec: REVIEW, grep: 'клавиши M и F', from: 'if (WORLD_KEYS[code]) {', to: 'if (false) {' },
+  { name: 'подсказки: совет заезда называет R', file: 'game.js', spec: REVIEW, grep: 'подсказки называют', from: ".replace('{reset}', bindName('reset'))", to: ".replace('{reset}', 'R')" },
+  { name: 'подсказки: совет мира называет R', file: 'game.js', spec: REVIEW, grep: 'подсказки называют', from: "${bindName('reset')} - вернуться на дорогу", to: 'R - вернуться на дорогу' },
+  { name: 'подсказки: справка без вида из салона', file: 'game.js', spec: REVIEW, grep: 'подсказки называют', from: 'с капота, из салона</li>', to: 'с капота</li>' },
 ];
 
 function copyDir(a, b) {
@@ -81,7 +94,8 @@ function main() {
   let survived = 0;
   try {
     copyDir(SRC, dir);
-    const read = (f) => fs.readFileSync(path.join(SRC, 'js', f), 'utf8').replace(/\r\n/g, '\n');
+    const where = (f) => (f.endsWith('.html') ? f : path.join('js', f));          // index.html - от папки игры, остальное - js/
+    const read = (f) => fs.readFileSync(path.join(SRC, where(f)), 'utf8').replace(/\r\n/g, '\n');
     // исходная копия - только те законы, которыми проверяются выбранные мутанты
     const bases = [...new Map(list.map((m) => [m.spec + '|' + (m.grep || ''), m])).values()];
     for (const { spec, grep } of bases) {
@@ -92,7 +106,7 @@ function main() {
     for (const m of list) {
       const src = read(m.file), n = src.split(m.from).length - 1;
       if (n !== 1) { console.log(`? ${m.name}: кусок кода найден ${n} раз - мутант устарел`); survived++; continue; }
-      const file = path.join(dir, 'js', m.file);
+      const file = path.join(dir, where(m.file));
       fs.writeFileSync(file, src.replace(m.from, m.to));
       const r = runSpec(dir, m.spec, m.grep);
       fs.writeFileSync(file, src);

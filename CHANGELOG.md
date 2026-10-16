@@ -1,5 +1,42 @@
 # Changelog / Журнал изменений
 
+## Unreleased
+
+**EN**
+
+- Horizon Drift 1.1.1: in a window narrower than about 840 px (a tab of the app, half of the
+  screen) the garage went past the right edge - the stats, the Tuning tab and the buy button
+  were cut off. Now the 3D stand hides and the panel takes the room; on a phone the car list
+  goes on top. In a window 560-1120 px wide the key hint at the bottom ran under the speedometer
+  and the damage panel, the "E Festival" prompt in free roam was under the speedometer, and the
+  pause button sat on the free-roam panel; now the hint wraps (and hides below 640 px), the
+  prompt is above the speedometer and the pause button is under the map. A pause asked for
+  while a track or a map was loading (the app switched to another tab, the window lost focus)
+  was forgotten - the race started behind the player's back; now it opens paused. M and F are
+  the map and photo keys in free roam: an action set to them did not work there, and the
+  settings did not say so - now these keys are refused with a reason. The loading tip and the
+  free-roam tip named R even after "back to the track" was set to another key; the help did not
+  list the cockpit camera. 5 laws in `tests/web/horizon_drift_review.spec.js` (110 Horizon
+  Drift laws), 11 new mutants (`node tests/web/horizon_drift-mutate.js`, now it can break
+  `index.html` too).
+
+**RU**
+
+- Horizon Drift 1.1.1: в окне уже ~840 px (вкладка приложения, полэкрана) гараж уходил за
+  правый край - характеристики, вкладка «Тюнинг» и кнопка покупки обрезались. Теперь 3D-стенд
+  прячется и панель занимает его место, на телефоне список машин встаёт сверху. В окне
+  560-1120 px подсказка клавиш внизу залезала под спидометр и схему повреждений, подсказка
+  «E Фестиваль» в свободной езде - под спидометр, кнопка паузы - на панель мира; теперь
+  подсказка переносится (а уже 640 px прячется), «E» - над спидометром, пауза - под картой.
+  Пауза, о которой попросили во время загрузки трассы или карты (приложение переключили на
+  другую вкладку, окно потеряло фокус), забывалась - заезд начинался без игрока; теперь он
+  открывается на паузе. M и F в свободной езде - карта и фото: действие, назначенное на них,
+  там не работало, а настройки молчали - теперь эти клавиши не назначаются, с объяснением.
+  Совет на экране загрузки и подсказка мира называли R, даже когда «вернуться на трассу»
+  переназначили; в «Помощи» камера не знала вида из салона. 5 законов в
+  `tests/web/horizon_drift_review.spec.js` (законов Horizon Drift 110), 11 новых мутантов
+  (`node tests/web/horizon_drift-mutate.js`, теперь умеет ломать и `index.html`).
+
 ## 1.1.0 - 2026-10-16
 
 **EN**
