@@ -178,6 +178,34 @@ for (const p of DATA.PROGRAMS.filter((x) => x.url)) {
   });
 }
 
+// Калибровка (свой репозиторий Calibrate3dPrinter) живёт в Хабе копией web/calibrate3dprinter
+// (tools/sync-calibrate.js), а не ссылкой на свой сайт: карточка открывает вкладку Хаба, и
+// G-code строится в ней, без сети и без нового окна (Алексей 11.10: «почему калибровка
+// открывается не в игротеке, а в соседнем окне»).
+for (const mode of Object.keys(MODES)) {
+  test(`${mode}: «Калибровка 3D-принтера» - вкладка Хаба с копией страницы, G-code строится в ней`, async ({ page }) => {
+    const { errors, external } = await launch(page, mode);
+    const p = DATA.PROGRAMS.find((x) => x.id === 'calibrate3dprinter');
+    expect(p.url, 'у карточки нет адреса наружу').toBeUndefined();
+    const popups = [];
+    page.on('popup', (w) => popups.push(w.url()));
+    const frame = await openCard(page, 'calibrate3dprinter');
+    expect(frame.url()).toMatch(/\/web\/calibrate3dprinter\/index\.html$/);
+    const g = await frame.evaluate(async () => {
+      for (let i = 0; i < 100 && !window.calib3dApp; i++) await new Promise((r) => setTimeout(r, 100));
+      const S = window.calib3dApp.state;
+      S.selected = S.selected.slice(0, 1);
+      const f = window.calib3dApp.files();
+      return f.length + '|' + f[0].text.length + '|' + /^G1 /m.test(f[0].text);
+    });
+    expect(g).toMatch(/^1\|\d{4,}\|true$/);
+    await expect(page.locator('.tab.game[data-id="calibrate3dprinter"]')).toHaveCount(1);
+    expect(popups).toEqual([]);
+    expect(external).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}
+
 test('все пути относительные, без внешних адресов; .nojekyll на месте', async () => {
   const files = ['index.html', 'web/_launcher/launcher.js', 'web/_launcher/launcher.css', 'web/_shared/games-data.js'];
   for (const f of files) {
