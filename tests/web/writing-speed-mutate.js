@@ -57,6 +57,9 @@ const ALL_MUTANTS = [
   { v11: true, name: 'панели снова с backdrop-filter', from: '  box-shadow: var(--glass-shadow); position: relative; isolation: isolate;', to: '  box-shadow: var(--glass-shadow); position: relative; isolation: isolate; backdrop-filter: var(--blur);' },
   { v11: true, name: 'светлая полоса на нижней половине панели', from: '.glass::after { background: var(--glass-bg);', to: '.glass::after { background: linear-gradient(transparent 50%, rgb(255 255 255 / .07) 50%), var(--glass-bg);' },
   { v11: true, name: 'панель меню светлеет при наведении', from: '.btn:hover { background:', to: '.config:hover::after { background: rgb(255 255 255 / .1); } .btn:hover { background:' },
+  // 1.1.2 (независимая проверка): карта ошибок короткого русского текста и график из одной точки
+  { v11: true, name: 'имя клавиши space идёт в латинские буквы карты', from: ".filter((k) => k !== 'space').join('')", to: ".join('')" },
+  { v11: true, name: 'график из одной точки пустой', from: "if (series.length === 1) dot('wpm', accent, 4.5); else line('wpm', accent, 2.5);", to: "line('wpm', accent, 2.5);" },
 ];
 
 // WS_MUT=old - только мутанты 1.0.0, WS_MUT=new - только 1.1.0 (по ~20 мин каждый), без - все; WS_MUT_NAMES=<регулярка> - только мутанты с таким именем

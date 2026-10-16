@@ -244,6 +244,28 @@ test.describe('ws: ошибки по клавишам', () => {
     }
     for (const [w, [have, want]] of Object.entries(got)) expect(have, w).toBe(want);
   });
+
+  // 1.1.2 (независимая проверка): короткий русский текст в «своём тексте» и дзене давал карту QWERTY, а ошибку
+  // по русской букве - строкой «Другие знаки». Имя клавиши «space» считалось пятью латинскими буквами:
+  // у «да нет» пять разных русских клавиш против s, p, a, c, e.
+  test('короткий русский текст с пробелом: карта ЙЦУКЕН, ошибка - на клавише, а не в «других знаках»', async ({ page }) => {
+    await openWs(page);
+    await custom(page, 'да нет');
+    await typeTimed(page, 'дв нет', 100);
+    await expect(page.locator('#result')).toBeVisible();
+    await expect(page.locator('#heatmap .key.space')).toHaveText('ЙЦУКЕН');
+    await expect(page.locator('#heatmap .key[data-key="а"]')).toHaveAttribute('data-errors', '1');
+    await expect(page.locator('#weak')).not.toContainText(/Другие знаки|Other characters/);
+    await page.evaluate(() => __ws.set('mode', 'zen'));
+    await typeTimed(page, 'да нет', 100);
+    await page.keyboard.press('Shift+Enter');
+    await expect(page.locator('#heatmap .key.space')).toHaveText('ЙЦУКЕН');
+    // и английский короткий текст по-прежнему QWERTY
+    await page.evaluate(() => __ws.set('mode', 'zen'));
+    await typeTimed(page, 'no yes', 100);
+    await page.keyboard.press('Shift+Enter');
+    await expect(page.locator('#heatmap .key.space')).toHaveText('QWERTY');
+  });
 });
 
 test.describe('ws: режимы', () => {
@@ -641,6 +663,31 @@ test.describe('ws: рекорды, история, хранилище', () => {
     await page.click('#clear-history');
     await page.click('#clear-history');
     expect(await page.evaluate(() => __ws.history().length)).toBe(0);
+  });
+
+  // 1.1.2 (независимая проверка): после первого теста график «Истории» был пустым - одна точка рисовалась
+  // одним moveTo без линии. То же у итога теста короче секунды.
+  test('график с одной точкой: точка видна в истории и в итоге короткого теста', async ({ page }) => {
+    await openWs(page);
+    await custom(page, 'да');
+    await typeTimed(page, 'да', 100);
+    await expect(page.locator('#result')).toBeVisible();
+    // пиксели цвета акцента (линия WPM) на холсте
+    const accentPixels = (sel) => page.evaluate((sel) => {
+      const c = document.querySelector(sel), g = c.getContext('2d');
+      const a = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(a);
+      const [R, G, B] = [1, 2, 3].map((i) => parseInt(m[i], 16));
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200 && Math.abs(d[i] - R) + Math.abs(d[i + 1] - G) + Math.abs(d[i + 2] - B) < 40) n++;
+      return n;
+    }, sel);
+    expect(await page.evaluate(() => __ws.result.series.length)).toBe(1);
+    expect(await accentPixels('#graph'), 'итог теста короче секунды').toBeGreaterThan(20);
+    await page.click('[data-view=history]');
+    expect(await page.evaluate(() => __ws.history().length)).toBe(1);
+    expect(await accentPixels('#hist-graph'), 'история с одним тестом').toBeGreaterThan(20);
   });
 
   test('сломанное хранилище (бросает) - страница работает, тест проходит, есть предупреждение', async ({ page }) => {
