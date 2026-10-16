@@ -793,6 +793,86 @@ test.describe('mp: наведение на кнопки', () => {
   });
 });
 
+// 1.0.3, находки независимой проверки 16.10: стрелки на ползунке громкости перематывали песню, а на
+// полосе эквалайзера меняли общую громкость; рамку фокуса строки срезал край списка; у кнопки
+// «Открыть файлы» без подписи (узкое окно, мини-режим) не было подсказки.
+test.describe('mp: ползунки, рамка фокуса, подсказки', () => {
+  test('стрелки на ползунке громкости и полосе эквалайзера двигают сам ползунок; пробел там же - играть', async ({ page }) => {
+    expect(await openMp(page)).toEqual([]);
+    const band = page.locator('#eq-bands input').nth(4);
+    const bb = await band.boundingBox();
+    await page.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2);
+    const a = await st(page);
+    await page.keyboard.press('ArrowUp');
+    const b = await st(page);
+    expect(b.eq.gains[4], 'полоса 500 Гц на шаг вверх').toBe(a.eq.gains[4] + 1);
+    expect(b.volume, 'общая громкость не тронута').toBe(a.volume);
+    const vb = await page.locator('#volume').boundingBox();
+    await page.mouse.click(vb.x + vb.width / 2, vb.y + vb.height / 2);
+    const c = await st(page);
+    await page.keyboard.press('ArrowRight');
+    const d = await st(page);
+    expect(d.volume, 'громкость выросла').toBeGreaterThan(c.volume);
+    expect(Math.abs(d.pos - c.pos), 'песня не перемотана').toBeLessThan(1);
+    await page.keyboard.press('Space');
+    await waitFor(page, () => __mp.player.state().playing);
+    await page.keyboard.press('Space');
+    // на полосе перемотки стрелки по-прежнему перематывают на 5 с
+    const sb = await page.locator('#seek').boundingBox();
+    await page.mouse.click(sb.x + sb.width * 0.3, sb.y + sb.height / 2);
+    const e = await st(page);
+    await page.keyboard.press('ArrowRight');
+    expect((await st(page)).pos - e.pos).toBeGreaterThan(4);
+  });
+
+  test('рамка фокуса строки плейлиста видна целиком (не срезана краем списка), обе полосы прокрутки', async ({ page }) => {
+    expect(await openMp(page, { size: { width: 1280, height: 720 } })).toEqual([]);
+    for (const pad of ['overlay', 'classic']) {
+      // classic: как в Electron, полоса занимает место и отступа справа нет
+      await page.evaluate((pad) => document.documentElement.classList.toggle('overlay-sb', pad === 'overlay'), pad);
+      await page.locator('#playlist .item').first().focus();
+      await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowUp'); // клавиатура - :focus-visible
+      const n = await page.locator('#playlist .item').count();
+      for (const i of [0, 3, n - 1]) {
+        await page.locator(`#playlist .item[data-i="${i}"]`).focus();
+        await page.locator(`#playlist .item[data-i="${i}"]`).evaluate((el) => el.scrollIntoView({ block: 'nearest' }));
+        const cut = await page.evaluate(() => {
+          const e = document.activeElement, ol = document.querySelector('#playlist');
+          if (!e.matches(':focus-visible')) return 'нет :focus-visible';
+          const cs = getComputedStyle(e), w = parseFloat(cs.outlineWidth), off = parseFloat(cs.outlineOffset);
+          if (cs.outlineStyle === 'none' || !w) return 'нет рамки';
+          const r = e.getBoundingClientRect(), q = ol.getBoundingClientRect(), ext = off + w;
+          const inner = { l: q.left + ol.clientLeft, t: q.top + ol.clientTop, r: q.left + ol.clientLeft + ol.clientWidth, b: q.top + ol.clientTop + ol.clientHeight };
+          const sides = [];
+          if (r.left - ext < inner.l - 0.5) sides.push('слева');
+          if (r.right + ext > inner.r + 0.5) sides.push('справа');
+          if (r.top - ext < inner.t - 0.5) sides.push('сверху');
+          if (r.bottom + ext > inner.b + 0.5) sides.push('снизу');
+          return sides.join(',');
+        });
+        expect(cut, `${pad}: строка ${i}, рамка срезана`).toBe('');
+      }
+    }
+  });
+
+  test('у каждой видимой кнопки без подписи есть подсказка - RU/EN, узкое окно, мини-режим', async ({ page }) => {
+    for (const ui of ['ru', 'en']) for (const mini of [false, true]) {
+      await openMp(page, { storage: { 'mplayer:settings': JSON.stringify({ ui, mini }) }, size: { width: 420, height: 640 } });
+      for (const width of [420, 1280]) {
+        await page.setViewportSize({ width, height: 720 });
+        const bad = await page.evaluate(() => [...document.querySelectorAll('button')].filter((b) => {
+          const r = b.getBoundingClientRect();
+          if (!r.width || !r.height || b.closest('[hidden]')) return false;
+          return !b.innerText.trim() && !b.title.trim();
+        }).map((b) => b.id || b.className));
+        expect(bad, `${ui} mini=${mini} ${width}px: кнопки без подписи и подсказки`).toEqual([]);
+      }
+      const t = await page.getAttribute('#open-files', 'title');
+      expect(t).toBe(ui === 'ru' ? 'Открыть файлы' : 'Open files');
+    }
+  });
+});
+
 // Полоса прокрутки плейлиста и кнопки. Обычный прогон идёт с --hide-scrollbars (полос нет вовсе),
 // поэтому здесь два своих запуска Chromium: классическая полоса (занимает место справа, Electron на
 // Windows - 15 px) и полоса поверх содержимого (overlay: Windows 11 в Chrome, macOS, телефоны) -
@@ -806,9 +886,14 @@ async function overlayWidth(page) {
   // кадр правой полосы списка с показанной полосой и с выключенной (scrollbar-width: none): разные столбцы - полоса
   const R = await page.evaluate(() => { const r = document.querySelector('#playlist').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: Math.min(r.height, 300) }; });
   const clip = { x: R.x + R.w - 40, y: R.y, width: 40, height: R.h };
-  await page.mouse.move(R.x + R.w - 3, R.y + 60);
-  await page.mouse.wheel(0, 30); await page.waitForTimeout(1200);
-  await page.mouse.move(R.x + R.w - 3, R.y + 80); await page.waitForTimeout(300);
+  // Overlay-полоса видна ~850 мс после прокрутки и остаётся (шириной 14 px), только если мышь ВОШЛА на неё,
+  // пока она видна. Раньше мышь стояла на полосе ещё до прокрутки, а второй шаг шёл через 1,2 с, когда
+  // полоса уже погасла: вернётся ли она, зависело от того, успел ли композитор увидеть первый шаг
+  // (замер 16.10: 7 из 8 нулей без нагрузки на втором окне браузера, 2 из 8 под нагрузкой). Поэтому:
+  // мышь в середине списка, прокрутка, сразу шагами на полосу - 32 из 32, и полоса держится 2 с.
+  await page.mouse.move(R.x + R.w / 2, R.y + 60);
+  await page.mouse.wheel(0, 30); await page.waitForTimeout(100);
+  await page.mouse.move(R.x + R.w - 3, R.y + 80, { steps: 5 }); await page.waitForTimeout(300);
   const a = await page.screenshot({ clip });
   const st = await page.addStyleTag({ content: '#playlist { scrollbar-width: none !important; }' }); await page.waitForTimeout(150);
   const b = await page.screenshot({ clip });

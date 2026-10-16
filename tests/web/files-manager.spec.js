@@ -5,7 +5,8 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const { pathToFileURL } = require('url');
 
-const URL = pathToFileURL(path.join(__dirname, '..', '..', 'web', 'files-manager', 'index.html')).href;
+// FM_FILE - путь к другой копии страницы (так проверяются сломанные копии - мутанты)
+const URL = pathToFileURL(process.env.FM_FILE || path.join(__dirname, '..', '..', 'web', 'files-manager', 'index.html')).href;
 
 async function openFm(page) {
   const errors = [];
@@ -20,7 +21,7 @@ async function openFm(page) {
 test('страница открывается на демо-диске без ошибок', async ({ page }) => {
   const errors = await openFm(page);
   const st = await page.evaluate(() => ({ v: window.__fm.version, tab: window.__fm.tab() }));
-  expect(st.v).toBe('1.0.1');
+  expect(st.v).toBe('1.0.2');
   expect(st.tab.vol).toBe('demo');
   expect(st.tab.error).toBeFalsy();
   expect(st.tab.names.length).toBeGreaterThan(0);
@@ -129,8 +130,10 @@ test('двойной щелчок мышью: папка открывается,
   const tab = (i) => page.evaluate((k) => window.__fm.tab(k), i);
   const panel = (i) => page.locator('section.panel').nth(i);
   const dbl = async (loc) => {
-    const b = await loc.boundingBox();
-    expect(b).toBeTruthy();
+    // список и дерево перерисовываются (поиск досылает найденное, дерево догружается): между поиском элемента
+    // и замером он может смениться новым - тогда boundingBox даёт null; берём замер живого элемента
+    let b = null;
+    await expect.poll(async () => (b = await loc.boundingBox()), { timeout: 5000 }).toBeTruthy();
     await page.mouse.dblclick(b.x + b.width / 2, b.y + b.height / 2);
     await idle();
   };
@@ -203,4 +206,61 @@ test('двойной щелчок мышью: папка открывается,
   await idle();
   expect(await page.evaluate(() => window.__fm.App.panels[0].tabs.length)).toBe(n0 + 1);
   expect(errors).toEqual([]);
+});
+
+// 1.0.2, находки независимой проверки 16.10: в окне 560-1120 px правый край панели команд (язык,
+// «Настройки», «Справка») уходил за окно - полоса прокрутки у неё скрыта, мышью не добраться; при двух
+// панелях в окне 720-1000 px поле поиска уходило за край своей панели.
+const FIT_SIZES = [[420, 520], [480, 640], [560, 600], [640, 700], [720, 600], [768, 1024], [820, 700], [900, 700], [960, 800], [1024, 600], [1100, 700], [1280, 720], [1920, 1080]];
+test('панель команд и строка навигации влезают целиком: все размеры окна, RU/EN, одна и две панели', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const problems = [];
+  for (const ui of ['ru', 'en']) for (const dual of [false, true]) {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.addInitScript((s) => localStorage.setItem('files-manager.settings', s), JSON.stringify({ ui, dual, preview: dual }));
+    expect(await openFm(page)).toEqual([]);
+    for (const [width, height] of FIT_SIZES) {
+      await page.setViewportSize({ width, height });
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+      const bad = await page.evaluate(() => {
+        const out = [];
+        const W = document.documentElement.clientWidth;
+        const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !e.closest('[hidden]'); };
+        const tb = document.querySelector('#toolbar').getBoundingClientRect();
+        for (const b of document.querySelectorAll('#toolbar button')) {
+          if (!vis(b)) continue;
+          const r = b.getBoundingClientRect();
+          if (r.left < tb.left - 0.5 || r.right > Math.min(W, tb.right) + 0.5 || r.top < tb.top - 0.5 || r.bottom > tb.bottom + 0.5) out.push(`кнопка ${b.dataset.cmd} за краем панели команд (${r.left.toFixed(0)}..${r.right.toFixed(0)} из ${W})`);
+        }
+        for (const p of document.querySelectorAll('section.panel')) {
+          if (!vis(p)) continue;
+          const pr = p.getBoundingClientRect();
+          for (const e of p.querySelectorAll('.nav .nb, .nav .addr, .nav .search')) {
+            if (!vis(e)) continue;
+            const r = e.getBoundingClientRect();
+            if (r.left < pr.left - 0.5 || r.right > pr.right + 0.5) out.push(`панель ${p.dataset.panel}: ${e.className} за краем панели (${r.left.toFixed(0)}..${r.right.toFixed(0)}, панель ${pr.left.toFixed(0)}..${pr.right.toFixed(0)})`);
+          }
+          for (const h of p.querySelectorAll('.thead button')) { const r = h.getBoundingClientRect(); if (vis(h) && r.right > pr.right + 0.5) out.push(`панель ${p.dataset.panel}: столбец «${h.textContent}» за краем панели`); }
+          const s = p.querySelector('.search');
+          if (vis(s) && s.getBoundingClientRect().width < 60) out.push(`панель ${p.dataset.panel}: поиск уже 60 px`);
+        }
+        // выезжающие панели (узкое окно) не заходят на панель команд
+        for (const sel of ['#sidebar', '#preview']) {
+          const e = document.querySelector(sel);
+          if (vis(e) && getComputedStyle(e).position === 'fixed' && e.getBoundingClientRect().top < tb.bottom - 0.5) out.push(`${sel} заходит на панель команд`);
+        }
+        return out;
+      });
+      for (const b of bad) problems.push(`${ui}${dual ? ' две панели' : ''} ${width}x${height}: ${b}`);
+      if (width <= 720) {
+        await page.evaluate(() => document.body.classList.add('side-open'));
+        const over = await page.evaluate(() => document.querySelector('#sidebar').getBoundingClientRect().top < document.querySelector('#toolbar').getBoundingClientRect().bottom - 0.5);
+        if (over) problems.push(`${ui} ${width}x${height}: дерево папок заходит на панель команд`);
+        await page.evaluate(() => document.body.classList.remove('side-open'));
+      }
+    }
+    await ctx.close();
+  }
+  expect(problems.slice(0, 15)).toEqual([]);
 });

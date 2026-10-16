@@ -34,6 +34,10 @@ const MUTANTS = [
   // 1.0.2: полоса на половину панели при наведении (backdrop-filter у панелей с кнопками, как в WritingSpeed 1.1.1)
   { name: 'панели снова с backdrop-filter', from: '  box-shadow: var(--glass-shadow); position: relative; isolation: isolate;', to: '  box-shadow: var(--glass-shadow); position: relative; isolation: isolate; backdrop-filter: var(--blur);', g: 'наведение на кнопки' },
   { name: 'подложка панели без насыщенности темы', from: 'background-attachment: fixed; filter: saturate(var(--glass-sat)); }', to: 'background-attachment: fixed; }', g: 'наведение на кнопки' },
+  // 1.0.3: находки независимой проверки
+  { name: 'стрелки на ползунке снова у горячих клавиш', from: "  if (tag === 'INPUT' && t.id !== 'seek' && /^(Arrow|Page|Home|End)/.test(e.code)) return;", to: '', g: 'стрелки на ползунке' },
+  { name: 'рамка фокуса строки снаружи строки', from: '.item:focus-visible { outline-offset: -2px; }', to: '', g: 'рамка фокуса строки' },
+  { name: 'у «Открыть файлы» нет подсказки', from: '<button class="btn" id="open-files" data-i18n-title="open" title="Открыть файлы">', to: '<button class="btn" id="open-files">', g: 'без подписи есть подсказка' },
   { name: 'шапка светлеет при наведении на кнопку', from: '.btn:hover { background:', to: 'header.top:hover::after { background: rgb(255 255 255 / .1); } .btn:hover { background:', g: 'наведение на кнопки' },
 ];
 
