@@ -12,7 +12,7 @@ let body = read('body.html');
 const kit = ['kit.js', 'glass.js', 'wall.js', 'look.js'].map(read).filter(Boolean).join('\n');
 // концы строк любые (\n или \r\n при autocrlf): иначе сценарии молча не попадают в сборку
 if (kit) body = body.replace(/\r?\n<\/script>\r?\n<\/body>/, (m) => m.replace('</script>', kit + '\n</script>'));
-// таблица игр «Игротеки» - общая с другими оболочками
+// таблица игр «Хаба» - общая с другими оболочками
 body = body.replace(/<script>(\r?\n)'use strict';/, (m, nl) => '<script src="../_os-shared/games.js"></script>' + nl + m);
 const html = head + read('base.css') + read('extra.css') + read('kit.css') + read('glass.css') + '</style>\n</head>\n' + body;
 fs.writeFileSync(path.join(dir, '..', 'index.html'), html);

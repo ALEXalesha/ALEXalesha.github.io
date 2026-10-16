@@ -1,15 +1,15 @@
 {
   "name": "mix-of-projects",
-  "productName": "Игротека",
-  "version": "1.0.0",
+  "productName": "Хаб",
+  "version": "1.1.0",
   "private": true,
-  "description": "Сборник небольших проектов, приведённых в порядок, и приложение «Игротека»: одиннадцать игр во вкладках одного окна",
+  "description": "Хаб: игры, программы и демо систем во вкладках одного окна, без интернета",
   "author": "ALEXalesha",
   "license": "MIT",
-  "homepage": "https://github.com/ALEXalesha/MixOfProject",
+  "homepage": "https://alexalesha.github.io/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ALEXalesha/MixOfProject.git"
+    "url": "git+https://github.com/ALEXalesha/ALEXalesha.github.io.git"
   },
   "main": "app/main.js",
   "scripts": {
@@ -100,7 +100,7 @@
       ]
     },
     "nsis": {
-      "artifactName": "Igroteka-${version}-Setup.${ext}",
+      "artifactName": "Hub-${version}-Setup.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowElevation": false,
@@ -117,7 +117,7 @@
       "installerHeaderIcon": "app/assets/icon.ico"
     },
     "portable": {
-      "artifactName": "Igroteka-${version}-Portable.${ext}"
+      "artifactName": "Hub-${version}-Portable.${ext}"
     },
     "publish": null
   }

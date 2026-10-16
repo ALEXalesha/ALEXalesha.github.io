@@ -223,3 +223,22 @@ test('имя приложения - одно поле productName, версия 
   assert.equal(pkg.build.productName, undefined, 'имя не должно дублироваться в build');
   assert.match(pkg.version, /^1\.\d+\.\d+$/);
 });
+
+// 1.1.0: «Игротека» стала «Хабом» (Алексей 11.10: «там теперь будут далеко не только игры»).
+// Переименование не должно стоить человеку ни рекордов, ни настроек, ни второй копии в
+// «Установке и удалении программ»: папка данных, ключи страницы и appId - прежние.
+test('переименование в «Хаб»: имя новое, всё, что хранит данные человека, прежнее', () => {
+  assert.equal(pkg.productName, 'Хаб');
+  assert.equal(require('../../app/product').dataFolder, 'MixOfProject-Games', 'папка %APPDATA% - та же, что у «Игротеки»');
+  assert.equal(pkg.build.appId, 'com.alexalesha.mixofproject.games', 'appId - тот же: установщик встаёт поверх «Игротеки»');
+  assert.match(pkg.build.nsis.artifactName, /^Hub-\$\{version\}-Setup\./);
+  assert.match(pkg.build.portable.artifactName, /^Hub-\$\{version\}-Portable\./);
+  const launcher = fs.readFileSync(path.join(ROOT, 'web/_launcher/launcher.js'), 'utf8');
+  assert.match(launcher, /KEY_SETTINGS = 'igroteka\.web\.settings'/, 'ключ настроек страницы - прежний');
+  assert.match(launcher, /KEY_TABS = 'igroteka\.web\.tabs'/, 'ключ вкладок страницы - прежний');
+  for (const f of ['index.html', 'app/renderer/index.html']) {
+    const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    assert.doesNotMatch(html, /Игротек/, `${f}: старое имя на виду`);
+    assert.match(html, /<title>Хаб<\/title>/, f);
+  }
+});

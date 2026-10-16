@@ -597,7 +597,7 @@ for (const size of [{ width: 1024, height: 700 }, { width: 800, height: 600 }]) 
   });
 }
 
-// ===== Игры «Игротеки» и значок «Медиаплеер» (правки владельца) =====
+// ===== Игры «Хаба» и значок «Медиаплеер» (правки владельца) =====
 const vm = require('vm');
 const GAMES = (() => { const ctx = { window: {} }; vm.runInNewContext(fs.readFileSync(path.join(WEB, '_os-shared', 'games.js'), 'utf8'), ctx); return ctx.window.OS_GAMES; })();
 

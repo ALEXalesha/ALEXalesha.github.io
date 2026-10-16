@@ -4,6 +4,14 @@
 
 **EN**
 
+- The app and the browser page are now called **Hub** («Хаб»): there are not only games in it
+  any more. Window title, home screen, installer, shortcuts and files of the build
+  (`Hub-1.1.0-Setup.exe`, `Hub-1.1.0-Portable.exe`, `dist/hub-single.html`) carry the new
+  name. Nothing of the user's is lost: the app keeps its data folder
+  (`%APPDATA%\MixOfProject-Games`, it never depended on the name), the page keeps its storage
+  keys, and the installer has the same appId, so it installs over Igroteka 1.0.0 and renames
+  its shortcuts.
+
 - Independent review (16.10) of the released programs, each finding with a law that is red on
   the old code and a mutant:
   - WritingSpeed 1.1.2: a short Russian custom text or zen text got the QWERTY map of mistakes,
@@ -130,6 +138,13 @@
   "Операция: Периметр"; now `<meta name="application-name">` comes first.
 
 **RU**
+
+- Приложение и браузерная страница теперь называются **«Хаб»** (Hub): там уже не только игры.
+  Новое имя - в заголовке окна, на домашнем экране, в установщике, ярлыках и файлах сборки
+  (`Hub-1.1.0-Setup.exe`, `Hub-1.1.0-Portable.exe`, `dist/hub-single.html`). Ничего своего
+  не теряется: папка данных приложения прежняя (`%APPDATA%\MixOfProject-Games`, от имени она
+  не зависела и раньше), у страницы прежние ключи хранилища, у установщика прежний appId -
+  он встаёт поверх «Игротеки» 1.0.0 и переименовывает её ярлыки.
 
 - Независимая проверка (16.10) выпущенных программ, каждая находка - с законом, красным на старом
   коде, и мутантом:

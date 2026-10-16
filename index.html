@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Браузерная «Игротека»: те же карточки, что в приложении на Electron (app/), но в
+<!-- Браузерный «Хаб»: те же карточки, что в приложении на Electron (app/), но в
      обычном браузере - с диска двойным щелчком или с сайта (GitHub Pages). Игры
      открываются во вкладках этой страницы, каждая в своей рамке <iframe>.
      Без сборки, без сервера и без сети: все пути относительные. Таблица игр общая с
@@ -9,9 +9,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Игротека: одиннадцать игр и четыре демо систем в одной странице, игры открываются во вкладках. Работает без интернета.">
+  <meta name="description" content="Хаб: игры, программы и демо систем в одной странице, всё открывается во вкладках. Работает без интернета.">
   <meta name="color-scheme" content="dark light">
-  <title>Игротека</title>
+  <title>Хаб</title>
   <link rel="icon" href="app/assets/logo-small.svg" type="image/svg+xml">
   <link rel="stylesheet" href="app/renderer/style.css">
   <link rel="stylesheet" href="web/_launcher/launcher.css">
@@ -20,7 +20,7 @@
   <header id="bar">
     <button class="tab home" data-id="home" title="Домашний экран">
       <img class="logo" src="app/assets/logo-small.svg" alt="">
-      <span class="product">Игротека</span>
+      <span class="product">Хаб</span>
     </button>
     <div id="tabs" role="tablist" aria-label="Открытые игры"></div>
     <button id="fullscreen" class="bar-btn" title="Игра на весь экран (выход - Esc)" aria-label="Игра на весь экран" hidden>
@@ -32,7 +32,7 @@
     <section class="hero">
       <img class="hero-logo" src="app/assets/logo.svg" alt="">
       <div class="hero-text">
-        <h1 class="product">Игротека</h1>
+        <h1 class="product">Хаб</h1>
         <p id="subtitle"></p>
       </div>
       <button id="gear" class="icon-btn" title="Настройки" aria-label="Настройки">
@@ -59,7 +59,7 @@
   <!-- Рамки открытых игр: на весь экран под полосой вкладок, видна только активная. -->
   <div id="stage"></div>
 
-  <noscript><p class="noscript">Для «Игротеки» нужен JavaScript.</p></noscript>
+  <noscript><p class="noscript">Для «Хаба» нужен JavaScript.</p></noscript>
 
   <div id="settings" class="sheet" hidden>
     <div class="panel" role="dialog" aria-labelledby="settings-title">
@@ -102,7 +102,7 @@
 
       <h3>О странице</h3>
       <div class="about">
-        <p>Браузерная версия «Игротеки». Каждая игра открывается во вкладке этой страницы; рекорды и сохранения хранит браузер.</p>
+        <p>Браузерная версия «Хаба». Каждая игра открывается во вкладке этой страницы; рекорды и сохранения хранит браузер.</p>
         <p class="hint">Игры - фан-концепты, не связаны с правообладателями. Лицензия MIT.</p>
       </div>
     </div>

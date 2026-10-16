@@ -1,21 +1,22 @@
-# MixOfProject
+# Hub (Хаб)
 
 **English** · [Русский](README.ru.md)
 
-A collection of small projects that have been fixed up, plus **Igroteka** («Игротека»,
-"game library"), a desktop app that runs eleven of the games from this collection in
-tabs of one window.
+A collection of small projects that have been fixed up, plus the **Hub** («Хаб»): a desktop app and a web page that open the games, programs
+and system demos of this collection in tabs of one window. Until version 1.1.0 it was
+called Igroteka («Игротека», "game library"); settings, records and saves stay after the
+rename. The browser version is the root site https://alexalesha.github.io/.
 
 - `web/` - 26 standalone HTML pages: games, tools and desktop-shell demos. Each opens
   with a double click on `index.html` and works offline.
 - `py/` - 6 Python programs (PySide6).
-- `app/` - Igroteka, the Electron desktop app.
+- `app/` - Hub, the Electron desktop app.
 
 The interface of all projects is in Russian.
 
-![Igroteka home screen: games and the "Programs" section](docs/screens/app-home.png)
+![Hub home screen: games and the "Programs" section](docs/screens/app-home.png)
 
-## Igroteka
+## Hub
 
 Eleven games in one window: Cube World, Cube Parkour, 3D Shooting Range, Dino Run,
 Hop-Skip (a platformer), Horizon Drift, Fire Jungle, Space Shooter, Blocks, Sudoku and Flappy Wings
@@ -33,7 +34,7 @@ concepts and are not affiliated with any rights holders.
   Each opens in a tab like a game and works offline. Of WritingSpeed only its page goes into
   the app (its own Electron shell and tools stay next to it); the Compiler goes in with its
   engines and the Python of `web/python_ide` (about 80 MB) and is not part of the one-file
-  Igroteka. Calibrate 3D Printer lives in its own repository
+  Hub. Calibrate 3D Printer lives in its own repository
   ([site](https://alexalesha.github.io/Calibrate3dPrinter/)); `web/calibrate3dprinter` is a
   copy of its `web/` folder, version <!--calib-ver-->1.0.0<!--/calib-ver-->, refreshed with
   `node tools/sync-calibrate.js [folder]` (or `CALIBRATE_DIR`). No card leads out of the app.
@@ -91,7 +92,7 @@ game (a browser security rule: after leaving pointer lock with Esc a new click i
 The app icon is drawn by code: `app/assets/logo.svg`; `npm run icon` renders it into
 `app/assets/icon.ico` (16-256 px, with a simplified drawing for 16-32 px) and `icon.png`.
 
-<img src="app/assets/icon.png" width="96" alt="Igroteka icon">
+<img src="app/assets/icon.png" width="96" alt="Hub icon">
 
 ### Run, build, test
 
@@ -103,8 +104,8 @@ npm start                 # run the app
 npm run dist              # build the installer and the portable exe into dist/
 ```
 
-The Windows x64 build gives `dist/Igroteka-1.0.0-Setup.exe` (NSIS, per-user, no admin
-rights, Russian) and `dist/Igroteka-1.0.0-Portable.exe`, 98 MB each. Only `app/` and the
+The Windows x64 build gives `dist/Hub-1.1.0-Setup.exe` (NSIS, per-user, no admin
+rights, Russian) and `dist/Hub-1.1.0-Portable.exe`, 98 MB each. Only `app/` and the
 eleven game folders go into the build.
 
 ```
@@ -118,12 +119,12 @@ python -m pytest tests/py # py/ programs (183)
 Helpers: `npm run thumbs` re-renders the card pictures, `npm run screenshots` takes the
 pictures for this file, `npm run probe:background` shows what each game does in a
 background tab.
-`npm run single` builds `dist/igroteka-single.html`: the whole Igroteka with all games
+`npm run single` builds `dist/hub-single.html`: the whole Hub with all games
 and system demos in one offline HTML file (about 4.5 MB).
 
 ### Browser version
 
-`index.html` at the repository root is the same Igroteka in a regular browser: the same
+`index.html` at the repository root is the same Hub in a regular browser: the same
 cards, descriptions and pictures, games open in tabs of the page, plus a "System demos"
 section (win11_3, macos-tahoe, ios26, oneui7). Open it with a double click on
 `index.html` or serve the repository root with any static server. No build, no server and

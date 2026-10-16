@@ -529,7 +529,7 @@
     else if (cmd === 'esc') { G.escOwned = true; onKeyDown(fakeEsc()); }
   });
   window.addEventListener('pagehide', () => { G.saveWorld(); });
-  // Оболочка «Игротека» перед закрытием вкладки или окна ждёт эту функцию: мир записан до конца
+  // Оболочка «Хаб» перед закрытием вкладки или окна ждёт эту функцию: мир записан до конца
   window.igrotekaSave = async function () { if (G.meta && !G.panorama) { await G.saveWorld(); await VX.store.flush(); } };
   window.addEventListener('blur', () => releaseKeys());
   // Ctrl+W в браузере закрывает вкладку: пока идёт игра, браузер переспросит (в Electron - нет)
@@ -1154,7 +1154,7 @@
     } else if (G.state === 'paused' && e.code === 'Escape' && VX.ui && VX.ui.current === 'pause') { e.preventDefault(); G.play(); }
   }
   window.addEventListener('keydown', onKeyDown);
-  // Esc, который до браузера не дошёл: его перехватила оболочка «Игротека» (событие 'igroteka:esc',
+  // Esc, который до браузера не дошёл: его перехватила оболочка «Хаб» (событие 'igroteka:esc',
   // с действием человека) - тот же путь, что у клавиши: пауза, закрыть окно, назад в меню, игра.
   // Захват мыши тогда снимает сама игра (exitPointerLock), и вернуть его можно без щелчка.
   const fakeEsc = () => ({ code: 'Escape', key: 'Escape', repeat: false, ctrlKey: false, altKey: false, shiftKey: false, preventDefault() {}, fake: true });

@@ -1,5 +1,5 @@
 // Законы оболочки Electron «Скорости печати» (web/writing-speed/electron), без запуска:
-// модуль окна тот же, что у Игротеки и калькуляторов, версия одна у страницы и программы,
+// модуль окна тот же, что у Хаба и калькуляторов, версия одна у страницы и программы,
 // страница в сборку берётся из ../index.html (не копией), окно помнит размер и место.
 // Запуск: node --test tests-app/unit/writing-speed.test.js
 'use strict';
@@ -18,7 +18,7 @@ const MAIN = read(path.join(APP, 'main.js'));
 const PAGE = read(path.join(DIR, 'index.html'));
 const WS = require(path.join(APP, 'window-state.js'));
 
-test('window-state.js - тот же модуль, что у Игротеки (app/window-state.js)', (t) => {
+test('window-state.js - тот же модуль, что у Хаба (app/window-state.js)', (t) => {
   const igroteka = path.join(ROOT, 'app', 'window-state.js');
   if (!fs.existsSync(igroteka)) { t.skip('нет app/window-state.js (отдельный репозиторий)'); return; }
   assert.equal(read(path.join(APP, 'window-state.js')), read(igroteka));

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Игротека одним файлом: dist/igroteka-single.html.
+// Хаб одним файлом: dist/hub-single.html.
 // Внутрь вкладываются домашняя страница, все игры и демо систем из web/_shared/games-data.js,
 // их скрипты, стили, значки и превью карточек. Сети и соседних файлов файл не требует.
 // Как это работает: каждая страница игры лежит строкой в window.__IGRO.pages, а рамки
 // <iframe>, которые просят web/<id>/index.html или ../<id>/index.html, получают её через
-// srcdoc. Так работают и вкладки Игротеки, и окна игр внутри демо систем. Большие одинаковые
+// srcdoc. Так работают и вкладки Хаба, и окна игр внутри демо систем. Большие одинаковые
 // скрипты (three.min.js в четырёх играх) хранятся один раз.
 // Запуск: node tools/make-single.js
 'use strict';
@@ -13,7 +13,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
-const OUT = path.join(ROOT, 'dist', 'igroteka-single.html');
+const OUT = path.join(ROOT, 'dist', 'hub-single.html');
 const SHARED_MIN = 20000;          // скрипты длиннее этого хранятся один раз
 const shared = {};                 // хэш -> текст скрипта
 

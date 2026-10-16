@@ -241,7 +241,7 @@ for (const game of Object.keys(DEFEAT)) {
   });
 }
 
-// Протокол оболочки «Игротеки»: игра во фрейме симулятора ОС получает {mix:'pause'} / {mix:'resume'}
+// Протокол оболочки «Хаба»: игра во фрейме симулятора ОС получает {mix:'pause'} / {mix:'resume'}
 const SHELL = {
   dino: { start: '[data-id=endless]', frame: '__game.state.stats.steps', name: 'Дино-бег' },
   space_shooter: { start: '[data-id=campaign]', frame: '__game.S.frame', name: 'Космический стрелок' },

@@ -1,4 +1,4 @@
-// Браузерная «Игротека»: домашний экран с карточками и вкладки с играми в рамках <iframe>.
+// Браузерный «Хаб»: домашний экран с карточками и вкладки с играми в рамках <iframe>.
 //
 // Откуда что берётся:
 //   window.IGROTEKA_DATA   - таблица игр и демо систем (web/_shared/games-data.js), та же,
@@ -26,7 +26,7 @@
 
   const GAMES = DATA.GAMES;
   const SYSTEMS = DATA.SYSTEMS;
-  // В «Игротеке одним файлом» (tools/make-single.js, window.__IGRO) нет программ с
+  // В «Хабе одним файлом» (tools/make-single.js, window.__IGRO) нет программ с
   // single: false - их движки лежат соседними файлами, там их карточки не показываются.
   const PROGRAMS = (DATA.PROGRAMS || []).filter((p) => !(window.__IGRO && p.single === false));
   // Программа со своим сайтом (поле url) - только ссылка: вкладки у неё не бывает.

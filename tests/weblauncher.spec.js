@@ -1,4 +1,4 @@
-// Законы браузерной «Игротеки» (index.html в корне репозитория).
+// Законы браузерного «Хаба» (index.html в корне репозитория).
 //
 // Страница проверяется двумя способами, как её откроют люди:
 //   file - двойной щелчок по index.html (Chromium БЕЗ --allow-file-access-from-files:
@@ -155,15 +155,15 @@ test('карточки - все игры, программы и демо сис�
   await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
   const imgs = await page.locator('.card .shot img').evaluateAll((els) => els.map((i) => ({ src: i.getAttribute('src'), ok: i.naturalWidth > 0 })));
   expect(imgs).toEqual(ITEMS.map((g) => ({ src: `app/assets/thumbs/${g.id}.jpg`, ok: true })));
-  await expect(page.locator('h1.product')).toHaveText('Игротека');
-  await expect(page).toHaveTitle('Игротека');
+  await expect(page.locator('h1.product')).toHaveText('Хаб');
+  await expect(page).toHaveTitle('Хаб');
   await expect(page.locator('footer.note')).toHaveText('Игры - фан-концепты, не связаны с правообладателями.');
   await expect(page.locator('#systems-note')).toHaveText('Демо в стиле Windows 11, macOS, iOS и One UI, не связано с Apple/Microsoft/Samsung.');
   await expect(page.locator('#gear')).toBeVisible();
 });
 
 // Программа со своим сайтом (Calibrate3dPrinter): карточка открывает её адрес в новой вкладке
-// браузера, своей вкладки в Игротеке не появляется.
+// браузера, своей вкладки в Хабе не появляется.
 for (const p of DATA.PROGRAMS.filter((x) => x.url)) {
   test(`«${p.name}»: карточка открывает сайт ${p.url} в новой вкладке браузера`, async ({ page }) => {
     await launch(page, 'file');

@@ -714,7 +714,7 @@ test.describe('ws: рекорды, история, хранилище', () => {
     expect(errors).toEqual([]);
   });
 
-  test('страница пишет только под приставкой typing: (таблица Игротеки)', async ({ page }) => {
+  test('страница пишет только под приставкой typing: (таблица Хаба)', async ({ page }) => {
     await openWs(page);
     await custom(page, 'да');
     await typeTimed(page, 'да', 100);
