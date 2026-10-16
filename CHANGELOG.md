@@ -26,10 +26,10 @@
   are on T (a new action in the settings; on a gamepad - B). The prompt, the hint line and the help
   show the key set now. A key the player has already given to another action is not taken by the
   new action. Law: default keys are unique and do not hit M, F and Esc.
-- Laws: 7 in `tests/web/horizon_drift_ai.spec.js` (117 Horizon Drift laws in the browser) and 10
+- Laws: 7 in `tests/web/horizon_drift_ai.spec.js` (117 Horizon Drift laws in the browser) and 9
   in `tests-app/unit/drift-ai.test.js` (node): the network finishes a lap on all 8 tracks with 5
   cars at 3 levels; it does not see the racing line or cars farther than 90 m; the same seed gives
-  the same race; tracks can be driven for 200 codes of all types. 23 new mutants
+  the same race; tracks can be driven for 200 codes of all types. 22 new mutants
   (`node tests/web/horizon_drift-mutate.js`, now runs the node laws too).
 
 **RU**
@@ -56,10 +56,10 @@
   «Помощь» показывают назначенную сейчас клавишу. Клавишу, которую игрок уже отдал другому
   действию, новое действие не забирает. Закон: клавиши по умолчанию уникальны и не попадают на M,
   F и Esc.
-- Законы: 7 в `tests/web/horizon_drift_ai.spec.js` (законов Horizon Drift в браузере 117) и 10 в
+- Законы: 7 в `tests/web/horizon_drift_ai.spec.js` (законов Horizon Drift в браузере 117) и 9 в
   `tests-app/unit/drift-ai.test.js` (node): нейросеть проходит круг на всех 8 трассах на 5 машинах
   и 3 уровнях; не видит гоночной линии и машин дальше 90 м; одинаковый сид - одинаковый заезд;
-  трассы проходимы для 200 кодов всех типов. 23 новых мутанта (`node tests/web/horizon_drift-mutate.js`,
+  трассы проходимы для 200 кодов всех типов. 22 новых мутанта (`node tests/web/horizon_drift-mutate.js`,
   теперь гоняет и законы в node).
 
 ## 1.1.1 - 2026-10-17
