@@ -61,6 +61,13 @@ const MUTANTS = [
     from: "write('hint-line', t('stdinMore') + '\\n'); flashStdin();", to: 'void 0;', grep: 'from disk' },
   { name: 'the service worker does not add COEP (GitHub Pages is not isolated)', file: 'coi-sw.js', spec: INPUT,
     from: "      h.set('Cross-Origin-Embedder-Policy', 'require-corp');\n", to: '', grep: 'without headers' },
+  // 1.1.2 (independent review): the narrow file list, the glass bar without backdrop-filter, the overlay scroll bar
+  { name: 'a click beside the narrow file list does not close it (1.1.2)', file: 'js/app.js',
+    from: "if (document.body.classList.contains('side-open') && !e.target.closest('#sidebar, #sideToggle')) closeSide();", to: 'void 0;', grep: 'narrow window' },
+  { name: 'the open file list covers ☰ again (1.1.2)', file: 'compiler.css', from: 'top: var(--topbar-h, 0px);', to: 'top: 0;', grep: 'narrow window' },
+  { name: 'the top bar has backdrop-filter again (1.1.2)', file: 'compiler.css',
+    from: 'border-bottom: 1px solid var(--glass-border); position: relative; isolation: isolate;', to: 'border-bottom: 1px solid var(--glass-border); position: relative; isolation: isolate; backdrop-filter: var(--blur);', grep: 'backdrop-filter' },
+  { name: 'no room for the overlay scroll bar in the file list (1.1.2)', file: 'compiler.css', from: ':root.overlay-sb .files { padding-right: 14px; }', to: '', grep: 'scroll bar' },
 ];
 
 function runSpec(dir, grep, spec = SPEC) {

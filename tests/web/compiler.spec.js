@@ -438,3 +438,106 @@ test('phone width: no sideways scroll, Run and Stop are on the screen', async ({
   await run(page);
   await expect(out(page)).toContainText('Hello, World!');
 });
+
+// 1.1.2 (independent review): in a narrow window the open file list covered the ☰ button and a click
+// beside it did nothing - the only way out was to pick a file.
+test('narrow window: the file list closes with a click beside it, with Esc and with ☰', async ({ page }) => {
+  for (const [width, height] of [[420, 520], [760, 600]]) {
+    await openPage(page, { viewport: { width, height } });
+    const isOpen = () => page.evaluate(() => document.body.classList.contains('side-open'));
+    await page.locator('#sideToggle').click();
+    expect(await isOpen(), `${width}: opened`).toBe(true);
+    await page.waitForTimeout(250);                                        // the slide takes .15 s
+    // a click on the editor side of the window closes the list and does not run anything else
+    await page.mouse.click(width - 30, Math.round(height / 2));
+    await expect.poll(isOpen, `${width}: click beside`).toBe(false);
+    await page.locator('#sideToggle').click();
+    await page.waitForTimeout(250);
+    await page.keyboard.press('Escape');
+    await expect.poll(isOpen, `${width}: Esc`).toBe(false);
+    // ☰ stays reachable over the open list and closes it
+    await page.locator('#sideToggle').click();
+    await page.waitForTimeout(250);
+    const t = await page.locator('#sideToggle').boundingBox();
+    const top = await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e && e.closest('#sideToggle') ? 'toggle' : (e && (e.id || e.className)); }, [t.x + t.width / 2, t.y + t.height / 2]);
+    expect(top, `${width}: ☰ is not under the list`).toBe('toggle');
+    await page.mouse.click(t.x + t.width / 2, t.y + t.height / 2);
+    await expect.poll(isOpen, `${width}: ☰ closes`).toBe(false);
+    // work inside the list does not close it: new file, its name field
+    await page.locator('#sideToggle').click();
+    await page.waitForTimeout(250);
+    await page.locator('#newFile').click();
+    await expect(page.locator('#files .new-file input')).toBeVisible();
+    expect(await isOpen(), `${width}: + keeps the list`).toBe(true);
+    await page.keyboard.press('Escape');                                   // Esc cancels the name first
+    await expect(page.locator('#files .new-file input')).toHaveCount(0);
+    expect(await isOpen(), `${width}: Esc in the name field keeps the list`).toBe(true);
+  }
+});
+
+// 1.1.2 (independent review): the top bar had backdrop-filter with buttons inside. That is the cause of
+// the light band across the panel on hover found in WritingSpeed 1.1.1 and MediaPlayer 1.0.2: on the
+// graphics card Chromium recomputes the blur only in a band of the panel. Headless Chromium draws the
+// whole frame and does not show the band, so the law is about the rule: no backdrop-filter on anything
+// that holds a button, in every theme.
+test('no backdrop-filter on panels with buttons, in all five themes; the bar keeps its glass look', async ({ page }) => {
+  await openPage(page);
+  for (const th of ['glass', 'formal', 'light', 'night', 'warm']) {
+    await page.selectOption('#themeSel', th);
+    const bad = await page.evaluate(() => {
+      const out = [];
+      for (const el of document.querySelectorAll('body *')) {
+        if (!el.querySelector('button, select, input, textarea, a')) continue;
+        for (const pseudo of [null, '::before', '::after']) {
+          const bf = getComputedStyle(el, pseudo).backdropFilter;
+          if (bf && bf !== 'none') out.push((el.id || el.className || el.tagName) + (pseudo || '') + ': ' + bf);
+        }
+      }
+      return out;
+    });
+    expect(bad, th).toEqual([]);
+    const look = await page.evaluate(() => { const s = getComputedStyle(document.querySelector('.topbar'), '::before'); return { att: s.backgroundAttachment, filter: s.filter }; });
+    expect(look.att, th).toContain('fixed');
+    expect(look.filter, th).toMatch(/^saturate\(/);
+  }
+});
+
+// 1.1.2 (independent review): with many files the overlay scroll bar of the list (Chrome on Windows 11,
+// macOS) is drawn over the right edge of the rows and covered the × (delete) button. The normal run has
+// --hide-scrollbars, so this law starts its own Chromium with overlay and with classic scroll bars.
+for (const mode of ['classic', 'overlay']) {
+  test(`file list scroll bar (${mode}) keeps clear of the row buttons`, async ({ playwright }) => {
+    const browser = await playwright.chromium.launch({
+      ignoreDefaultArgs: ['--hide-scrollbars'],
+      args: ['--allow-file-access-from-files', ...(mode === 'overlay' ? ['--enable-features=OverlayScrollbar,FluentOverlayScrollbar'] : [])],
+    });
+    const page = await browser.newPage();
+    try {
+      await page.addInitScript(() => {
+        if (sessionStorage.getItem('seeded')) return;
+        sessionStorage.setItem('seeded', '1');
+        const files = {}, order = [];
+        for (let i = 0; i < 40; i++) { const n = 'file' + i + '.py'; files[n] = 'print(' + i + ')'; order.push(n); }
+        localStorage.setItem('compiler.v1', JSON.stringify({ files, order, tabs: ['file3.py'], active: 'file3.py', stdin: {} }));
+      });
+      await page.route(/^https?:\/\//, (route) => route.abort());
+      for (const [width, height] of [[1280, 720], [1024, 600], [800, 600], [420, 520]]) {
+        await page.setViewportSize({ width, height });
+        await page.goto(URL_);
+        await page.waitForSelector('html[data-ready="1"]');
+        if (width <= 760) { await page.locator('#sideToggle').click(); await page.waitForTimeout(250); }
+        const g = await page.evaluate(() => {
+          const f = document.querySelector('#files'), r = f.getBoundingClientRect();
+          const classic = f.offsetWidth - f.clientWidth;
+          const btnRight = Math.max(...[...f.querySelectorAll('.file .icon-btn')].map((b) => b.getBoundingClientRect().right));
+          return { scrolls: f.scrollHeight > f.clientHeight + 1, classic, right: r.right, btnRight };
+        });
+        expect(g.scrolls, `${width}x${height}: 40 files scroll`).toBe(true);
+        if (mode === 'classic') expect(g.classic, 'classic bar takes room').toBeGreaterThan(0);
+        // overlay: 0 px in the layout, drawn up to 14 px wide over the rows; plus a 4 px gap
+        const bar = mode === 'classic' ? g.classic : 14;
+        expect(g.btnRight + 4, `${width}x${height}: × right edge ${g.btnRight}, list right ${g.right}`).toBeLessThanOrEqual(g.right - bar);
+      }
+    } finally { await browser.close(); }
+  });
+}
