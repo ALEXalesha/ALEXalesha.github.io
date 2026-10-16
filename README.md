@@ -186,7 +186,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `jungle-strike` | Fire Jungle: a run-and-gun arcade with a boss | 11 | 7 / 7 / 6 |
 | `minecraft_clone_3d_1` | Cube World: a voxel sandbox, builds are saved | 11 | 7 / 7 / 6 |
 | `dino` | Dino Run: jump over cacti and duck under birds | 11 | 6 / 8 / 3 |
-| `rail-runner` | RailRunner («Бег по рельсам»): run along three tracks in 3D - jump, slide under bars, dodge trains. Its own repository [RailRunner](https://github.com/ALEXalesha/RailRunner); this is a copy of its `web/`, version <!--rail-ver-->1.0.0<!--/rail-ver-->, refreshed with `node tools/sync-railrunner.js [folder]` (or `RAILRUNNER_DIR`) | in RailRunner | not reviewed yet |
+| `rail-runner` | RailRunner («Бег по рельсам»): run along three tracks in 3D away from trains through five districts - 6 characters, a shop, missions, a jetpack and a tutorial. Its own repository [RailRunner](https://github.com/ALEXalesha/RailRunner); this is a copy of its `web/`, version <!--rail-ver-->2.0.0<!--/rail-ver-->, refreshed with `node tools/sync-railrunner.js [folder]` (or `RAILRUNNER_DIR`) | in RailRunner | not reviewed yet |
 | `flappy-wings` | Flappy Wings: fly between columns, one file, a fan game not affiliated with the rights holders of the genre's known games | 25 | not reviewed yet |
 | `fps_1` | Operation: Perimeter: a first-person tactical shooter, rounds against bots | 10 | 6 / 7 / 4 |
 | `roblox-mini` | Blockcity: a city of places - pick one and dress up your hero | 10 | 5 / 7 / 4 |
