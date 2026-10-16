@@ -71,6 +71,18 @@ for (const p of DATA.PROGRAMS.filter((x) => !x.url)) {
         return f.length + '|' + f[0].name + '|' + f[0].text.length + '|' + /^G1 /m.test(f[0].text);
       })()`);
       expect(g).toMatch(/^1\|[^|]+\|\d{4,}\|true$/);
+    } else if (p.id === 'calcpro-glass' || p.id === 'ios-calculator') {
+      // копии калькуляторов из Calculators (tools/sync-calculators.js): пример считается с клавиатуры,
+      // кнопок окна во вкладке нет
+      const res = p.id === 'calcpro-glass' ? '#mainResult' : '#result';
+      const btns = p.id === 'calcpro-glass' ? ['#btnMinimize', '#btnClose'] : ['#winMin', '#winClose'];
+      const r = await H.inGame(app, p.id, `(async () => {
+        for (const key of '12*7+3=') document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+        await new Promise((r) => setTimeout(r, 300));
+        const hidden = ${JSON.stringify(btns)}.every((s) => getComputedStyle(document.querySelector(s)).display === 'none');
+        return document.querySelector('${res}').textContent.trim() + '|' + hidden;
+      })()`);
+      expect(r).toBe('87|true');
     } else if (p.id === 'media-player') {
       // своя мелодия играет во вкладке; активная вкладка не молчит - сначала «без звука» самого плеера
       const pos = await H.inGame(app, p.id, `(async () => { __mp.player.setMuted(true); __mp.player.play(0); for (let i = 0; i < 100 && __mp.player.state().pos < 0.3; i++) await new Promise((r) => setTimeout(r, 100)); return __mp.player.state().pos; })()`);

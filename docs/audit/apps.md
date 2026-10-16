@@ -1,6 +1,8 @@
 # Разбор группы «приложения»
 
 > **27.09.2026:** владелец удалил страницы player, telegram, yandex-music и token-calc - они не нужны. Разбор ниже оставлен как история.
+>
+> **16.10.2026:** владелец убрал из Хаба и страницы calculator и english-abbreviations (вместе с их законами); вместо calculator в Хабе теперь калькуляторы из своего репозитория Calculators - `web/calcpro-glass` и `web/ios-calculator`.
 
 Восемь одностраничных программ из `web/`: browser_1, calculator, player, python_ide,
 telegram, yandex-music, token-calc, english-abbreviations. Каждую открыл в Playwright,

@@ -28,19 +28,26 @@ concepts and are not affiliated with any rights holders.
 
 ![A game in a tab](docs/screens/app-game.png)
 
-- **Programs.** Below the games is a "Programs" section with five programs: WritingSpeed
+- **Programs.** Below the games is a "Programs" section with seven programs: WritingSpeed
   («Скорость печати», `web/writing-speed`), a typing speed test; the Compiler («Компилятор»,
   `web/compiler`): C, C++, Python, JavaScript, TypeScript, Lua, Ruby and SQL run right
   there, offline; FilesManager («Файловый менеджер», `web/files-manager`) on a demo disk;
   Calibrate 3D Printer («Калибровка 3D-принтера», `web/calibrate3dprinter`): G-code of ten
-  calibration tests for any FDM printer; MediaPlayer («Медиаплеер», `web/media-player`).
+  calibration tests for any FDM printer; MediaPlayer («Медиаплеер», `web/media-player`); two calculators,
+  Calc Pro Glass («Калькулятор Glass», `web/calcpro-glass`) and Calculator iOS 26 («Калькулятор
+  iOS 26», `web/ios-calculator`).
   Each opens in a tab like a game and works offline. Of WritingSpeed only its page goes into
   the app (its own Electron shell and tools stay next to it); the Compiler goes in with its
   engines and the Python of `web/python_ide` (about 80 MB) and is not part of the one-file
   Hub. Calibrate 3D Printer lives in its own repository
   ([site](https://alexalesha.github.io/Calibrate3dPrinter/)); `web/calibrate3dprinter` is a
   copy of its `web/` folder, version <!--calib-ver-->1.0.0<!--/calib-ver-->, refreshed with
-  `node tools/sync-calibrate.js [folder]` (or `CALIBRATE_DIR`). No card leads out of the app.
+  `node tools/sync-calibrate.js [folder]` (or `CALIBRATE_DIR`). The calculators come from the
+  Calculators repository ([CalculatorPro](https://github.com/ALEXalesha/CalculatorPro)): copies of
+  `calcpro-glass/src` and `ios-calculator/src`, version <!--calc-ver-->1.6.0<!--/calc-ver-->,
+  refreshed with `node tools/sync-calculators.js [folder]` (or `CALCULATORS_DIR`); in a tab they
+  have no window buttons and stand in the middle. The third calculator there, Calc Pro on C# and
+  WPF, is not a page and is not in the Hub. No card leads out of the app.
 - **System demos.** Below the games is a "System demos" section: shells in the style of
   Windows 11, macOS, iOS and One UI (`win11_3`, `macos-tahoe`, `ios26`, `oneui7`; not
   affiliated with Apple/Microsoft/Samsung). Each opens in a tab like a game, with its own
@@ -107,14 +114,14 @@ npm start                 # run the app
 npm run dist              # build the installer and the portable exe into dist/
 ```
 
-The Windows x64 build gives `dist/Hub-1.1.0-Setup.exe` (NSIS, per-user, no admin
-rights, Russian) and `dist/Hub-1.1.0-Portable.exe`. Only `app/` and the
+The Windows x64 build gives `dist/Hub-1.1.1-Setup.exe` (NSIS, per-user, no admin
+rights, Russian) and `dist/Hub-1.1.1-Portable.exe`. Only `app/` and the
 folders of the games, programs and demos go into the build (about 160 MB each).
 
 ```
-npm test                  # web/ pages in Chromium (1225 checks)
-npm run test:unit         # laws of the app modules and the icon (41)
-npm run test:app          # the real app through Playwright (73, windows off-screen)
+npm test                  # web/ pages in Chromium (1185 checks)
+npm run test:unit         # laws of the app modules and the icon (51)
+npm run test:app          # the real app through Playwright (91, windows off-screen)
 pip install -r requirements-py.txt
 python -m pytest tests/py # py/ programs (183)
 ```
@@ -193,8 +200,8 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `files-manager` | FilesManager: a file explorer - folder tree, tiles/list/table, tabs, two panels, wildcard search, preview of images, text, code, audio, video, PDF, Windows Explorer hotkeys, five Paint themes, RU/EN. In the browser: a demo disk in IndexedDB or real folders through the File System Access API. Also a separate Electron app (`web/files-manager/electron`, disk work over IPC, delete only to the Recycle Bin) and a standalone repository: [FilesManager](https://github.com/ALEXalesha/FilesManager) | 9 (+13 mutants, +1 Electron) | not reviewed yet |
 | `compiler` | Compiler: C, C++ (Clang 22 → WebAssembly), Python, JavaScript, TypeScript, Lua, Ruby and SQL in the browser; time limit, Stop, stdin and typing input while the program runs, errors on their line, five Paint themes, RU/EN. Also a standalone repository: [Compiler](https://github.com/ALEXalesha/Compiler) | 33 (+27 mutants) | not reviewed yet |
 | `python_ide` | Offline Python 3.13: editor, Stop, `input()`, files | 11 | 8 |
-| `calculator` | Calculator with exact decimal arithmetic and operator precedence | 40 | 8 |
-| `english-abbreviations` | Dictionary of English abbreviations with smart search | 22 | 8 |
+| `calcpro-glass` | Calc Pro Glass («Калькулятор Glass»): Standard, Scientific, Fraction and Programmer (HEX, DEC, OCT, BIN) modes, DEG/RAD/GRAD, memory, history, five Paint themes. A copy of `calcpro-glass/src` from [CalculatorPro](https://github.com/ALEXalesha/CalculatorPro), `node tools/sync-calculators.js` | in Calculators (+1 Hub) | not reviewed yet |
+| `ios-calculator` | Calculator iOS 26 («Калькулятор iOS 26»): a calculator in the style of the iPhone one - step-by-step evaluation, scientific panel, history, five Paint themes. A copy of `ios-calculator/src` from the same repository | in Calculators (+1 Hub) | not reviewed yet |
 
 **Desktop-shell demos** (no detailed review yet, only the common law)
 

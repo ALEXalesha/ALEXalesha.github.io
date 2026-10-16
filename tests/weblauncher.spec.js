@@ -210,6 +210,44 @@ for (const mode of Object.keys(MODES)) {
   });
 }
 
+// Калькуляторы (свой репозиторий Calculators) - копии их src/ в web/calcpro-glass и
+// web/ios-calculator (tools/sync-calculators.js), вместо прежней страницы web/calculator
+// (16.10 владелец). Во вкладке: считают с клавиатуры, кнопок окна «Свернуть»/«Закрыть» нет
+// (окна у вкладки нет), а тема пишется под своим ключом - в программах он общий «calc-theme»,
+// а здесь все страницы сайта делят одно хранилище.
+const CALCS = { 'calcpro-glass': { result: '#mainResult', hidden: ['#btnMinimize', '#btnClose'], theme: 'calcPro.theme' },
+  'ios-calculator': { result: '#result', hidden: ['#winMin', '#winClose'], theme: 'calc_theme' } };
+for (const mode of Object.keys(MODES)) {
+  for (const id of Object.keys(CALCS)) {
+    test(`${mode}: «${DATA.PROGRAMS.find((x) => x.id === id).name}» во вкладке считает, без кнопок окна, тема под своим ключом`, async ({ page }) => {
+      const c = CALCS[id];
+      const { errors, external } = await launch(page, mode);
+      const frame = await openCard(page, id);
+      expect(frame.url()).toMatch(new RegExp(`/web/${id}/index\\.html$`));
+      await frame.locator(c.result).click();
+      await page.keyboard.type('12*7+3');
+      await page.keyboard.press('Enter');
+      await expect(frame.locator(c.result)).toHaveText('87');
+      for (const sel of c.hidden) await expect(frame.locator(sel)).toBeHidden();
+      // калькулятор стоит посередине вкладки, а не растянут на всю ширину
+      const box = await frame.locator('.app-shell').boundingBox();
+      const vw = await frame.evaluate(() => innerWidth);
+      expect(box.width).toBeLessThan(vw);
+      expect(Math.abs(box.x - (vw - box.width) / 2)).toBeLessThan(2);
+      const keys = await frame.evaluate(() => {
+        window.CalcTheme.apply(document.documentElement, 'night', window.CalcTheme.storage());
+        return Object.keys(localStorage);
+      });
+      expect(keys).toContain(c.theme);
+      expect(keys).not.toContain('calc-theme');
+      const own = DATA.PROGRAMS.find((x) => x.id === id).storage;
+      for (const k of keys.filter((x) => !x.startsWith('igroteka.'))) expect(own.some((p) => k.startsWith(p)), `${id} пишет чужое: ${k}`).toBe(true);
+      expect(external).toEqual([]);
+      expect(errors).toEqual([]);
+    });
+  }
+}
+
 // Компилятор во вкладке Хаба на сайте: ввод по ходу программы, как в отдельном Compiler 1.1.x
 // (там страницу изолирует свой coi-sw.js). Вкладка - рамка Хаба, а изолированной рамка бывает
 // только у изолированной страницы: её изолирует hub-coi-sw.js. До 1.1.0 Хаба программа во

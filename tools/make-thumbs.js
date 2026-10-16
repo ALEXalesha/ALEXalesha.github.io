@@ -39,6 +39,9 @@ const PLAY = {
     type: '__ws.state.words.slice(0, 7).map((w) => w.text).join(" ") + " " + __ws.state.words[7].text.slice(0, 2)' },
   // «Файловый менеджер»: на картинке - демо-диск, папка «Проекты» с кодом
   files_manager: { noStart: true, hold: [], wait: 600, ready: '() => window.__fm && __fm.ready' },
+  // Калькуляторы (копии из Calculators): на картинке - посчитанный пример
+  calcpro_glass: { noStart: true, hold: [], wait: 500, type: '"12*7+3="' },
+  ios_calculator: { noStart: true, hold: [], wait: 500, type: '"12*7+3="' },
   mario: { hold: ['ArrowRight'], wait: 1800 },
   jungle_strike: { hold: ['ArrowRight'], wait: 1500 },
   horizon_drift_offline: { buttons: [/Свободная езда/, /поехать/i], hold: ['ArrowUp'], wait: 5000, noStart: true },

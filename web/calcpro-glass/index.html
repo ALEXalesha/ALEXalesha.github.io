@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calc Pro</title>
+<meta name="application-name" content="Калькулятор Glass">
+<style id="hub-embed">
+  /* Хаб: копия для вкладки (tools/sync-calculators.js) - окна нет */
+  #btnMinimize, #btnClose { display: none !important; }
+  .drag-zone, .drag { -webkit-app-region: no-drag !important; }
+  :root:root, :root:root body { background: color-mix(in srgb, var(--app-base) 72%, #000) !important; }
+  :root .app-shell { top: max(0px, calc((100vh - 760px) / 2)); bottom: max(0px, calc((100vh - 760px) / 2)); left: max(0px, calc((100vw - 460px) / 2)); right: max(0px, calc((100vw - 460px) / 2)); }
+</style>
+<link rel="stylesheet" href="themes.css">
+<script src="theme.js"></script>
+<style>
+/* ===== Reset ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== Клавиши: цвета берутся из темы (themes.css) ===== */
+:root {
+  --apple-orange:       var(--accent-grad);
+  --apple-orange-hover: var(--accent-grad);
+  --apple-digit:        rgb(var(--key-rgb) / 0.55);
+  --apple-digit-hover:  rgb(var(--key-rgb) / 0.70);
+  --apple-util:         rgb(var(--util-rgb) / 0.62);
+  --apple-util-hover:   rgb(var(--util-rgb) / 0.78);
+  --apple-del:          rgba(255,91,91,0.45);
+  --apple-del-hover:    rgba(255,120,120,0.6);
+}
+
+/* ===== Body & Background ===== */
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  color: var(--text);
+  user-select: none;
+  -webkit-user-select: none;
+  font-variant-numeric: tabular-nums;
+  background: transparent;
+}
+
+body {
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* App-shell: exact background from CalculatorNEW */
+.app-shell {
+  position: fixed; inset: 0;
+  border-radius: 26px;
+  overflow: hidden;
+  background-color: var(--app-base);
+  background-image: var(--app-bg);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--ink) / 0.18),
+    inset 0 1px 0 rgb(var(--ink) / 0.35),
+    inset 0 -1px 0 rgba(0,0,0,0.35),
+    0 18px 60px rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
+}
+/* Inner ring highlight (also from NEW) */
+.app-shell::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  border-radius: 26px;
+  box-shadow:
+    inset 0 0 0 0.5px rgb(var(--ink) / 0.25),
+    inset 0 0 12px rgb(var(--ink) / 0.06);
+  z-index: 250;
+}
+
+/* Drag zone: separate from header so it does not block win-controls.
+   z-index MUST be above .titlebar (3) so the drag region wins hit-testing
+   over the titlebar text strip, while staying below .win-controls (1000)
+   so the close/minimize/history buttons keep receiving clicks. */
+.drag-zone {
+  position: absolute;
+  top: 0; left: 0;
+  height: 38px;
+  right: 124px; /* reserve space for win-controls */
+  -webkit-app-region: drag;
+  z-index: 5;
+}
+
+/* Window controls (top-right, floating above app-shell) */
+.win-controls {
+  position: absolute;
+  top: 8px; right: 10px;
+  display: flex; gap: 6px;
+  z-index: 1000;
+  -webkit-app-region: no-drag;
+  pointer-events: auto;
+}
+.win-btn {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 0.5px solid rgb(var(--ink) / 0.18);
+  background: rgb(var(--ink) / 0.12);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: var(--text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; line-height: 1;
+  transition: background 0.15s ease;
+  padding: 0;
+  outline: none;
+}
+.win-btn svg { pointer-events: none; }
+.win-btn:hover { background: rgb(var(--ink) / 0.22); }
+.win-btn.close:hover { background: rgba(255, 80, 80, 0.85); }
+.win-btn.history.active { background: rgb(var(--accent-rgb) / 0.55); }
+
+/* ===== Header (drag handled by .drag-zone overlay, which sits above) ===== */
+.titlebar {
+  position: relative; z-index: 3;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 124px 0 14px; /* right padding reserves space for win-controls */
+  flex-shrink: 0;
+}
+
+.titlebar-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  opacity: 0.95;
+  text-transform: none;
+}
+
+.titlebar-controls {
+  display: none; /* legacy: window controls moved out to .win-controls */
+}
+
+.tb-btn {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+  line-height: 1;
+  box-shadow: var(--glass-inset);
+  padding: 0;
+}
+
+.tb-btn svg { width: 12px; height: 12px; display: block; }
+
+.tb-btn:hover {
+  background: var(--glass-bg-strong);
+  color: var(--text);
+  border-color: var(--glass-border-strong);
+  transform: translateY(-1px);
+}
+
+.tb-btn.close:hover {
+  background: rgba(255, 80, 80, 0.55);
+  border-color: rgba(255, 120, 120, 0.6);
+  color: var(--text);
+}
+.tb-btn.minimize:hover {
+  background: rgb(var(--accent-rgb) / 0.45);
+  border-color: rgba(255, 210, 80, 0.5);
+  color: var(--text);
+}
+.tb-btn.history.active {
+  background: rgb(var(--accent-rgb) / 0.45);
+  border-color: rgb(var(--accent-rgb) / 0.6);
+  color: var(--text);
+}
+
+/* ===== Mode Tabs ===== */
+.mode-tabs-wrap {
+  position: relative; z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px 6px;
+  flex-shrink: 0;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--glass-bg-soft);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inset);
+  flex: 1;
+}
+
+.mode-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 6px 4px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: clamp(9.5px, 2.2vw, 11px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
+  text-align: center;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: inherit;
+}
+
+.mode-tab .short { display: none; }
+@media (max-width: 420px) {
+  .mode-tab .full { display: none; }
+  .mode-tab .short { display: inline; }
+}
+
+.mode-tab.active {
+  background: var(--accent-grad);
+  color: var(--on-accent);
+  border-color: transparent;
+  box-shadow: 0 2px 14px rgb(var(--accent-rgb) / 0.45), inset 0 1px 0 rgb(var(--ink) / 0.3);
+}
+
+.mode-tab:not(.active):hover {
+  background: var(--glass-bg);
+  color: var(--text);
+}
+
+.angle-pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  display: none;
+  box-shadow: var(--glass-inset);
+  font-family: inherit;
+}
+
+.angle-pill.visible { display: block; }
+
+.angle-pill:hover {
+  background: var(--glass-bg);
+  color: var(--text);
+  border-color: var(--glass-border-strong);
+}
+
+.angle-pill.rad {
+  background: rgb(var(--accent-rgb) / 0.25);
+  color: var(--text);
+  border-color: rgb(var(--accent-rgb) / 0.45);
+}
+
+/* ===== Display (no card, just floating text) ===== */
+.calc-display {
+  position: relative; z-index: 2;
+  padding: clamp(8px,1.6vh,18px) clamp(14px,2.4vw,24px) clamp(6px,1vh,10px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 4px;
+  min-height: clamp(80px, 14vh, 130px);
+  flex-shrink: 0;
+  transition: filter 0.3s ease;
+}
+
+.calc-display.error-glow .main-result { color: #ff8585; text-shadow: 0 0 20px rgba(255,80,80,0.55); }
+
+.history-line {
+  font-size: clamp(11px, 1.8vh, 16px);
+  color: var(--text-dim);
+  text-align: right;
+  min-height: 18px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.main-result {
+  font-size: clamp(32px, 7vh, 64px);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  text-align: right;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.05;
+  color: var(--text);
+  text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease, font-size 0.2s ease;
+}
+
+.main-result.animate-in {
+  animation: resultIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes resultIn {
+  0%   { transform: translateY(18px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+
+.fraction-line {
+  font-size: 18px;
+  color: var(--accent);
+  text-align: right;
+  min-height: 22px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-shadow: 0 0 12px rgb(var(--accent-rgb) / 0.45);
+}
+.fraction-line.visible { opacity: 1; }
+
+/* ===== Stacked-fraction rendering (fractions mode) ===== */
+.frac-term {
+  display: inline-flex; align-items: center;
+  vertical-align: middle;
+}
+.frac-whole { font-size: 1em; padding: 0 2px; }
+.frac-gap { width: 0.25em; display: inline-block; }
+.frac-stack {
+  display: inline-flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  line-height: 1; font-size: 0.55em; vertical-align: middle;
+  padding: 0 4px;
+}
+.frac-num, .frac-den { padding: 1px 6px; min-width: 0.6em; text-align: center; }
+.frac-bar {
+  width: 100%; height: 2px; background: currentColor;
+  margin: 2px 0; border-radius: 1px; min-width: 22px;
+}
+.frac-active {
+  background: rgb(var(--accent-rgb) / 0.28);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.5), 0 0 12px rgb(var(--accent-rgb) / 0.4);
+  animation: fracBlink 1s ease-in-out infinite;
+}
+@keyframes fracBlink {
+  0%, 100% { box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.5), 0 0 12px rgb(var(--accent-rgb) / 0.4); }
+  50%      { box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.75), 0 0 18px rgb(var(--accent-rgb) / 0.65); }
+}
+.frac-placeholder { color: var(--text-dim); font-weight: 300; opacity: 0.55; }
+.frac-op { padding: 0 8px; color: var(--accent); font-weight: 500; }
+.main-fraction { display: inline-flex; align-items: center; }
+.main-decimal { display: inline-block; }
+.btn-frac { font-weight: 500; }
+
+.main-result.shrink-1 { font-size: clamp(28px, 5.6vh, 52px); }
+.main-result.shrink-2 { font-size: clamp(24px, 4.6vh, 40px); }
+.main-result.shrink-3 { font-size: clamp(20px, 3.6vh, 30px); }
+.main-result.shrink-4 { font-size: clamp(16px, 2.8vh, 22px); }
+
+/* ===== Keys grid (no card) ===== */
+.calc-keys {
+  position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(4px, 1vh, 10px);
+  /* Side/bottom padding keeps the outer buttons inside the window's 26px rounded
+     corners; with less, the corners of "+/-" and "=" were clipped. */
+  padding: clamp(6px, 1.4vh, 12px) 16px 18px;
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-auto-rows: 1fr;
+  align-content: stretch;
+}
+
+.calc-keys.scientific {
+  gap: clamp(3px, 0.9vh, 7px);
+  padding: clamp(4px, 1vh, 8px) 14px 16px;
+}
+
+/* ===== Apple-style Liquid-Glass Buttons ===== */
+.btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--glass-border);
+  background: var(--apple-digit);
+  color: var(--text);
+  font-size: clamp(15px, 3.2vh, 28px);
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.15s cubic-bezier(0.34,1.56,0.64,1),
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    filter 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(48px) saturate(200%);
+  -webkit-backdrop-filter: blur(48px) saturate(200%);
+  box-shadow:
+    var(--glass-inset),
+    0 4px 14px rgba(0,0,0,0.28);
+  font-family: inherit;
+  padding: 0;
+  line-height: 1;
+}
+
+.calc-keys.scientific .btn {
+  font-size: clamp(13px, 2.4vh, 22px);
+  border-radius: 999px;
+}
+
+.btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  border-color: var(--glass-border-strong);
+  box-shadow:
+    var(--glass-inset),
+    0 6px 18px rgba(0,0,0,0.38);
+}
+
+.btn:active {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
+  filter: brightness(0.95);
+}
+
+/* Digit buttons (default) */
+.btn-digit {
+  background: var(--apple-digit);
+  font-weight: 400;
+  color: var(--text);
+}
+.btn-digit:hover { background: var(--apple-digit-hover); }
+
+/* Operator buttons (orange) */
+.btn-op {
+  background: var(--apple-orange);
+  border-color: rgb(var(--accent-rgb) / 0.45);
+  color: var(--on-accent);
+  font-size: clamp(17px, 3.6vh, 32px);
+  font-weight: 500;
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink) / 0.45),
+    inset 0 -1px 0 rgba(0,0,0,0.1),
+    0 4px 18px rgb(var(--accent-rgb) / 0.42);
+}
+.btn-op:hover {
+  background: var(--apple-orange-hover);
+  filter: brightness(1.12);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink) / 0.55),
+    inset 0 -1px 0 rgba(0,0,0,0.1),
+    0 6px 24px rgb(var(--accent-rgb) / 0.55);
+}
+.btn-op.active-op {
+  background: var(--text);
+  color: var(--accent);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink) / 0.85),
+    0 4px 22px rgb(var(--accent-rgb) / 0.65);
+}
+.calc-keys.scientific .btn-op { font-size: clamp(15px, 2.8vh, 24px); }
+
+/* Equals = same orange */
+.btn-eq {
+  background: var(--apple-orange);
+  border-color: rgb(var(--accent-rgb) / 0.45);
+  color: var(--on-accent);
+  font-size: clamp(17px, 3.6vh, 32px);
+  font-weight: 500;
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink) / 0.45),
+    0 4px 18px rgb(var(--accent-rgb) / 0.42);
+}
+.btn-eq:hover {
+  background: var(--apple-orange-hover);
+  filter: brightness(1.12);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink) / 0.55),
+    0 6px 24px rgb(var(--accent-rgb) / 0.6);
+}
+.calc-keys.scientific .btn-eq { font-size: clamp(15px, 2.8vh, 24px); }
+
+/* Top-row utility (AC, +/-, %) — light glass, BLACK text */
+.btn-util {
+  background: var(--apple-util);
+  color: var(--util-text);
+  font-weight: 500;
+  border-color: rgb(var(--ink) / 0.4);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink) / 0.55),
+    inset 0 -1px 0 rgba(0,0,0,0.05),
+    0 4px 14px rgba(0,0,0,0.22);
+}
+.btn-util:hover { background: var(--apple-util-hover); }
+
+/* DEL / backspace — red tint, white text */
+.btn-del {
+  background: var(--apple-del);
+  color: var(--text);
+  font-weight: 500;
+  border-color: rgb(var(--accent-rgb) / 0.5);
+}
+.btn-del:hover { background: var(--apple-del-hover); }
+
+/* Scientific function buttons — softer dark glass, smaller */
+.btn-sci {
+  background: rgb(var(--key-rgb) / 0.4);
+  color: var(--text);
+  font-size: clamp(11px, 2vh, 17px);
+  font-weight: 500;
+  border-color: rgb(var(--ink) / 0.14);
+}
+.calc-keys.scientific .btn-sci {
+  font-size: clamp(11px, 2vh, 17px);
+}
+.btn-sci:hover { background: rgb(var(--key-rgb) / 0.7); color: var(--text); }
+.btn-sci.toggle-on {
+  background: rgb(var(--accent-rgb) / 0.4);
+  color: var(--text);
+  border-color: rgb(var(--accent-rgb) / 0.55);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink) / 0.4),
+    0 4px 18px rgb(var(--accent-rgb) / 0.5);
+}
+
+/* Wide zero (capsule) */
+.btn-zero {
+  grid-column: span 2;
+  border-radius: 999px;
+  justify-content: flex-start;
+  padding-left: clamp(16px, 4vw, 32px);
+}
+
+/* ===== Ripple ===== */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle,
+    rgb(var(--ink) / 0.55) 0%,
+    rgb(var(--ink) / 0.25) 35%,
+    rgba(120,180,255,0.10) 70%,
+    transparent 100%);
+  box-shadow: inset 0 0 12px rgb(var(--ink) / 0.4), 0 0 18px rgb(var(--accent-rgb) / 0.4);
+  transform: translate(-50%,-50%) scale(0);
+  animation: rippleGrow 0.65s ease-out forwards;
+  z-index: 5;
+}
+
+@keyframes rippleGrow {
+  0%   { transform: translate(-50%,-50%) scale(0);   opacity: 0.9; }
+  100% { transform: translate(-50%,-50%) scale(2.6); opacity: 0; }
+}
+
+/* ===== Меню тем ===== */
+.theme-menu {
+  position: absolute;
+  top: 40px; right: 10px;
+  min-width: 190px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border-strong);
+  backdrop-filter: var(--blur-strong);
+  -webkit-backdrop-filter: var(--blur-strong);
+  box-shadow: var(--glass-shadow), var(--glass-inset);
+  z-index: 1001;
+  -webkit-app-region: no-drag;
+  opacity: 0; transform: translateY(-4px); pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.theme-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+/* Подложка под списком плотнее самого стекла: список лежит поверх клавиш, и без неё
+   надписи пунктов сливались бы с цифрами под ними. */
+.theme-menu::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: -1;
+  background: var(--app-base); opacity: 0.82;
+}
+.theme-item {
+  width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  border: none; border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font: inherit; font-size: 13px; text-align: left;
+  cursor: pointer;
+}
+.theme-item:hover { background: var(--glass-bg-strong); }
+.theme-item .check { width: 14px; color: var(--accent); font-weight: 700; }
+.theme-item .note { display: block; font-size: 10.5px; color: var(--text-dim); margin-top: 1px; }
+.win-btn.theme.active { background: rgb(var(--accent-rgb) / 0.55); }
+
+/* ===== Tooltip ===== */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute; top: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%);
+  /* Подсказка тёмная в любой теме, и текст на ней всегда светлый - как подложки над
+     холстом в Paint: светлый текст темы на тёмной подложке пропал бы в светлой теме. */
+  background: rgba(20,20,30,0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  color: #f4f4f8;
+  padding: 6px 10px; border-radius: 8px;
+  font-size: 11px; font-weight: 500;
+  white-space: nowrap; pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+/* ===== History Panel ===== */
+.history-panel {
+  position: absolute;
+  top: 38px; right: 0; left: 0;
+  width: auto;
+  height: calc(100% - 38px);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--blur-strong);
+  -webkit-backdrop-filter: var(--blur-strong);
+  border-top: 1px solid var(--glass-border-strong);
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.45), var(--glass-inset);
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.4, 0.0, 0.2, 1);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-panel.open { transform: translateX(0); }
+
+.history-header {
+  padding: 12px 124px 12px 14px; /* reserve right space for win-controls */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgb(var(--ink) / 0.08);
+  flex-shrink: 0;
+}
+
+.history-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.history-clear {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.history-clear:hover { background: rgba(255,91,91,0.25); color: #ffbcbc; border-color: rgba(255,120,120,0.45); }
+.history-clear svg { width: 14px; height: 14px; }
+
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px 14px;
+}
+
+.history-list::-webkit-scrollbar { width: 8px; }
+.history-list::-webkit-scrollbar-track { background: transparent; }
+.history-list::-webkit-scrollbar-thumb {
+  background: rgb(var(--ink) / 0.18);
+  border-radius: 999px;
+}
+
+.history-item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  border: 1px solid transparent;
+}
+.history-item:hover {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  transform: translateX(-2px);
+}
+/* Длинный пример переносится, а не обрезается многоточием: в узком окне от
+   «123456789×987654321+111111111×2222…» оставалось полпримера. Строка ломается
+   после знака операции (app.js ставит там невидимый разрыв), а число длиннее строки -
+   где придётся. */
+.history-item-expr {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  margin-bottom: 2px;
+}
+.history-item-result {
+  font-size: 18px;
+  color: var(--text);
+  text-align: right;
+  font-weight: 500;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.history-empty {
+  color: var(--text-dim);
+  font-size: 12px;
+  text-align: center;
+  padding: 30px 14px;
+  font-style: italic;
+}
+
+/* ===== «Программист» (1.6.0) ===== */
+.calc-keys.programmer {
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(3px, 0.9vh, 7px);
+  padding: clamp(4px, 1vh, 8px) 14px 16px;
+}
+.calc-keys.programmer .btn { font-size: clamp(12px, 2.3vh, 20px); }
+.calc-keys.programmer .btn-sci { font-size: clamp(11px, 2vh, 16px); }
+.calc-keys .span-2 { grid-column: span 2; }
+/* Цифры, которых в выбранной системе нет, видны, но нажать их нельзя. */
+.btn:disabled {
+  opacity: 0.32;
+  cursor: default;
+  filter: none;
+  transform: none;
+}
+.base-rows {
+  position: relative; z-index: 2;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 14px 4px;
+  flex-shrink: 0;
+}
+.base-rows.visible { display: flex; }
+.base-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 3px 10px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.base-row:hover { background: var(--glass-bg-soft); }
+.base-row.active {
+  background: var(--glass-bg);
+  border-color: rgb(var(--accent-rgb) / 0.8);
+}
+.base-row .base-name {
+  flex: 0 0 34px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+/* Число прижато вправо; 64 двоичных разряда не влезают - шрифт ужимает app.js. */
+.base-row .base-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Memory row (scientific only) ===== */
+.mem-row {
+  position: relative; z-index: 2;
+  display: none;
+  gap: 6px;
+  padding: 0 14px 6px;
+  flex-shrink: 0;
+}
+.mem-row.visible { display: flex; }
+
+.mem-btn {
+  flex: 1;
+  padding: 5px 0;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  backdrop-filter: blur(14px) saturate(160%);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: inherit;
+}
+.mem-btn:hover {
+  background: var(--glass-bg);
+  color: var(--text);
+  border-color: var(--glass-border-strong);
+}
+.mem-btn.flash {
+  animation: memFlash 0.45s ease;
+}
+@keyframes memFlash {
+  0%   { background: rgb(var(--accent-rgb) / 0.55); color: var(--text); }
+  100% { background: var(--glass-bg-soft); }
+}
+
+::-webkit-scrollbar { width: 0; height: 0; }
+
+.btn, .mem-btn, .mode-tab, .tb-btn, .angle-pill, .history-clear, .history-item {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ===== Маленькое окно =====
+   Минимум окна 280x500 (main.js), как у калькулятора Windows (320x500). В низком
+   окне табло и отступы ужимаются: научному режиму нужны двенадцать рядов клавиш,
+   и без этого ряды выходили по 14 px, а над ними пустовало табло. */
+@media (max-height: 600px) {
+  .mode-tabs-wrap { padding: 2px 14px 4px; }
+  .mode-tab { padding: 4px; }
+  .angle-pill { padding-top: 4px; padding-bottom: 4px; }
+  .mem-row { padding-bottom: 4px; }
+  .mem-btn { padding: 3px 0; }
+  .calc-display { min-height: 60px; padding-top: 2px; padding-bottom: 4px; gap: 2px; }
+  .history-line { min-height: 14px; }
+  .fraction-line { min-height: 16px; font-size: 14px; }
+  .main-result { font-size: clamp(28px, 7vh, 64px); }
+  .calc-keys.scientific { padding: 2px 14px 14px; gap: 3px; }
+  .calc-keys.programmer { padding: 2px 14px 14px; gap: 3px; }
+  .base-row { padding: 1px 10px; }
+}
+/* Узкое окно: подписи вкладок без разрядки, иначе STANDARD вылезал за вкладку. */
+@media (max-width: 300px) {
+  .mode-tab { letter-spacing: 0; }
+  .angle-pill { padding-left: 8px; padding-right: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+<!-- Drag zone (covers top strip, except win-controls area) -->
+<div class="drag-zone"></div>
+
+<!-- Window controls (top-right, floating) -->
+<div class="win-controls">
+  <button type="button" class="win-btn theme" id="btnTheme" title="Тема оформления" aria-haspopup="true" aria-expanded="false">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5a6.5 6.5 0 1 0 0 13c.9 0 1.3-.6 1.3-1.2 0-.8-.7-1-.7-1.8 0-.7.6-1.2 1.3-1.2h1.6a3.5 3.5 0 0 0 3.5-3.5C15 3.9 11.9 1.5 8 1.5Z"/><circle cx="4.8" cy="7.2" r="0.9" fill="currentColor"/><circle cx="7.3" cy="4.4" r="0.9" fill="currentColor"/><circle cx="10.7" cy="5.2" r="0.9" fill="currentColor"/></svg>
+  </button>
+  <button type="button" class="win-btn history" id="btnHistory" title="История (Ctrl+H)">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <polyline points="12 7 12 12 15 14"/>
+    </svg>
+  </button>
+  <button type="button" class="win-btn" id="btnMinimize" title="Свернуть">
+    <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1.5"/></svg>
+  </button>
+  <button type="button" class="win-btn close" id="btnClose" title="Закрыть">
+    <svg width="10" height="10" viewBox="0 0 10 10"><line x1="2" y1="2" x2="8" y2="8" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="2" x2="2" y2="8" stroke="currentColor" stroke-width="1.5"/></svg>
+  </button>
+</div>
+
+<!-- Список тем: те же пять, что в Paint Pro («Вид → Тема») -->
+<div class="theme-menu" id="themeMenu" role="menu" aria-label="Тема"></div>
+
+<!-- Header (title only; drag is on .drag-zone above) -->
+<div class="titlebar" id="titlebar">
+  <span class="titlebar-title">Калькулятор</span>
+</div>
+
+<!-- Mode tabs -->
+<div class="mode-tabs-wrap">
+  <div class="mode-tabs">
+    <!-- Две подписи: полная и короткая. Четыре полных в узком окне не помещаются. -->
+    <button class="mode-tab active" id="tabStandard" data-mode="standard" title="Standard"><span class="full">Standard</span><span class="short">Std</span></button>
+    <button class="mode-tab" id="tabScientific" data-mode="scientific" title="Scientific"><span class="full">Scientific</span><span class="short">Sci</span></button>
+    <button class="mode-tab" id="tabFraction" data-mode="fraction" title="Fraction"><span class="full">Fraction</span><span class="short">Frac</span></button>
+    <button class="mode-tab" id="tabProgrammer" data-mode="programmer" title="Programmer: HEX, DEC, OCT, BIN и битовые операции"><span class="full">Programmer</span><span class="short">Prog</span></button>
+  </div>
+  <button class="angle-pill" id="anglePill" title="Toggle Rad/Deg">DEG</button>
+</div>
+
+<!-- Memory row (scientific only) -->
+<div class="mem-row" id="memRow">
+  <button class="mem-btn" id="memClear">MC</button>
+  <button class="mem-btn" id="memRecall">MR</button>
+  <button class="mem-btn" id="memPlus">M+</button>
+  <button class="mem-btn" id="memMinus">M−</button>
+  <button class="mem-btn" id="memStore">MS</button>
+</div>
+
+<!-- Display -->
+<div class="calc-display" id="calcDisplay">
+  <div class="history-line" id="historyLine">&nbsp;</div>
+  <div class="main-result" id="mainResult">0</div>
+  <div class="fraction-line" id="fractionLine"></div>
+</div>
+
+<!-- «Программист»: число во всех четырёх системах; щелчок - вводить в этой -->
+<div class="base-rows" id="baseRows"></div>
+
+<!-- Keys -->
+<div class="calc-keys" id="calcKeys"></div>
+
+<!-- History panel -->
+<div class="history-panel" id="historyPanel">
+  <div class="history-header">
+    <span class="history-title">История</span>
+    <button class="history-clear" id="historyClear" title="Очистить">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6"/><path d="M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </button>
+  </div>
+  <div class="history-list" id="historyList"></div>
+</div>
+
+</div><!-- /.app-shell -->
+
+<script src="calc-core.js"></script>
+<script src="programmer-core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+Calculator iOS 26 1.6.0 (Calculators, commit b341418)
+https://github.com/ALEXalesha/CalculatorPro - folder ios-calculator/src/ as is, plus <meta name="application-name">,
+<style id="hub-embed"> (no window buttons in a tab, centred) and its own theme key in theme.js.
+Do not edit here: fix it in Calculators and run node tools/sync-calculators.js.

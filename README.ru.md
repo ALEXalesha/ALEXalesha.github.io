@@ -27,19 +27,25 @@ Windows - в [выпусках](https://github.com/ALEXalesha/ALEXalesha.github.
 
 ![Игра во вкладке](docs/screens/app-game.png)
 
-- **Программы.** Под играми - раздел «Программы», в нём пять программ: «Скорость печати»
+- **Программы.** Под играми - раздел «Программы», в нём семь программ: «Скорость печати»
   (WritingSpeed, `web/writing-speed`), тест скорости печати; «Компилятор» (`web/compiler`):
   C, C++, Python, JavaScript, TypeScript, Lua, Ruby и SQL запускаются прямо здесь, без сети;
   «Файловый менеджер» (`web/files-manager`) на демо-диске; «Калибровка 3D-принтера»
   (Calibrate 3D Printer, `web/calibrate3dprinter`): G-code десяти калибровочных тестов для
-  любого FDM-принтера; «Медиаплеер» (`web/media-player`). Каждая открывается во вкладке, как
+  любого FDM-принтера; «Медиаплеер» (`web/media-player`); два калькулятора - «Калькулятор
+  Glass» (Calc Pro Glass, `web/calcpro-glass`) и «Калькулятор iOS 26» (Calculator iOS 26,
+  `web/ios-calculator`). Каждая открывается во вкладке, как
   игра, и работает без сети. От «Скорости печати» в приложение попадает только её страница
   (своя оболочка Electron и инструменты лежат рядом); «Компилятор» идёт со своими движками и
   Python из `web/python_ide` (около 80 МБ) и в «Хаб одним файлом» не входит.
   «Калибровка» живёт в своём репозитории ([сайт](https://alexalesha.github.io/Calibrate3dPrinter/));
   `web/calibrate3dprinter` - копия её папки `web/`, версия <!--calib-ver-->1.0.0<!--/calib-ver-->,
-  обновляется командой `node tools/sync-calibrate.js [папка]` (или `CALIBRATE_DIR`). Ни одна
-  карточка не уводит из приложения наружу.
+  обновляется командой `node tools/sync-calibrate.js [папка]` (или `CALIBRATE_DIR`).
+  Калькуляторы - из репозитория Calculators ([CalculatorPro](https://github.com/ALEXalesha/CalculatorPro)):
+  копии `calcpro-glass/src` и `ios-calculator/src`, версия <!--calc-ver-->1.6.0<!--/calc-ver-->,
+  обновляются командой `node tools/sync-calculators.js [папка]` (или `CALCULATORS_DIR`); во вкладке
+  у них нет кнопок окна, и они стоят посередине. Третий калькулятор оттуда, Calc Pro на C# и WPF, -
+  не страница, в Хаб он не входит. Ни одна карточка не уводит из приложения наружу.
 - **Демо систем.** Под играми - раздел «Демо систем»: оболочки в духе Windows 11, macOS,
   iOS и One UI (`win11_3`, `macos-tahoe`, `ios26`, `oneui7`; не связаны с
   Apple/Microsoft/Samsung). Каждое открывается во вкладке, как игра, со своим хранилищем;
@@ -107,14 +113,14 @@ npm start                 # запустить приложение
 npm run dist              # собрать установщик и portable в dist/
 ```
 
-Сборка для Windows x64: `dist/Hub-1.1.0-Setup.exe` (NSIS, для одного
-пользователя, без прав администратора, на русском) и `dist/Hub-1.1.0-Portable.exe`,
+Сборка для Windows x64: `dist/Hub-1.1.1-Setup.exe` (NSIS, для одного
+пользователя, без прав администратора, на русском) и `dist/Hub-1.1.1-Portable.exe`,
 около 160 МБ. В сборку попадают только `app/` и папки игр, программ и демо.
 
 ```
-npm test                  # страницы web/ в Chromium (1225 проверок)
-npm run test:unit         # законы модулей приложения и значка (41)
-npm run test:app          # настоящее приложение через Playwright (73, окна за экраном)
+npm test                  # страницы web/ в Chromium (1185 проверок)
+npm run test:unit         # законы модулей приложения и значка (51)
+npm run test:app          # настоящее приложение через Playwright (91, окна за экраном)
 pip install -r requirements-py.txt
 python -m pytest tests/py # программы py/ (183)
 ```
@@ -194,8 +200,8 @@ python -m pytest tests/py # программы py/ (183)
 | `files-manager` | Файловый менеджер: дерево папок, плитки/список/таблица, вкладки, две панели, поиск по маске, просмотр картинок, текста, кода, аудио, видео, PDF, горячие клавиши Проводника, пять тем Paint, RU/EN. В браузере - демо-диск в IndexedDB или настоящие папки через File System Access API. Есть и отдельной программой на Electron (`web/files-manager/electron`, диск через IPC, удаление только в Корзину) и отдельным репозиторием: [FilesManager](https://github.com/ALEXalesha/FilesManager) | 9 (+13 мутантов, +1 Electron) | ещё не оценён |
 | `compiler` | Компилятор: C, C++ (Clang 22 → WebAssembly), Python, JavaScript, TypeScript, Lua, Ruby и SQL в браузере; предел времени, «Стоп», ввод stdin и ввод по ходу программы, ошибки на своей строке, пять тем Paint, RU/EN. Есть и отдельным репозиторием: [Compiler](https://github.com/ALEXalesha/Compiler) | 33 (+27 мутантов) | ещё не оценён |
 | `python_ide` | Python 3.13 без интернета: редактор, «Стоп», `input()`, файлы | 11 | 8 |
-| `calculator` | Калькулятор с точной десятичной арифметикой и приоритетом операций | 40 | 8 |
-| `english-abbreviations` | Словарь английских сокращений с умным поиском | 22 | 8 |
+| `calcpro-glass` | «Калькулятор Glass» (Calc Pro Glass): режимы Standard, Scientific, Fraction и Programmer (HEX, DEC, OCT, BIN), DEG/RAD/GRAD, память, история, пять тем Paint. Копия `calcpro-glass/src` из [CalculatorPro](https://github.com/ALEXalesha/CalculatorPro), `node tools/sync-calculators.js` | в Calculators (+1 в Хабе) | ещё не оценён |
+| `ios-calculator` | «Калькулятор iOS 26» (Calculator iOS 26): калькулятор в духе калькулятора iPhone - пошаговое вычисление, научная панель, история, пять тем Paint. Копия `ios-calculator/src` из того же репозитория | в Calculators (+1 в Хабе) | ещё не оценён |
 
 **Демо оболочек** (подробного разбора пока нет, проверяет только общий закон)
 

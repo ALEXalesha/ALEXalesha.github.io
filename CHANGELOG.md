@@ -1,9 +1,20 @@
 # Changelog / Журнал изменений
 
-## Unreleased
+## 1.1.1 - 2026-10-17
 
 **EN**
 
+- Two calculators in "Programs" instead of the old `web/calculator` page: Calc Pro Glass
+  («Калькулятор Glass», `web/calcpro-glass`: Standard, Scientific, Fraction and Programmer modes)
+  and Calculator iOS 26 («Калькулятор iOS 26», `web/ios-calculator`). Both come from the
+  Calculators repository (CalculatorPro 1.6.0, commit b341418) as copies of their `src/`, refreshed
+  with `node tools/sync-calculators.js [folder]` (or `CALCULATORS_DIR`). In a tab they have no
+  "minimize" and "close" buttons and stand in the middle at the size of a large window; the theme
+  is kept under its own key in each (`calcPro.theme`, `calc_theme`), because in the browser all
+  pages of the site share one storage. The third calculator, Calc Pro on C# and WPF, is not a page
+  and is not in the Hub. Laws: in the browser Hub (counts 12*7+3, no window buttons, centred, own
+  theme key) and in the app.
+- Removed by the owner: the pages `web/calculator` and `web/english-abbreviations` with their laws.
 - FilesManager 1.0.3: tabs and the folder are saved at once (a new tab followed by a reload or a
   closed window was lost - it was written 200 ms later); ">" in the address bar on the demo disk
   opens the folder menu again (the document click closed it in the same click) and has a tooltip;
@@ -40,6 +51,17 @@
 
 **RU**
 
+- Два калькулятора в «Программах» вместо прежней страницы `web/calculator`: «Калькулятор Glass»
+  (Calc Pro Glass, `web/calcpro-glass`: режимы Standard, Scientific, Fraction и Programmer) и
+  «Калькулятор iOS 26» (Calculator iOS 26, `web/ios-calculator`). Оба - из репозитория Calculators
+  (CalculatorPro 1.6.0, коммит b341418), копии их `src/`, обновляются командой
+  `node tools/sync-calculators.js [папка]` (или `CALCULATORS_DIR`). Во вкладке у них нет кнопок
+  «Свернуть» и «Закрыть», и они стоят посередине в размере большого окна; тема у каждого под своим
+  ключом (`calcPro.theme`, `calc_theme`) - в браузере все страницы сайта делят одно хранилище.
+  Третий калькулятор, Calc Pro на C# и WPF, - не страница, в Хаб он не входит. Законы: в браузерном
+  Хабе (считает 12*7+3, без кнопок окна, посередине, свой ключ темы) и в приложении.
+- Убраны по решению владельца: страницы `web/calculator` и `web/english-abbreviations` вместе с их
+  законами.
 - Файловый менеджер 1.0.3: вкладки и папка сохраняются сразу (новая вкладка и сразу перезагрузка
   или закрытое окно - вкладки не было: писалось через 200 мс); «>» в адресе на демо-диске снова
   открывает меню папок (его закрывал общий щелчок того же нажатия) и подсказывает; после кнопки

@@ -1,7 +1,7 @@
 {
   "name": "mix-of-projects",
   "productName": "Хаб",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Хаб: игры, программы и демо систем во вкладках одного окна, без интернета",
   "author": "ALEXalesha",
@@ -67,6 +67,8 @@
       "web/writing-speed/index.html",
       "web/media-player/index.html",
       "web/calibrate3dprinter/**/*",
+      "web/calcpro-glass/**/*",
+      "web/ios-calculator/**/*",
       "web/compiler/**/*",
       "web/python_ide/runtime.js",
       "web/python_ide/vendor/**/*",
