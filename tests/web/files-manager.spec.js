@@ -21,7 +21,7 @@ async function openFm(page) {
 test('страница открывается на демо-диске без ошибок', async ({ page }) => {
   const errors = await openFm(page);
   const st = await page.evaluate(() => ({ v: window.__fm.version, tab: window.__fm.tab() }));
-  expect(st.v).toBe('1.0.2');
+  expect(st.v).toBe('1.0.3');
   expect(st.tab.vol).toBe('demo');
   expect(st.tab.error).toBeFalsy();
   expect(st.tab.names.length).toBeGreaterThan(0);
@@ -263,4 +263,102 @@ test('панель команд и строка навигации влезаю�
     await ctx.close();
   }
   expect(problems.slice(0, 15)).toEqual([]);
+});
+// 1.0.3: мелочи независимой проверки 16.10 - вкладки сохраняются сразу, «>» в адресе, фокус после кнопок, рамка шапки
+test('вкладки и папка сохраняются сразу: перезагрузка сразу после новой вкладки и перехода их не теряет', async ({ page }) => {
+  const errors = await openFm(page);
+  const dir = await page.evaluate(() => { const d = window.__fm.activeTab().shown.find((e) => e.dir); return d && d.path; });
+  expect(dir).toBeTruthy();
+  // переход и новая вкладка - и сразу перезагрузка (раньше запись шла через 200 мс и не успевала)
+  await page.evaluate((d) => window.__fm.go(d), dir);
+  await page.evaluate(() => window.__fm.idle());
+  await page.evaluate(() => window.__fm.run('newTab'));
+  await page.reload();
+  await page.waitForFunction(() => window.__fm && window.__fm.ready, null, { timeout: 20000 });
+  await page.evaluate(() => window.__fm.idle());
+  const st = await page.evaluate(() => ({ n: window.__fm.App.panels[0].tabs.length, paths: window.__fm.App.panels[0].tabs.map((t) => t.loc.path) }));
+  expect(st.n).toBe(2);
+  expect(st.paths).toContain(dir);
+  expect(errors).toEqual([]);
+});
+
+test('«>» в адресе: меню папок открывается и не закрывается тем же щелчком, у кнопки есть подсказка (RU и EN)', async ({ page }) => {
+  const errors = await openFm(page);
+  const dir = await page.evaluate(() => { const d = window.__fm.activeTab().shown.find((e) => e.dir); return d && d.path; });
+  const sep = page.locator('section.panel:not([hidden]) .crumb-sep').first();
+  expect(await sep.getAttribute('title')).toMatch(/^Папки внутри «.+»$/);
+  await sep.click();
+  await page.waitForTimeout(150);
+  expect(await page.locator('#menu').isVisible()).toBe(true);
+  const items = await page.locator('#menu .mi').allTextContents();
+  expect(items.length).toBeGreaterThan(0);
+  // пункт меню ведёт в папку, а клавиши потом снова идут в список
+  await page.locator('#menu .mi').first().click();
+  await page.evaluate(() => window.__fm.idle());
+  expect(await page.evaluate(() => window.__fm.tab().path)).not.toBe('/');
+  expect(await page.evaluate(() => document.activeElement.classList.contains('view'))).toBe(true);
+  await page.evaluate(() => window.__fm.run('lang'));
+  await page.evaluate(() => window.__fm.idle());
+  if (await page.evaluate(() => window.__fm.settings.ui) !== 'en') await page.evaluate(() => window.__fm.run('lang'));
+  expect(await page.evaluate(() => window.__fm.settings.ui)).toBe('en');
+  expect(await page.locator('section.panel:not([hidden]) .crumb-sep').first().getAttribute('title')).toMatch(/^Folders in “.+”$/);
+  expect(dir).toBeTruthy();
+  expect(errors).toEqual([]);
+});
+
+test('после щелчка по кнопкам (панель команд, сортировка, вкладка, адрес, пункт меню) клавиши снова идут в список', async ({ page }) => {
+  const errors = await openFm(page);
+  const onList = () => page.evaluate(() => document.activeElement.classList.contains('view') && !!document.activeElement.closest('section.panel'));
+  const bad = [];
+  const check = async (what) => { await page.evaluate(() => window.__fm.idle()); if (!(await onList())) bad.push(`${what}: фокус на ${await page.evaluate(() => { const a = document.activeElement; return a.tagName + '.' + a.className; })}`); };
+  // кнопка панели команд: после неё стрелка двигает выделение, а не остаётся на кнопке
+  await page.locator('#toolbar [data-cmd="preview"]').click();
+  await check('кнопка «Область просмотра»');
+  const before = await page.evaluate(() => window.__fm.tab().focus);
+  await page.keyboard.press('ArrowDown');
+  expect(await page.evaluate(() => window.__fm.tab().focus)).not.toBe(before);
+  // Enter открывает выделенное в списке, а не нажимает кнопку ещё раз
+  const pv = await page.evaluate(() => window.__fm.settings.preview);
+  await page.keyboard.press('Enter');
+  await page.evaluate(() => window.__fm.idle());
+  expect(await page.evaluate(() => window.__fm.settings.preview)).toBe(pv);
+  await page.locator('#toolbar [data-cmd="dual"]').click();
+  await check('кнопка «Две панели»');
+  await page.locator('#toolbar [data-cmd="dual"]').click();
+  await check('кнопка «Две панели» второй раз');
+  await page.locator('section.panel:not([hidden]) .thead button[data-sort="size"]').first().click();
+  await check('заголовок столбца «Размер»');
+  await page.locator('section.panel:not([hidden]) .tab-add').first().click();
+  await check('кнопка «Новая вкладка»');
+  await page.locator('section.panel:not([hidden]) .tab').first().click();
+  await check('вкладка');
+  await page.locator('section.panel:not([hidden]) .tab .x').last().click();
+  await check('крестик вкладки');
+  await page.locator('section.panel:not([hidden]) .crumb').first().click();
+  await check('крошка адреса');
+  await page.locator('#toolbar [data-cmd="sortMenu"]').click();
+  await page.locator('#menu .mi').nth(1).click();
+  await check('пункт меню «Сортировка»');
+  expect(bad).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('рамка фокуса заголовка столбца внутри кнопки: край списка её не срезает', async ({ page }) => {
+  const errors = await openFm(page);
+  await page.locator('section.panel:not([hidden]) .view').first().focus();
+  await page.keyboard.press('Tab');
+  const r = await page.evaluate(() => {
+    const a = document.activeElement;
+    if (!a.closest('.thead')) return { where: a.tagName + '.' + a.className };
+    const cs = getComputedStyle(a);
+    const w = parseFloat(cs.outlineWidth) || 0, off = parseFloat(cs.outlineOffset) || 0;
+    return { where: 'thead', fv: a.matches(':focus-visible'), style: cs.outlineStyle, w, off };
+  });
+  expect(r.where).toBe('thead');
+  expect(r.fv).toBe(true);
+  expect(r.style).not.toBe('none');
+  expect(r.w).toBeGreaterThanOrEqual(1);
+  // рамка целиком внутри кнопки: смещение внутрь не меньше толщины
+  expect(r.off + r.w).toBeLessThanOrEqual(0);
+  expect(errors).toEqual([]);
 });
