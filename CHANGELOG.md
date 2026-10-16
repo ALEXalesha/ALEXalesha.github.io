@@ -4,6 +4,12 @@
 
 **EN**
 
+- New game: RailRunner («Бег по рельсам», `web/rail-runner`) - run along three tracks in 3D, jump,
+  slide under bars, dodge trains. It lives in its own repository RailRunner (Pages /RailRunner/);
+  `web/rail-runner` is a copy of its `web/` folder (1.0.0, commit 87e9f72), refreshed with
+  `node tools/sync-railrunner.js [folder]` (or `RAILRUNNER_DIR`); the copy is as is (its page already
+  names itself). Esc reaches the game in a tab of the Hub and pauses the run, like P (law in
+  `tests-app/games.spec.js`).
 - Horizon Drift 1.1.1: in a window narrower than about 840 px (a tab of the app, half of the
   screen) the garage went past the right edge - the stats, the Tuning tab and the buy button
   were cut off. Now the 3D stand hides and the panel takes the room; on a phone the car list
@@ -22,6 +28,12 @@
 
 **RU**
 
+- Новая игра: «Бег по рельсам» (RailRunner, `web/rail-runner`) - бег по трём путям в 3D: прыгай,
+  ныряй под перекладины, уходи от поездов. Живёт в своём репозитории RailRunner (Pages /RailRunner/);
+  `web/rail-runner` - копия его папки `web/` (1.0.0, коммит 87e9f72), обновляется
+  `node tools/sync-railrunner.js [папка]` (или `RAILRUNNER_DIR`); копия как есть (страница уже
+  называет себя сама). Esc во вкладке Хаба доходит до игры и ставит забег на паузу, как P (закон в
+  `tests-app/games.spec.js`).
 - Horizon Drift 1.1.1: в окне уже ~840 px (вкладка приложения, полэкрана) гараж уходил за
   правый край - характеристики, вкладка «Тюнинг» и кнопка покупки обрезались. Теперь 3D-стенд
   прячется и панель занимает его место, на телефоне список машин встаёт сверху. В окне

@@ -42,3 +42,19 @@ for (const id of IDS) {
     await expect.poll(() => H.tabs(app).then((t) => t.open.includes(id))).toBe(false);
   });
 }
+
+// «Бег по рельсам» (копия RailRunner): Esc в Хабе доходит до игры сам (escToGame не нужен -
+// оболочка его не забирает, пока Хаб не на весь экран) и ставит забег на паузу, как P.
+test('rail-runner: Esc во вкладке Хаба ставит забег на паузу', async () => {
+  const { app, shell } = ctx;
+  await H.press(app, 'shell', 'T', ['control']);
+  await shell.click('.card[data-id="rail-runner"] .play');
+  await expect.poll(() => H.tabs(app).then((t) => t.active)).toBe('rail-runner');
+  await H.gameLoaded(app, 'rail-runner', 30000);
+  await expect.poll(() => H.inGame(app, 'rail-runner', '!!(window.RailRunner && window.RailRunner.start)'), { timeout: 20000 }).toBe(true);
+  await H.inGame(app, 'rail-runner', '(() => { window.RailRunner.start(); window.RailRunner.advance(4); return window.RailRunner.state; })()');
+  await expect.poll(() => H.inGame(app, 'rail-runner', 'window.RailRunner.state')).toBe('playing');
+  await H.press(app, 'rail-runner', 'Escape');
+  await expect.poll(() => H.inGame(app, 'rail-runner', 'window.RailRunner.state')).toBe('paused');
+  expect(await H.errorsOf(app, 'rail-runner')).toEqual([]);
+});

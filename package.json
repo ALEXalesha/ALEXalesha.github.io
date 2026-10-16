@@ -63,6 +63,7 @@
       "web/sudoku/**/*",
       "web/files-manager/index.html",
       "web/flappy-wings/**/*",
+      "web/rail-runner/**/*",
       "web/writing-speed/index.html",
       "web/media-player/index.html",
       "web/calibrate3dprinter/**/*",

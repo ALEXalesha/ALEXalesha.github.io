@@ -21,9 +21,9 @@ The interface of all projects is in Russian.
 
 ## Hub
 
-Eleven games in one window: Cube World, Blockcity, Operation: Perimeter, Dino Run,
-Hop-Skip (a platformer), Horizon Drift, Fire Jungle, Space Shooter, Blocks, Sudoku and Flappy Wings
-(«Летучая птичка», a fly-between-the-columns game). All games are fan
+Twelve games in one window: Cube World, Blockcity, Operation: Perimeter, Dino Run,
+Hop-Skip (a platformer), Horizon Drift, Fire Jungle, Space Shooter, Blocks, Sudoku, Flappy Wings
+(«Летучая птичка», a fly-between-the-columns game) and RailRunner («Бег по рельсам»). All games are fan
 concepts and are not affiliated with any rights holders.
 
 ![A game in a tab](docs/screens/app-game.png)
@@ -108,8 +108,8 @@ npm run dist              # build the installer and the portable exe into dist/
 ```
 
 The Windows x64 build gives `dist/Hub-1.1.0-Setup.exe` (NSIS, per-user, no admin
-rights, Russian) and `dist/Hub-1.1.0-Portable.exe`, 98 MB each. Only `app/` and the
-eleven game folders go into the build.
+rights, Russian) and `dist/Hub-1.1.0-Portable.exe`. Only `app/` and the
+folders of the games, programs and demos go into the build (about 160 MB each).
 
 ```
 npm test                  # web/ pages in Chromium (1225 checks)
@@ -179,6 +179,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `jungle-strike` | Fire Jungle: a run-and-gun arcade with a boss | 11 | 7 / 7 / 6 |
 | `minecraft_clone_3d_1` | Cube World: a voxel sandbox, builds are saved | 11 | 7 / 7 / 6 |
 | `dino` | Dino Run: jump over cacti and duck under birds | 11 | 6 / 8 / 3 |
+| `rail-runner` | RailRunner («Бег по рельсам»): run along three tracks in 3D - jump, slide under bars, dodge trains. Its own repository [RailRunner](https://github.com/ALEXalesha/RailRunner); this is a copy of its `web/`, version <!--rail-ver-->1.0.0<!--/rail-ver-->, refreshed with `node tools/sync-railrunner.js [folder]` (or `RAILRUNNER_DIR`) | in RailRunner | not reviewed yet |
 | `flappy-wings` | Flappy Wings: fly between columns, one file, a fan game not affiliated with the rights holders of the genre's known games | 25 | not reviewed yet |
 | `fps_1` | Operation: Perimeter: a first-person tactical shooter, rounds against bots | 10 | 6 / 7 / 4 |
 | `roblox-mini` | Blockcity: a city of places - pick one and dress up your hero | 10 | 5 / 7 / 4 |
