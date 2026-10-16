@@ -109,8 +109,9 @@ test('нейросеть видит только то, что видит вод�
   assert.deepEqual(obs(), base, 'гоночная линия, профиль и намерения соперника скрыты');
   r.track.line.set(line); me.prof = prof;
   r.teleport(other, me.pr.s + 400, 0, 20);                                        // за 400 м - не видно
-  assert.deepEqual(obs().slice(0, 9).concat(obs().slice(20)), base.slice(0, 9).concat(base.slice(20)), 'своё состояние и дорога не зависят от соперника');
   const far = obs();
+  other.out = true; const alone = obs(); other.out = false;
+  assert.deepEqual(far, alone, 'машина за 400 м не видна: как будто её нет');
   r.teleport(other, me.pr.s + 15, me.pr.d, 20);                                  // 15 м прямо впереди - луч упирается в машину
   const near = obs();
   assert.ok(near[9 + 5] < far[9 + 5], 'центральный луч видит машину впереди');
@@ -150,7 +151,8 @@ test('код трассы: тот же код - та же трасса; сохр
   const a = TG.generate('R1S-7Q', { candidates: 2 }), b = TG.generate('R1S-7Q', { candidates: 2 });
   assert.ok(a && b);
   assert.deepEqual(JSON.parse(JSON.stringify(a.def)), JSON.parse(JSON.stringify(b.def)));
-  const saved = TG.sanitizeSaved([{ code: a.code, def: JSON.parse(JSON.stringify(a.def)), savedAt: 5 }, { code: 'X', def: {} }, null,
+  const saved = TG.sanitizeSaved([{ code: a.code, def: Object.assign(JSON.parse(JSON.stringify(a.def)), { theme: 'нет такой' }) },
+    { code: a.code, def: JSON.parse(JSON.stringify(a.def)), savedAt: 5 }, { code: 'X', def: {} }, null,
     { code: a.code, def: a.def }, { code: 'D2M-1', def: Object.assign({}, a.def, { theme: 'нет такой' }) },
     { code: a.code.replace('R1S', 'R2S'), def: Object.assign({}, a.def, { cmds: [['S', 'auto']] }) }]);
   assert.equal(saved.length, 1, 'одна годная запись, дубль и мусор выброшены');
