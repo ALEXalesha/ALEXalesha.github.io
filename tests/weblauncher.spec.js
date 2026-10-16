@@ -3,9 +3,10 @@
 // Страница проверяется двумя способами, как её откроют люди:
 //   file - двойной щелчок по index.html (Chromium БЕЗ --allow-file-access-from-files:
 //          страницы с диска друг другу чужие, как у обычного человека);
-//   http - сайт из подпапки, как GitHub Pages (https://<имя>.github.io/<репозиторий>/):
-//          свой маленький сервер отдаёт репозиторий по адресу /GameRoom/, так что любой
-//          путь от корня сайта сломался бы.
+//   http - сайт, как GitHub Pages: на деле Хаб - корневой сайт https://alexalesha.github.io/,
+//          а свой маленький сервер отдаёт репозиторий из подпапки /hub/, так что любой
+//          путь от корня сайта сломался бы. Страница здесь изолирована (hub-coi-sw.js),
+//          как на сайте.
 //
 // Захват мыши - ТОЛЬКО заглушка: настоящий requestPointerLock в Chromium без окна всё
 // равно зажимает курсор человека за этим компьютером. Подмена ставится до скриптов
@@ -22,7 +23,7 @@ const ROOT = path.join(__dirname, '..');
 const ITEMS = [...DATA.GAMES, ...DATA.PROGRAMS, ...DATA.SYSTEMS];  // в порядке карточек на странице
 // то, что открывается во вкладке: программа со своим сайтом (url) - только ссылка
 const TAB_ITEMS = ITEMS.filter((g) => !g.url);
-const BASE_PATH = '/GameRoom/';
+const BASE_PATH = '/hub/';
 
 test.describe.configure({ mode: 'serial' });
 test.use({
@@ -98,6 +99,9 @@ async function launch(page, mode, { clean = true } = {}) {
     return route.abort();
   });
   await page.goto(MODES[mode]());
+  // С сервера страница при первом заходе ставит hub-coi-sw.js и перезагружается через него
+  // (изоляция для Компилятора) - дождаться изолированной и готовой страницы.
+  if (mode === 'http') await expect.poll(() => page.evaluate(() => self.crossOriginIsolated && document.body.dataset.ready === '1').catch(() => false), { timeout: 20_000 }).toBe(true);
   if (clean) {
     await page.evaluate(async () => {
       localStorage.clear();
@@ -205,6 +209,40 @@ for (const mode of Object.keys(MODES)) {
     expect(errors).toEqual([]);
   });
 }
+
+// Компилятор во вкладке Хаба на сайте: ввод по ходу программы, как в отдельном Compiler 1.1.x
+// (там страницу изолирует свой coi-sw.js). Вкладка - рамка Хаба, а изолированной рамка бывает
+// только у изолированной страницы: её изолирует hub-coi-sw.js. До 1.1.0 Хаба программа во
+// вкладке видела только поле «Ввод (stdin)» и подсказку.
+test('http: Компилятор во вкладке Хаба ждёт строку, набранную в выводе (страница изолирована)', async ({ page }) => {
+  test.setTimeout(120_000);
+  const { errors, external } = await launch(page, 'http');
+  expect(await page.evaluate(() => self.crossOriginIsolated)).toBe(true);
+  const frame = await openCard(page, 'compiler');
+  await frame.waitForSelector('html[data-ready="1"]', { timeout: 30_000 });
+  expect(await frame.evaluate(() => self.crossOriginIsolated)).toBe(true);
+  await frame.evaluate(() => window.__compiler.cm.setValue('console.log("got " + prompt("Name? "));\nconsole.log("end");\n'));
+  await frame.locator('#stdin').fill('');
+  await frame.locator('#runBtn').click();
+  await expect(frame.locator('#out')).toContainText('Name? ', { timeout: 30_000 });
+  const box = frame.locator('#termIn');
+  await expect(box).toBeVisible();
+  await box.pressSequentially('Хаб');
+  await box.press('Enter');
+  await expect(frame.locator('#out')).toContainText('got Хаб');
+  await expect(frame.locator('#out')).toContainText(/─── готово за/);
+  expect(external).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('hub-coi-sw.js: заголовки изоляции только у файлов Хаба, соседние сайты адреса - как есть', async () => {
+  const src = fs.readFileSync(path.join(ROOT, 'hub-coi-sw.js'), 'utf8');
+  const OWN = new Function('BASE', `const OWN = ${/const OWN = ([^\n]+);/.exec(src)[1]}; return OWN;`)('/');
+  for (const p of ['/', '/index.html', '/web/compiler/index.html', '/web/dino/kit.js', '/app/renderer/style.css']) expect(OWN(p), p).toBe(true);
+  for (const p of ['/PaintPro/', '/Compiler/index.html', '/GameRoom/', '/webx/a.js', '/MediaPlayer/web/a.js']) expect(OWN(p), p).toBe(false);
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  expect(html).toMatch(/<script src="hub-coi-sw\.js"><\/script>/);
+});
 
 test('все пути относительные, без внешних адресов; .nojekyll на месте', async () => {
   const files = ['index.html', 'web/_launcher/launcher.js', 'web/_launcher/launcher.css', 'web/_shared/games-data.js'];

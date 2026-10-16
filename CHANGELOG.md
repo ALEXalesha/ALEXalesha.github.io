@@ -15,6 +15,14 @@
   (a file explorer page) and `web/browser_1` (an offline mini browser) with their laws and
   pictures. They were not in the Hub; new Compiler, Browser and Explorer programs replace
   them (the owner: the old ones are not needed).
+- The Compiler in a tab of the browser Hub on the site waits for a line typed in its output,
+  as the Compiler 1.1.x on its own site and in the app. Before, the Hub page was not
+  cross-origin isolated, so its frames were not either, and the program saw only the Input
+  field. Now `hub-coi-sw.js` (page script and service worker in one file) adds COOP/COEP to
+  the Hub's own files (the page, `web/`, `app/`); the other sites of the address
+  (`/PaintPro/`, `/Compiler/`, ...) stay untouched. Laws: the Compiler in a Hub tab gets a
+  typed line (red without the worker), the worker touches only the Hub's paths; all 61 laws
+  of the page pass with the isolation on.
 
 - Independent review (16.10) of the released programs, each finding with a law that is red on
   the old code and a mutant:
@@ -153,6 +161,14 @@
   (страница проводника) и `web/browser_1` (офлайн-мини-браузер) вместе с их законами и
   кадрами. В Хабе их не было; на смену идут новые программы «Компилятор», «Браузер» и
   «Проводник» (Алексей: старые не нужны).
+- «Компилятор» во вкладке браузерного Хаба на сайте ждёт строку, набранную в выводе, как
+  Compiler 1.1.x на своём сайте и в приложении. Раньше страница Хаба не была изолирована,
+  значит, и её вкладки-рамки тоже, и программа видела только поле «Ввод (stdin)». Теперь
+  `hub-coi-sw.js` (скрипт страницы и service worker в одном файле) добавляет COOP/COEP к
+  файлам Хаба (страница, `web/`, `app/`); соседние сайты адреса (`/PaintPro/`, `/Compiler/`
+  и другие) он не трогает. Законы: «Компилятор» во вкладке Хаба получает набранную строку
+  (красный без worker), worker трогает только пути Хаба; все 61 закон страницы проходят с
+  изоляцией.
 
 - Независимая проверка (16.10) выпущенных программ, каждая находка - с законом, красным на старом
   коде, и мутантом:

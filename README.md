@@ -141,6 +141,10 @@ no internet are needed; all paths are relative.
 - GitHub Pages: Settings → Pages → Deploy from a branch → `main`, folder `/ (root)`. The
   `.nojekyll` file at the root is required, otherwise Pages drops folders starting with
   an underscore (`web/_shared`, `web/_launcher`, `web/_os-shared`).
+- On a site the page isolates itself (`hub-coi-sw.js`, a service worker that adds
+  COOP/COEP to the Hub's own files only; other sites of the same address stay as they are).
+  So the Compiler in a tab of the Hub waits for a line typed in its output, as on its own site.
+  The first visit loads the page once more through the worker.
 
 The page laws are in `tests/weblauncher.spec.js` (part of `npm test`): over `file://` and
 from a server subfolder, as on Pages.
