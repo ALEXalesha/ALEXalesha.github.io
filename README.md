@@ -2,6 +2,9 @@
 
 **English** · [Русский](README.ru.md)
 
+**[▶ Open the Hub online](https://alexalesha.github.io/)** - the browser version (GitHub Pages);
+the Windows app is in [Releases](https://github.com/ALEXalesha/ALEXalesha.github.io/releases).
+
 A collection of small projects that have been fixed up, plus the **Hub** («Хаб»): a desktop app and a web page that open the games, programs
 and system demos of this collection in tabs of one window. Until version 1.1.0 it was
 called Igroteka («Игротека», "game library"); settings, records and saves stay after the
@@ -18,7 +21,7 @@ The interface of all projects is in Russian.
 
 ## Hub
 
-Eleven games in one window: Cube World, Cube Parkour, 3D Shooting Range, Dino Run,
+Eleven games in one window: Cube World, Blockcity, Operation: Perimeter, Dino Run,
 Hop-Skip (a platformer), Horizon Drift, Fire Jungle, Space Shooter, Blocks, Sudoku and Flappy Wings
 («Летучая птичка», a fly-between-the-columns game). All games are fan
 concepts and are not affiliated with any rights holders.
@@ -177,9 +180,8 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `minecraft_clone_3d_1` | Cube World: a voxel sandbox, builds are saved | 11 | 7 / 7 / 6 |
 | `dino` | Dino Run: jump over cacti and duck under birds | 11 | 6 / 8 / 3 |
 | `flappy-wings` | Flappy Wings: fly between columns, one file, a fan game not affiliated with the rights holders of the genre's known games | 25 | not reviewed yet |
-| `fps_1` | 3D Shooting Range: timed target shooting | 10 | 6 / 7 / 4 |
-| `roblox-mini` | Cube Parkour: collect coins on platforms against the clock | 10 | 5 / 7 / 4 |
-| `volshebnyy-sad` | Magic Garden: a toy for small children, flowers and butterflies | 9 | 4 / 8 / 7 |
+| `fps_1` | Operation: Perimeter: a first-person tactical shooter, rounds against bots | 10 | 6 / 7 / 4 |
+| `roblox-mini` | Blockcity: a city of places - pick one and dress up your hero | 10 | 5 / 7 / 4 |
 
 **Tools** (score 1-10: usefulness, reliability, completeness)
 
@@ -191,11 +193,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `compiler` | Compiler: C, C++ (Clang 22 → WebAssembly), Python, JavaScript, TypeScript, Lua, Ruby and SQL in the browser; time limit, Stop, stdin and typing input while the program runs, errors on their line, five Paint themes, RU/EN. Also a standalone repository: [Compiler](https://github.com/ALEXalesha/Compiler) | 32 (+23 mutants) | not reviewed yet |
 | `python_ide` | Offline Python 3.13: editor, Stop, `input()`, files | 11 | 8 |
 | `calculator` | Calculator with exact decimal arithmetic and operator precedence | 40 | 8 |
-| `player` | Player for your own files, remembers them after a restart | 12 | 8 |
 | `english-abbreviations` | Dictionary of English abbreviations with smart search | 22 | 8 |
-| `token-calc` | Token count and price estimate for a Claude request (fan concept) | 14 | 7 |
-| `telegram` | Chat demo: two tabs chat live (fan concept) | 14 | 7 |
-| `yandex-music` | Music service with a made-up catalogue and synthesised sound (fan concept) | 14 | 7 |
 
 **Desktop-shell demos** (no detailed review yet, only the common law)
 
@@ -235,8 +233,6 @@ They sit next to the pages unchanged, each with its licence text.
 | sql.js 1.14.2 (SQLite) | `web/compiler/vendor/sqljs/` | MIT; SQLite: public domain |
 | Fengari 0.1.4 (Lua 5.3) | `web/compiler/vendor/fengari/` | MIT |
 | CodeMirror 5.65.21 modes and hints | `web/compiler/vendor/codemirror/` | MIT |
-| pdf.js 3.11.174 | `web/token-calc/vendor/pdfjs/` | Apache-2.0 |
-| mammoth 1.6.0 | `web/token-calc/vendor/mammoth/` | BSD-2-Clause |
 | word lists from wordfreq 3.1.1 (Robyn Speer), filtered | the `WORDS` block of `web/writing-speed/index.html` | CC BY-SA 4.0 (that block only) |
 
 The app is built with Electron (MIT) and electron-builder (MIT); tests use Playwright
