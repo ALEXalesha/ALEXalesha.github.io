@@ -47,9 +47,13 @@ test.describe('horizon_drift_offline: ИИ-соперники и новые тр
 
   test('дрифт с соперниками: соперники на заднем приводе набирают очки, таблица на экране и в итогах - по очкам', async ({ page }) => {
     const errors = await openDrift(page);
-    await startQuick(page, { track: 'port', mode: 'drift', opp: 3, laps: 1 });
-    const cars = await page.evaluate(() => __drift.race.cars.filter((c) => !c.isPlayer).map((c) => [c.ai.brain && c.ai.brain.model, __drift.core.carDef(c.carId).drive]));
-    expect(cars).toHaveLength(3);
+    // 6 стартов: «Искра» (передний привод) из класса игрока выпала бы почти наверняка, если бы не отбор
+    let cars = [];
+    for (let k = 0; k < 6; k++) {
+      await startQuick(page, { track: 'port', mode: 'drift', opp: 3, laps: 1 });
+      cars = cars.concat(await page.evaluate(() => __drift.race.cars.filter((c) => !c.isPlayer).map((c) => [c.ai.brain && c.ai.brain.model, __drift.core.carDef(c.carId).drive])));
+    }
+    expect(cars).toHaveLength(18);
     for (const [model, drive] of cars) { expect(model).toBe('drifter'); expect(drive).not.toBe('fwd'); }
     await page.evaluate(() => { const r = __drift.race; r.setAutopilot(r.player, 0.85, true); for (let i = 0; i < 400 * 120 && r.phase !== 'done'; i++) __drift.step(1); __drift.manual = false; });
     await page.evaluate(() => __drift.showResults());

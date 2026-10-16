@@ -76,7 +76,8 @@ const MUTANTS = [
   { name: 'ИИ: соперники остаются ботом', file: 'game.js', spec: AISPEC, grep: 'соперников ведёт нейросеть', from: '      AI.attachRace(race);', to: '' },
   { name: 'ИИ: у нейросети помощники бота', file: 'airacer.js', spec: UNIT, grep: 'рулит через ввод игрока', from: '      c.assist = Object.assign({}, PLAYER_ASSIST);', to: '' },
   { name: 'ИИ: видит гоночную линию', file: 'airacer.js', spec: UNIT, grep: 'видит только то', from: '    out[o++] = pr.d / tr.W;', to: '    out[o++] = (pr.d - tr.line[pr.i]) / tr.W;' },
-  { name: 'ИИ: видит машины за 400 м', file: 'airacer.js', spec: UNIT, grep: 'видит только то', from: 'Math.abs(o.x - car.x) > RAY_MAX || Math.abs(o.z - car.z) > RAY_MAX) continue;', to: 'false) continue;' },
+  // отбор машин дальше RAY_MAX - только ускорение (лучи и так не длиннее 90 м), его поломка - эквивалентный мутант
+  { name: 'ИИ: лучи не видят машины', file: 'airacer.js', spec: UNIT, grep: 'видит только то', from: '      for (const o of race.cars) {\n        if (o === car || o.out', to: '      for (const o of []) {\n        if (o === car || o.out' },
   { name: 'ИИ: все решают на одном шаге', file: 'airacer.js', spec: UNIT, grep: 'рулит через ввод игрока', from: '    let n = phase | 0;', to: '    let n = 0;' },
   { name: 'ИИ: решение каждый шаг', file: 'airacer.js', spec: UNIT, grep: 'рулит через ввод игрока', from: '  const EVERY = 4;', to: '  const EVERY = 1;' },
   { name: 'ИИ: уровень не зависит от темпа', file: 'airacer.js', spec: UNIT, grep: 'нейросеть', from: 'pace: p >= 0.98 ? 1 : p - 0.06, label', to: 'pace: 1, label' },
@@ -88,7 +89,7 @@ const MUTANTS = [
   { name: 'генератор: код не определяет трассу', file: 'trackgen.js', spec: UNIT, grep: 'код трассы', from: '    const rng = C.mulberry32((p.seed ^ Math.imul(sub + 1, 0x9E3779B1)) >>> 0);', to: '    const rng = Math.random;' },
   { name: 'генератор: принимает чужую тему', file: 'trackgen.js', spec: UNIT, grep: 'код трассы', from: ' || !D.THEMES[def.theme] ||', to: ' ||' },
   { name: 'генератор: проверка всегда «да»', file: 'trackgen.js', spec: UNIT, grep: '200 кодов', from: 'return Object.assign({ ok: botOk && ai.finished && ai.resets === 0, ai }, b);', to: 'return Object.assign({ ok: true, ai }, b);' },
-  { name: 'генератор: поле кода не читается', file: 'game.js', spec: AISPEC, grep: 'код из поля', from: "    else if (genCodeFromInput() === null) {", to: "    else if (false) {" },
+  { name: 'генератор: код из поля не разбирается', file: 'game.js', spec: AISPEC, grep: 'код из поля', from: '    if (p) { g.type = p.type; g.difficulty = p.difficulty;', to: '    if (false) { g.type = p.type; g.difficulty = p.difficulty;' },
   { name: 'генератор: сохранённые не загружаются', file: 'game.js', spec: AISPEC, grep: 'код из поля', from: '  G.genSaved = TG.sanitizeSaved(load(KEY.gen));', to: '  G.genSaved = [];' },
   { name: 'рекорды: новая трасса пишет в рекорды игры', file: 'game.js', spec: AISPEC, grep: 'рекорд круга', from: '    if (gen) {                                  // новая трасса', to: '    if (false) {' },
   { name: 'клавиши: фестиваль на E', file: 'data.js', spec: UNIT, grep: 'клавиши по умолчанию', from: "    festival: ['KeyT', ''],", to: "    festival: ['KeyE', '']," },
