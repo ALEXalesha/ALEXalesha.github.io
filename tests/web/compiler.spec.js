@@ -541,3 +541,62 @@ for (const mode of ['classic', 'overlay']) {
     } finally { await browser.close(); }
   });
 }
+// 1.1.3: the × of the last tab and of the last file did nothing and said nothing - now the tooltip
+// says why, and a click shows the same words in the message at the bottom
+test('files: the × of the last tab and of the last file say why they stay (tooltip and a message)', async ({ page }) => {
+  const { errors } = await openPage(page);
+  const tabs = page.locator('#tabs .tab');
+  const files = page.locator('#files .file');
+  // open a second file: both tabs close as usual and say so
+  const names = await files.evaluateAll((rows) => rows.map((r) => r.dataset.name));
+  expect(names.length).toBeGreaterThan(1);
+  await pick(page, names.find((n) => n !== (names[0])));
+  await pick(page, names[0]);
+  expect(await tabs.count()).toBeGreaterThan(1);
+  expect(await tabs.first().locator('.icon-btn').getAttribute('title')).toBe('Закрыть вкладку');
+  while (await tabs.count() > 1) await tabs.last().locator('.icon-btn').click();
+  // the last tab: the tooltip explains, a click leaves it and shows the message
+  const x = tabs.first().locator('.icon-btn');
+  const tip = await x.getAttribute('title');
+  expect(tip).toMatch(/последн/i);
+  expect(await x.getAttribute('aria-label')).toBe(tip);
+  await x.click();
+  expect(await tabs.count()).toBe(1);
+  await expect(page.locator('#toast')).toHaveClass(/show/);
+  await expect(page.locator('#toastText')).toHaveText(tip);
+  await expect(page.locator('#toastUndo')).toBeHidden();
+  // the middle button on the last tab says the same
+  await page.locator('#toast').evaluate((el) => el.classList.remove('show'));
+  await tabs.first().click({ button: 'middle' });
+  await expect(page.locator('#toast')).toHaveClass(/show/);
+  // files: delete all but one, then the last × explains and a click keeps the file
+  while (await files.count() > 1) {
+    const row = files.last();
+    await row.hover();
+    const del = row.getByRole('button', { name: 'Удалить' });
+    await del.click();
+  }
+  const last = files.first();
+  await last.hover();
+  const del = last.locator('.icon-btn').last();
+  const ftip = await del.getAttribute('title');
+  expect(ftip).toMatch(/последн/i);
+  await page.locator('#toast').evaluate((el) => el.classList.remove('show'));
+  await del.click();
+  expect(await files.count()).toBe(1);
+  await expect(page.locator('#toast')).toHaveClass(/show/);
+  await expect(page.locator('#toastText')).toHaveText(ftip);
+  // Delete on the row says the same
+  await page.locator('#toast').evaluate((el) => el.classList.remove('show'));
+  await last.focus();
+  await page.keyboard.press('Delete');
+  expect(await files.count()).toBe(1);
+  await expect(page.locator('#toastText')).toHaveText(ftip);
+  // a new file: the old one can go again, with the usual words
+  await page.locator('#newFile').click();
+  await page.locator('#files .new-file input').fill('second.py');
+  await page.locator('#files .new-file input').press('Enter');
+  await files.first().hover();
+  expect(await files.first().getByRole('button', { name: 'Удалить' }).getAttribute('title')).toBe('Удалить');
+  expect(errors).toEqual([]);
+});

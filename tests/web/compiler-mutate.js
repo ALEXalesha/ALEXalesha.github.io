@@ -68,6 +68,11 @@ const MUTANTS = [
   { name: 'the top bar has backdrop-filter again (1.1.2)', file: 'compiler.css',
     from: 'border-bottom: 1px solid var(--glass-border); position: relative; isolation: isolate;', to: 'border-bottom: 1px solid var(--glass-border); position: relative; isolation: isolate; backdrop-filter: var(--blur);', grep: 'backdrop-filter' },
   { name: 'no room for the overlay scroll bar in the file list (1.1.2)', file: 'compiler.css', from: ':root.overlay-sb .files { padding-right: 14px; }', to: '', grep: 'scroll bar' },
+  // 1.1.3: the × of the last tab and of the last file say why they stay
+  { name: 'the last tab × is silent again (1.1.3)', file: 'js/app.js', from: "if (tabs.length <= 1) { toast(t('lastTab')); return; }", to: 'if (tabs.length <= 1) return;', grep: 'last tab' },
+  { name: 'the last tab × has the usual tooltip (1.1.3)', file: 'js/app.js', from: "tabs.length > 1 ? 'closeTab' : 'lastTab'", to: "'closeTab'", grep: 'last tab' },
+  { name: 'deleting the last file is silent again (1.1.3)', file: 'js/app.js', from: "if (order.length <= 1) { toast(t('lastFile')); return; }", to: 'if (order.length <= 1) return;', grep: 'last tab' },
+  { name: 'the last file × has the usual tooltip (1.1.3)', file: 'js/app.js', from: "order.length > 1 ? 'delete' : 'lastFile'", to: "'delete'", grep: 'last tab' },
 ];
 
 function runSpec(dir, grep, spec = SPEC) {
