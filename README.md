@@ -7,7 +7,7 @@ and system demos of this collection in tabs of one window. Until version 1.1.0 i
 called Igroteka («Игротека», "game library"); settings, records and saves stay after the
 rename. The browser version is the root site https://alexalesha.github.io/.
 
-- `web/` - 26 standalone HTML pages: games, tools and desktop-shell demos. Each opens
+- `web/` - 23 standalone HTML pages: games, tools and desktop-shell demos. Each opens
   with a double click on `index.html` and works offline.
 - `py/` - 6 Python programs (PySide6).
 - `app/` - Hub, the Electron desktop app.
@@ -109,7 +109,7 @@ rights, Russian) and `dist/Hub-1.1.0-Portable.exe`, 98 MB each. Only `app/` and 
 eleven game folders go into the build.
 
 ```
-npm test                  # web/ pages in Chromium (1150 checks)
+npm test                  # web/ pages in Chromium (1213 checks)
 npm run test:unit         # laws of the app modules and the icon (41)
 npm run test:app          # the real app through Playwright (73, windows off-screen)
 pip install -r requirements-py.txt
@@ -192,18 +192,15 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `token-calc` | Token count and price estimate for a Claude request (fan concept) | 14 | 7 |
 | `telegram` | Chat demo: two tabs chat live (fan concept) | 14 | 7 |
 | `yandex-music` | Music service with a made-up catalogue and synthesised sound (fan concept) | 14 | 7 |
-| `browser_1` | Mini browser with built-in pages, history and bookmarks | 13 | 6 |
 
 **Desktop-shell demos** (no detailed review yet, only the common law)
 
 | Folder | What it is |
 |---|---|
 | `win11_3` | A Windows 11 style shell |
-| `windows_4` | A Windows style desktop |
 | `macos-tahoe` | A macOS style desktop |
 | `ios26` | An iOS style phone |
 | `oneui7` | A One UI style phone |
-| `explorer_1` | A file explorer |
 
 ## Programs in `py/`
 

@@ -1,4 +1,4 @@
-// Общие помощники для проверок оболочек-ОС (win11_3, windows_4, ios26, oneui7, macos-tahoe, explorer_1).
+// Общие помощники для проверок оболочек-ОС (win11_3, ios26, oneui7, macos-tahoe; windows_4 и explorer_1 убраны 16.10.2026).
 // Сама страница открывается через tests/helpers.js: там собираются ошибки и отсекается сеть.
 const { expect } = require('@playwright/test');
 const { open } = require('../helpers');

@@ -11,6 +11,10 @@
   (`%APPDATA%\MixOfProject-Games`, it never depended on the name), the page keeps its storage
   keys, and the installer has the same appId, so it installs over Igroteka 1.0.0 and renames
   its shortcuts.
+- Removed the old pages `web/windows_4` (a second Windows-style desktop), `web/explorer_1`
+  (a file explorer page) and `web/browser_1` (an offline mini browser) with their laws and
+  pictures. They were not in the Hub; new Compiler, Browser and Explorer programs replace
+  them (the owner: the old ones are not needed).
 
 - Independent review (16.10) of the released programs, each finding with a law that is red on
   the old code and a mutant:
@@ -145,6 +149,10 @@
   не теряется: папка данных приложения прежняя (`%APPDATA%\MixOfProject-Games`, от имени она
   не зависела и раньше), у страницы прежние ключи хранилища, у установщика прежний appId -
   он встаёт поверх «Игротеки» 1.0.0 и переименовывает её ярлыки.
+- Убраны старые страницы `web/windows_4` (вторая оболочка в духе Windows), `web/explorer_1`
+  (страница проводника) и `web/browser_1` (офлайн-мини-браузер) вместе с их законами и
+  кадрами. В Хабе их не было; на смену идут новые программы «Компилятор», «Браузер» и
+  «Проводник» (Алексей: старые не нужны).
 
 - Независимая проверка (16.10) выпущенных программ, каждая находка - с законом, красным на старом
   коде, и мутантом:
