@@ -26,7 +26,13 @@ const MUTANTS = [
   { name: 'seed не действует', from: 'colRnd = SEED !== null ? mulberry32(SEED) : Math.random;', to: 'colRnd = Math.random;' },
   { name: 'медаль серебра с 30 очков', from: "{ id: 'silver', at: 25,", to: "{ id: 'silver', at: 30," },
   { name: 'клик по кнопке звука считается взмахом', from: "if (b === 'sound') toggleSound();", to: "if (b === 'sound') { toggleSound(); pointerTap = true; }" },
+  // независимая проверка 16.10: подсказки называют назначенные клавиши
+  { name: 'подсказка перед полётом снова с клавишами по умолчанию', from: "hudText('Взмах - ' + flapKeysText() + ',', VW / 2, 352, 15, 'center', P.hud, VW - 24);", to: "hudText('Взмах - пробел, ↑, W,', VW / 2, 352, 15);" },
+  { name: '«Как играть» снова с клавишами по умолчанию', from: "${b(keysOf('flap').concat('W')).join(', ')}", to: '<b>Пробел</b>, <b>↑</b>, <b>W</b>' },
 ];
+
+// FW_MUT_NAMES=<регулярка> - только мутанты с таким именем (быстрая проверка нового)
+const CHOSEN = MUTANTS.filter((m) => !process.env.FW_MUT_NAMES || new RegExp(process.env.FW_MUT_NAMES).test(m.name));
 
 function runSpec(file) {
   const r = spawnSync(`npx playwright test ${SPEC} --workers=1 --max-failures=1 --reporter=dot`, {
@@ -45,7 +51,7 @@ function main() {
     const base = runSpec(file);
     console.log(`исходная копия: ${base.ok ? 'проверки зелёные' : 'ПРОВЕРКИ КРАСНЫЕ'}`);
     if (!base.ok) { console.log(base.out.slice(-3000)); process.exitCode = 2; return; }
-    for (const m of MUTANTS) {
+    for (const m of CHOSEN) {
       const n = src.split(m.from).length - 1;
       if (n !== 1) { console.log(`? ${m.name}: кусок кода найден ${n} раз - мутант устарел`); survived++; continue; }
       fs.writeFileSync(file, src.replace(m.from, m.to));
@@ -54,7 +60,7 @@ function main() {
       console.log(`${r.ok ? 'ВЫЖИЛ' : 'убит '}  ${m.name}${!r.ok && failed ? '  <- ' + failed[1].replace(/[─\s]+$/, '') : ''}`);
       if (r.ok) survived++;
     }
-    console.log(`итог: убито ${MUTANTS.length - survived} из ${MUTANTS.length}`);
+    console.log(`итог: убито ${CHOSEN.length - survived} из ${CHOSEN.length}`);
     if (survived) process.exitCode = 1;
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

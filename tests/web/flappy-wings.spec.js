@@ -379,6 +379,51 @@ test.describe('flappy: пауза, темы, звук', () => {
     await page.keyboard.press('Escape');
     await expect(page.locator('[data-bind="pause:0"]')).toHaveText('P');
   });
+
+  // Независимая проверка 16.10: подсказка перед полётом и «Как играть» называли клавиши по умолчанию
+  // («пробел, ↑», «P»), даже когда их переназначили, - пробел уже ничего не делал, а подсказка звала его.
+  test('подсказка перед полётом и «Как играть» называют назначенные клавиши', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__drawn = [];
+      const f = CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText = function (t, ...a) { if (window.__drawn.length < 20000) window.__drawn.push(String(t)); return f.call(this, t, ...a); };
+    });
+    await openFlappy(page);
+    const hint = async () => {
+      await page.evaluate(() => { __drawn.length = 0; });
+      await page.waitForTimeout(250);
+      return page.evaluate(() => [...new Set(__drawn)].filter((t) => /Взмах|пауза/.test(t)).join(' | '));
+    };
+    // по умолчанию - как раньше
+    await page.click('[data-screen=main] [data-id=play]');
+    expect(await hint()).toBe('Взмах - пробел, ↑, W, | P или Esc - пауза, R - заново');
+    await page.keyboard.press('KeyP');
+    await page.click('[data-screen=pause] [data-id=menu]');
+    // взмах на F и G, пауза на O
+    await page.click('[data-screen=main] [data-id=settings]');
+    for (const [bind, key] of [['flap:0', 'KeyF'], ['flap:1', 'KeyG'], ['pause:0', 'KeyO']]) {
+      await page.click(`[data-bind="${bind}"]`);
+      await page.keyboard.press(key);
+    }
+    await page.click('[data-screen=settings] .kit-btn.primary');
+    await page.click('[data-screen=main] [data-id=play]');
+    const h = await hint();
+    expect(h).toBe('Взмах - F, G, W, | O или Esc - пауза, R - заново');
+    // подсказка не врёт: пробел не взмахивает, F - взмахивает
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(150);
+    expect(await page.evaluate(() => __game.state.phase)).toBe('ready');
+    await page.keyboard.press('KeyF');
+    await page.waitForTimeout(150);
+    expect(await page.evaluate(() => __game.state.phase)).toBe('fly');
+    await page.keyboard.press('KeyO');
+    await page.click('[data-screen=pause] [data-id=menu]');
+    await page.click('[data-screen=main] [data-id=howto]');
+    const howto = await page.locator('[data-screen=howto]').textContent();
+    expect(howto).toContain('F, G, W, клик мышью или касание');
+    expect(howto).toContain('O или Esc - пауза');
+    expect(howto).not.toMatch(/Пробел|↑/);
+  });
 });
 
 test.describe('flappy: окно', () => {
