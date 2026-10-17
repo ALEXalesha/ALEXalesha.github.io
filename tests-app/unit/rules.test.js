@@ -90,6 +90,18 @@ test('одиннадцать игр владельца, у каждой есть
   }
 });
 
+// Ревью 17.10: карточка Horizon Drift с 1.0 обещала «три трассы и три режима», а в игре давно 8 трасс, карьера,
+// свободная езда и (с 1.2.0) новые трассы по коду. Число трасс в описании - из данных самой игры.
+test('описание карточки Horizon Drift не отстаёт от игры: число трасс из её данных, карьера, новые трассы', () => {
+  const D = require('../../web/horizon_drift_offline/js/data.js');
+  const g = DATA.GAMES.find((x) => x.id === 'horizon_drift_offline');
+  const m = g.desc.match(/(\d+) трасс/);
+  assert.ok(m, 'в описании нет числа трасс: ' + g.desc);
+  assert.equal(+m[1], D.TRACKS.length, g.desc);
+  assert.match(g.desc, /карьер/i);
+  assert.match(g.desc, /по коду/);
+});
+
 test('таблица игр одна: приложение читает web/_shared/games-data.js', () => {
   assert.equal(Games.GAMES, DATA.GAMES);
   assert.ok(Object.isFrozen(DATA.GAMES) && DATA.GAMES.every((g) => Object.isFrozen(g)), 'таблица не должна меняться на ходу');

@@ -80,7 +80,7 @@ const MUTANTS = [
   { name: 'ИИ: лучи не видят машины', file: 'airacer.js', spec: UNIT, grep: 'видит только то', from: '      for (const o of race.cars) {\n        if (o === car || o.out', to: '      for (const o of []) {\n        if (o === car || o.out' },
   { name: 'ИИ: все решают на одном шаге', file: 'airacer.js', spec: UNIT, grep: 'рулит через ввод игрока', from: '    let n = phase | 0;', to: '    let n = 0;' },
   { name: 'ИИ: решение каждый шаг', file: 'airacer.js', spec: UNIT, grep: 'рулит через ввод игрока', from: '  const EVERY = 4;', to: '  const EVERY = 1;' },
-  { name: 'ИИ: уровень не зависит от темпа', file: 'airacer.js', spec: UNIT, grep: 'нейросеть', from: 'pace: p >= 0.98 ? 1 : p - 0.06, label', to: 'pace: 1, label' },
+  { name: 'ИИ: уровень не зависит от темпа', file: 'airacer.js', spec: UNIT, grep: 'нейросеть', from: 'pace: p >= 0.98 ? 1 : care, label', to: 'pace: 1, label' },
   { name: 'ИИ: осторожность не тормозит', file: 'airacer.js', spec: UNIT, grep: 'проходит круг', from: '      if (h.pace && h.pace < 1) caution(obs, a, h.pace);', to: '' },
   { name: 'ИИ: нитро не по правилам (не жмёт)', file: 'airacer.js', spec: UNIT, grep: 'одинаковый сид', from: '        nitro: o[3] > 0 ? 1 : 0,', to: '        nitro: 0,' },
   { name: 'ИИ: дрифт соперника без очков', file: 'airacer.js', spec: AISPEC, grep: 'дрифт с соперниками', from: '      c.ai.after = driftAfter;\n      c.assist', to: '      c.assist' },
@@ -96,6 +96,11 @@ const MUTANTS = [
   { name: 'клавиши: новое действие забирает клавишу', file: 'core.js', spec: UNIT, grep: 'старые настройки', from: "s.bindings[a] = s.bindings[a].map((k) => (k && used.has(k) ? '' : k));", to: '{}' },
   { name: 'клавиши: фестиваль всё ещё на E в мире', file: 'game.js', spec: AISPEC, grep: 'фестиваль - на своей клавише', from: "if (act === 'festival' && !e.repeat && worldInteract())", to: "if (e.code === 'KeyE' && !e.repeat && worldInteract())" },
   { name: 'подсказки: фестиваль с буквой E', file: 'game.js', spec: AISPEC, grep: 'фестиваль - на своей клавише', from: "const fk = `<kbd>${esc(bindName('festival'))}</kbd>`;", to: "const fk = '<kbd>E</kbd>';" },
+  // 17.10 ревью: фестиваль без клавиши в старых настройках, стройка трассы во время заезда, уровень нейросети против бота того же темпа
+  { name: 'клавиши: фестиваль остаётся без клавиши', file: 'core.js', spec: UNIT, grep: 'клавиша фестиваля занята', from: "if (free) { s.bindings[a] = [free, '']; used.add(free); }", to: '' },
+  { name: 'генератор: заезд не прерывает стройку', file: 'game.js', spec: AISPEC, grep: 'прерывается', from: '    genAbort();\n    stopRace();', to: '    stopRace();' },
+  { name: 'генератор: свободная езда не прерывает стройку', file: 'game.js', spec: AISPEC, grep: 'прерывается', from: 'A.init(); genAbort(); stopRace();', to: 'A.init(); stopRace();' },
+  { name: 'ИИ: уровень по-старому (темп - 0.06)', file: 'airacer.js', spec: UNIT, grep: 'уровень нейросети', from: 'const care = Math.max(0.4, Math.min(0.97, 0.63 + 1.34 * (p - 0.73)));', to: 'const care = p - 0.06;' },
 ];
 
 function copyDir(a, b) {

@@ -35,6 +35,25 @@
   cars at 3 levels; it does not see the racing line or cars farther than 90 m; the same seed gives
   the same race; tracks can be driven for 200 codes of all types. 22 new mutants
   (`node tests/web/horizon_drift-mutate.js`, now runs the node laws too).
+- Independent review of Horizon Drift 1.2.0 before the release (17.10), 3 fixes:
+  - The rival level was matched to the game's bot at pace 1, not at the same pace. On "Easy"
+    (pace about 0.73) the network was 3-4% faster than the easy bot, on "Hard" (about 0.92) slightly
+    slower, so the gap between difficulties shrank. Now the caution follows the bot of the same pace:
+    the average lap over 8 tracks is within 1% of the bot at paces 0.73-0.92. One track can still
+    differ by up to 10% (the network is quicker in the city and slower on the serpentine).
+  - A player whose old settings had already given T to another action got no festival key at all:
+    the prompt in free roam showed "—" and the festival, events and duels could not be opened from
+    the keyboard. The new action now takes the first free key (Y, H, U...).
+  - Building a "New track" went on after leaving the screen and starting a race, taking frames from
+    the race for up to 10 s. A race or free roam now stops it ("Building stopped").
+  - Laws: +1 in the browser, +2 in node, 4 new mutants killed.
+- Hub card of Horizon Drift: "three tracks and three modes" (true for version 1.0) is replaced by
+  "career, free roam, 8 tracks and new ones from a code, neural rivals"; the law takes the number of
+  tracks from the game's data.
+- Review of Hub 1.1.1 (17.10): both calculators in tabs of the site and of the app were checked from
+  the keyboard and with the mouse, all modes, themes (each its own, the Hub theme untouched, kept after
+  reopening), window sizes from 320x568 to 1920x1080 (centred, no button cut or covered), no console
+  errors. Nothing to fix.
 
 **RU**
 
@@ -69,6 +88,25 @@
   и 3 уровнях; не видит гоночной линии и машин дальше 90 м; одинаковый сид - одинаковый заезд;
   трассы проходимы для 200 кодов всех типов. 22 новых мутанта (`node tests/web/horizon_drift-mutate.js`,
   теперь гоняет и законы в node).
+- Независимая проверка Horizon Drift 1.2.0 перед выпуском (17.10), 3 исправления:
+  - Уровень соперника подбирался по боту с темпом 1, а не по боту того же темпа. На «Легко» (темп
+    около 0,73) нейросеть была на 3-4% быстрее лёгкого бота, на «Сложно» (около 0,92) - чуть
+    медленнее: разница между сложностями сжималась. Теперь осторожность подобрана по боту того же
+    темпа: средний круг по 8 трассам отличается от бота меньше чем на 1% на темпах 0,73-0,92. На
+    одной трассе разница бывает до 10% (в городе нейросеть быстрее, на серпантине медленнее).
+  - Если в старых настройках игрок уже отдал T другому действию, у фестиваля не оставалось ни одной
+    клавиши: в свободной езде подсказка «—», фестиваль, события и дуэли с клавиатуры не открыть.
+    Теперь новое действие берёт первую свободную клавишу (Y, H, U...).
+  - «Новая трасса» строилась дальше после ухода с экрана и начала заезда и до 10 с отнимала кадры
+    у гонки. Теперь заезд или свободная езда её прерывают («Создание трассы прервано»).
+  - Законы: +1 в браузере, +2 в node, 4 новых мутанта убиты.
+- Карточка Horizon Drift в Хабе: вместо «три трассы и три режима» (так было в версии 1.0) -
+  «карьера, свободная езда, 8 трасс и новые по коду, соперники-нейросеть»; закон берёт число трасс
+  из данных самой игры.
+- Проверка Хаба 1.1.1 (17.10): оба калькулятора во вкладках сайта и приложения проверены с
+  клавиатуры и мышью, во всех режимах, темы (у каждого своя, тема Хаба не меняется, после
+  переоткрытия остаётся), размеры окна от 320x568 до 1920x1080 (посередине, ни одна кнопка не
+  обрезана и не закрыта), ошибок в консоли нет. Исправлять нечего.
 
 
 ## 1.1.1 - 2026-10-17

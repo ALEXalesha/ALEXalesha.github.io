@@ -48,6 +48,29 @@ test('старые настройки: новое действие не заби
   assert.deepEqual(r.conflict, { action: 'shiftUp', slot: 0 });
 });
 
+// Ревью 17.10: до 1.2.0 фестиваль открывался E. Если клавишу фестиваля по умолчанию (T) игрок уже отдал другому
+// действию, у фестиваля не оставалось ни одной клавиши: в мире подсказка «— Фестиваль», события и дуэли с клавиатуры не открыть.
+test('старые настройки: клавиша фестиваля занята - фестиваль получает свободную клавишу, а не «—»', () => {
+  const T = D.DEFAULT_BINDINGS.festival[0];
+  for (const taken of [['reset'], ['camera', 'repair'], ['lookBack', 'pause', 'camera']]) {
+    const old = { bindings: JSON.parse(JSON.stringify(D.DEFAULT_BINDINGS)) };
+    delete old.bindings.festival;
+    // игрок отдал T и следующие свободные буквы другим действиям
+    const spare = [T, 'KeyY', 'KeyH'];
+    taken.forEach((a, k) => { old.bindings[a] = [spare[k], '']; });
+    const s = C.mergeSettings(old);
+    const fest = s.bindings.festival.filter(Boolean);
+    assert.ok(fest.length >= 1, `у фестиваля нет клавиши (заняты ${spare.slice(0, taken.length).join(', ')})`);
+    for (const k of fest) {
+      assert.ok(!D.RESERVED_KEYS[k], 'клавиша фестиваля ' + k + ' зарезервирована');
+      assert.ok(!spare.slice(0, taken.length).includes(k), 'фестиваль забрал клавишу игрока ' + k);
+    }
+    taken.forEach((a, k) => assert.deepEqual(s.bindings[a], [spare[k], ''], 'клавиша игрока у «' + a + '» осталась'));
+    const all = []; for (const a in s.bindings) for (const k of s.bindings[a]) if (k) all.push(k);
+    assert.equal(new Set(all).size, all.length, 'после слияния клавиши уникальны');
+  }
+});
+
 // ---------- ИИ-соперники ----------
 function lap(track, car, ai, o) {
   o = o || {};
@@ -77,6 +100,24 @@ test('нейросеть проходит круг на всех 8 трасса�
   assert.deepEqual(bad, []);
   slow.sort((a, b) => a - b);
   assert.ok(slow[slow.length >> 1] > 1.04, 'новичок медленнее аса: медиана ' + slow[slow.length >> 1].toFixed(3));
+});
+
+// Ревью 17.10: уровень сравнивался с ботом темпа 1, а не с ботом того же темпа. Замер (8 трасс, «Кобальт» и «Сапсан»,
+// без ошибок бота): с осторожностью pace - 0.06 нейросеть на «Легко» (темп ~0.73) была на 3-4% быстрее бота того же
+// темпа, на «Сложно» (~0.92) - на 0.6-0.9% медленнее: разница между сложностями сжималась, «Легко» стало труднее.
+test('уровень нейросети - как у бота игры того же темпа: на лёгком и на трудном круг в пределах 2% (среднее по 8 трассам)', () => {
+  const out = {};
+  for (const pace of [0.73, 0.92]) {
+    let sum = 0, n = 0;
+    for (const t of D.TRACKS) for (const car of ['kobalt', 'sapsan']) {
+      const bot = lap(t.id, car, { pace, mistakes: 0, laneBase: 0 }, { seed: 99, max: 600 });
+      const nn = lap(t.id, car, { pace, mistakes: 0, neural: { model: 'racer', hands: AI.handsForPace(pace) } }, { seed: 99, max: 600 });
+      assert.ok(bot.finished && nn.finished, `${t.id} ${car} ${pace}: круг не закончен`);
+      sum += Math.log(nn.time / bot.time); n++;
+    }
+    out[pace] = Math.exp(sum / n);
+  }
+  for (const pace in out) assert.ok(Math.abs(out[pace] - 1) < 0.02, `темп ${pace}: нейросеть/бот ${out[pace].toFixed(3)} (все: ${JSON.stringify(out)})`);
 });
 
 test('нейросеть рулит через ввод игрока: помощники игрока, решение раз в 4 шага, сдвиг между соперниками', () => {

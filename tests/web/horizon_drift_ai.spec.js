@@ -32,11 +32,13 @@ test.describe('horizon_drift_offline: ИИ-соперники и новые тр
   test('повреждения и нитро у соперников-нейросетей - по правилам игрока: «полные» подключены всем, удар мнёт, нитро тратится', async ({ page }) => {
     await openDrift(page);
     await page.evaluate(() => __drift.setSetting('damage', 'full'));
-    await startQuick(page, { track: 'port', mode: 'race', opp: 5, laps: 1 });
+    // нитро нейросеть жмёт редко (0-1,5 с за 150 с): за 60 с в порту его мог не тронуть ни один из пятерых (ревью 17.10,
+    // замер на 4 трассах) - берётся побережье, где за 150 с его тратят все
+    await startQuick(page, { track: 'coast', mode: 'race', opp: 5, laps: 2 });
     const r = await page.evaluate(() => {
       const r = __drift.race; r.setAutopilot(r.player, 0.9);
       const rivals = r.cars.filter((c) => !c.isPlayer), nitro = rivals.map(() => 1);
-      for (let i = 0; i < 60 * 120; i++) { __drift.step(1); rivals.forEach((c, k) => { nitro[k] = Math.min(nitro[k], c.nitro); }); }
+      for (let i = 0; i < 150 * 120; i++) { __drift.step(1); rivals.forEach((c, k) => { nitro[k] = Math.min(nitro[k], c.nitro); }); }
       return { mode: r.damageMode, dmg: r.cars.map((c) => !!c.dmg && !!c.dmgFx), hits: rivals.reduce((a, c) => a + c.dmg.hits, 0), minNitro: Math.min(...nitro), brains: rivals.every((c) => !!c.ai.brain) };
     });
     expect(r.mode).toBe('full');
@@ -145,6 +147,29 @@ test.describe('horizon_drift_offline: ИИ-соперники и новые тр
     await page.keyboard.press('Escape');
     await page.evaluate(() => { __drift.quitWorld(); __drift.show('help'); });
     await expect(page.locator('#helpBody')).toContainText('H фестиваль, события и дуэли');
+    expect(errors).toEqual([]);
+  });
+
+  // Ревью 17.10: трасса строится по шагам в той же странице (шаг проверки - до ~0,1 с). Ушли с экрана и начали заезд -
+  // стройка шла дальше и до 10 с отнимала кадры у гонки (рывки на старте). Заезд или свободная езда её прерывают.
+  test('создание трассы прерывается, когда начинается заезд или свободная езда: кадры гонки не делятся со стройкой', async ({ page }) => {
+    const errors = await openDrift(page);
+    for (const start of ['race', 'world']) {
+      await page.evaluate(() => __drift.show('gen'));
+      await page.evaluate(() => { window.__genDone = __drift.generate({ code: 'C3M-1UMQO' }); });
+      await page.waitForTimeout(300);
+      expect(await page.evaluate(() => __drift.gen.busy)).toBe(true);
+      if (start === 'race') await startQuick(page, { track: 'city', mode: 'race', opp: 1, laps: 1 });
+      else await page.evaluate(() => __drift.startWorld('coast', {}));
+      // стройка на этой трассе идёт 7-15 с; прерванная заканчивает текущий шаг и выходит
+      await page.waitForTimeout(800);
+      expect(await page.evaluate(() => __drift.gen.busy), 'после начала: ' + start).toBe(false);
+      expect(await page.evaluate(async () => await window.__genDone)).toBe(null);
+      await expect(page.locator('#genStatus')).toContainText('прервано');
+      await page.evaluate(() => { __drift.manual = false; if (__drift.world) __drift.quitWorld(); else __drift.toMenu(); });
+    }
+    // после прерывания трасса строится, как обычно
+    expect(await page.evaluate(async () => (await __drift.generate({ code: 'R1S-7Q' })).code)).toBe('R1S-7Q');
     expect(errors).toEqual([]);
   });
 
