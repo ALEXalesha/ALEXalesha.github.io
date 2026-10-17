@@ -1,5 +1,25 @@
 # Changelog / Журнал изменений
 
+## 1.1.3 - 2026-10-17
+
+**EN**
+
+- RailRunner 2.0.2 in the Hub (`web/rail-runner`, commit 0c8fd0d, `node tools/sync-railrunner.js`):
+  an obstacle touched only by its edge (up to 10 % of its height or width - a late jump that clips the
+  top of a barrier, a landing on the back edge, a corner on a late side step) is a stumble for 2.5 s
+  instead of a crash; a second stumble in that time is a crash. The hitboxes of the barrier, the bar
+  and the fence along the track are now as deep as their models. A new player starts with 3 boards,
+  an old save gets up to 3 once.
+
+**RU**
+
+- «Бег по рельсам» 2.0.2 в Хабе (`web/rail-runner`, коммит 0c8fd0d, `node tools/sync-railrunner.js`):
+  препятствие, задетое только краем (до 10 % высоты или ширины - поздний прыжок носками о верх
+  барьера, приземление на задний край, угол при позднем уходе в сторону), - ушиб на 2,5 с вместо
+  аварии; второй ушиб за это время - авария. Хитбоксы барьера, перекладины и ограждения по ходу
+  теперь равны их моделям. Новый игрок начинает с 3 досками, старое сохранение один раз получает
+  до 3.
+
 ## 1.1.2 - 2026-10-17
 
 **EN**

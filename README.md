@@ -114,8 +114,8 @@ npm start                 # run the app
 npm run dist              # build the installer and the portable exe into dist/
 ```
 
-The Windows x64 build gives `dist/Hub-1.1.2-Setup.exe` (NSIS, per-user, no admin
-rights, Russian) and `dist/Hub-1.1.2-Portable.exe`. Only `app/` and the
+The Windows x64 build gives `dist/Hub-1.1.3-Setup.exe` (NSIS, per-user, no admin
+rights, Russian) and `dist/Hub-1.1.3-Portable.exe`. Only `app/` and the
 folders of the games, programs and demos go into the build (about 160 MB each).
 
 ```
@@ -186,7 +186,7 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 | `jungle-strike` | Fire Jungle: a run-and-gun arcade with a boss | 11 | 7 / 7 / 6 |
 | `minecraft_clone_3d_1` | Cube World: a voxel sandbox, builds are saved | 11 | 7 / 7 / 6 |
 | `dino` | Dino Run: jump over cacti and duck under birds | 11 | 6 / 8 / 3 |
-| `rail-runner` | RailRunner («Бег по рельсам»): run along three tracks in 3D away from trains through five districts - 6 characters, a shop, missions, a jetpack and a tutorial. Its own repository [RailRunner](https://github.com/ALEXalesha/RailRunner); this is a copy of its `web/`, version <!--rail-ver-->2.0.1<!--/rail-ver-->, refreshed with `node tools/sync-railrunner.js [folder]` (or `RAILRUNNER_DIR`) | in RailRunner | not reviewed yet |
+| `rail-runner` | RailRunner («Бег по рельсам»): run along three tracks in 3D away from trains through five districts - 6 characters, a shop, missions, a jetpack and a tutorial. Its own repository [RailRunner](https://github.com/ALEXalesha/RailRunner); this is a copy of its `web/`, version <!--rail-ver-->2.0.2<!--/rail-ver-->, refreshed with `node tools/sync-railrunner.js [folder]` (or `RAILRUNNER_DIR`) | in RailRunner | not reviewed yet |
 | `flappy-wings` | Flappy Wings: fly between columns, one file, a fan game not affiliated with the rights holders of the genre's known games | 25 | not reviewed yet |
 | `fps_1` | Operation: Perimeter: a first-person tactical shooter, rounds against bots | 10 | 6 / 7 / 4 |
 | `roblox-mini` | Blockcity: a city of places - pick one and dress up your hero | 10 | 5 / 7 / 4 |
