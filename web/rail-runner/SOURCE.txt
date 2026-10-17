@@ -1,3 +1,3 @@
-RailRunner 2.0.0 (commit a37481f)
+RailRunner 2.0.1 (commit 9ea7a53)
 https://github.com/ALEXalesha/RailRunner - folder web/ as is.
 Do not edit here: fix it in RailRunner and run node tools/sync-railrunner.js.

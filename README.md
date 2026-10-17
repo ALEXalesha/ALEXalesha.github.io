@@ -114,13 +114,13 @@ npm start                 # run the app
 npm run dist              # build the installer and the portable exe into dist/
 ```
 
-The Windows x64 build gives `dist/Hub-1.1.1-Setup.exe` (NSIS, per-user, no admin
-rights, Russian) and `dist/Hub-1.1.1-Portable.exe`. Only `app/` and the
+The Windows x64 build gives `dist/Hub-1.1.2-Setup.exe` (NSIS, per-user, no admin
+rights, Russian) and `dist/Hub-1.1.2-Portable.exe`. Only `app/` and the
 folders of the games, programs and demos go into the build (about 160 MB each).
 
 ```
-npm test                  # web/ pages in Chromium (1185 checks)
-npm run test:unit         # laws of the app modules and the icon (51)
+npm test                  # web/ pages in Chromium (1193 checks)
+npm run test:unit         # laws of the app modules and the icon (63)
 npm run test:app          # the real app through Playwright (91, windows off-screen)
 pip install -r requirements-py.txt
 python -m pytest tests/py # py/ programs (183)
@@ -180,13 +180,13 @@ and [docs/audit/apps.md](docs/audit/apps.md). Scores are after the fixes.
 |---|---|---|---|
 | `tetris` | Blocks: falling pieces by the classic rules, with hold and T-spins | 12 | 9 / 9 / 4 |
 | `sudoku` | Sudoku with a solver, hints, pause and records per level | 11 | 8 / 9 / 5 |
-| `horizon_drift_offline` | Horizon Drift: 3D racing and drifting, career, 8 cars and 8 tracks, free roam on 4 maps, car damage; rivals are driven by the AiRacer neural network (it sees only what a driver sees), "New track" from a code - a generator checked by the bot and the network | 117 + 9 in node | 8 / 7 / 7 |
+| `horizon_drift_offline` | Horizon Drift: 3D racing and drifting, career, 8 cars and 8 tracks, free roam on 4 maps, car damage; rivals are driven by the AiRacer neural network (it sees only what a driver sees), "New track" from a code - a generator checked by the bot and the network | 118 + 11 in node | 8 / 7 / 7 |
 | `space_shooter` | Space Shooter: waves of enemies and asteroids, power-ups, record | 12 | 8 / 7 / 5 |
 | `mario` | Hop-Skip: a two-level platformer with its own hero | 13 | 7 / 8 / 5 |
 | `jungle-strike` | Fire Jungle: a run-and-gun arcade with a boss | 11 | 7 / 7 / 6 |
 | `minecraft_clone_3d_1` | Cube World: a voxel sandbox, builds are saved | 11 | 7 / 7 / 6 |
 | `dino` | Dino Run: jump over cacti and duck under birds | 11 | 6 / 8 / 3 |
-| `rail-runner` | RailRunner («Бег по рельсам»): run along three tracks in 3D away from trains through five districts - 6 characters, a shop, missions, a jetpack and a tutorial. Its own repository [RailRunner](https://github.com/ALEXalesha/RailRunner); this is a copy of its `web/`, version <!--rail-ver-->2.0.0<!--/rail-ver-->, refreshed with `node tools/sync-railrunner.js [folder]` (or `RAILRUNNER_DIR`) | in RailRunner | not reviewed yet |
+| `rail-runner` | RailRunner («Бег по рельсам»): run along three tracks in 3D away from trains through five districts - 6 characters, a shop, missions, a jetpack and a tutorial. Its own repository [RailRunner](https://github.com/ALEXalesha/RailRunner); this is a copy of its `web/`, version <!--rail-ver-->2.0.1<!--/rail-ver-->, refreshed with `node tools/sync-railrunner.js [folder]` (or `RAILRUNNER_DIR`) | in RailRunner | not reviewed yet |
 | `flappy-wings` | Flappy Wings: fly between columns, one file, a fan game not affiliated with the rights holders of the genre's known games | 25 | not reviewed yet |
 | `fps_1` | Operation: Perimeter: a first-person tactical shooter, rounds against bots | 10 | 6 / 7 / 4 |
 | `roblox-mini` | Blockcity: a city of places - pick one and dress up your hero | 10 | 5 / 7 / 4 |

@@ -1,13 +1,16 @@
 # Changelog / Журнал изменений
 
-## Unreleased
+## 1.1.2 - 2026-10-17
 
 **EN**
 
-- RailRunner 2.0.0 in the Hub (`web/rail-runner`, commit a37481f, `node tools/sync-railrunner.js`):
+- RailRunner 2.0.1 in the Hub (`web/rail-runner`, commit 9ea7a53, `node tools/sync-railrunner.js`):
   five districts with time of day and weather, 6 characters and boards, a shop, missions with a
   multiplier, a daily challenge, a jetpack, tricks and combos, a tutorial; new files `meta.js`,
   `gfx.js`, `scenery.js`, `actors.js`. New card picture and description.
+- RailRunner 2.0.1 fixes after its review: ramps to the trains are drawn (they were see-through), the
+  overhead wires and the tunnel vault are above the runner and the camera, a key found in a run can pay
+  for a continue at once, achievement names fit their cards.
 - Horizon Drift 1.2.0: rivals are driven by the AiRacer neural network (the AiRacer project: a
   small 35-20-14-4 network trained on the game's own physics). It sees only what a driver would
   see - rays to the walls and to the cars nearby, its own speed and slide, the road 10-90 m ahead -
@@ -57,10 +60,13 @@
 
 **RU**
 
-- «Бег по рельсам» 2.0.0 в Хабе (`web/rail-runner`, коммит a37481f, `node tools/sync-railrunner.js`):
+- «Бег по рельсам» 2.0.1 в Хабе (`web/rail-runner`, коммит 9ea7a53, `node tools/sync-railrunner.js`):
   пять районов со сменой времени суток и погодой, 6 персонажей и доски, магазин, задания с
   множителем, испытание дня, реактивный ранец, трюки и комбо, обучение; новые файлы `meta.js`,
   `gfx.js`, `scenery.js`, `actors.js`. Новая картинка карточки и описание.
+- «Бег по рельсам» 2.0.1 - исправления после его проверки: пандусы к поездам видны (были прозрачными),
+  провода и свод туннеля выше бегуна и камеры, найденным в забеге ключом можно сразу продолжить,
+  названия достижений влезают в карточки.
 - Horizon Drift 1.2.0: соперников ведёт нейросеть AiRacer (проект AiRacer: маленькая сеть
   35-20-14-4, обученная на физике самой игры). Она видит только то, что видел бы водитель, - лучи
   до стен и машин рядом, свою скорость и занос, дорогу на 10-90 м вперёд - и жмёт те же газ,
@@ -107,7 +113,6 @@
   клавиатуры и мышью, во всех режимах, темы (у каждого своя, тема Хаба не меняется, после
   переоткрытия остаётся), размеры окна от 320x568 до 1920x1080 (посередине, ни одна кнопка не
   обрезана и не закрыта), ошибок в консоли нет. Исправлять нечего.
-
 
 ## 1.1.1 - 2026-10-17
 
